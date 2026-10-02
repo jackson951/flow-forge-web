@@ -20,7 +20,7 @@ Register and login pages, session store, silent refresh, 401 handling, route gua
 | --- | --- |
 | FR-02.1 | Register (`POST /auth/register` — name, email, password with the backend's rules) and login (`POST /auth/login`) forms with client-side validation mirroring the backend DTOs; server validation messages shown on the right fields. |
 | FR-02.2 | The access token lives in memory only (module-level store); the response's `refreshToken` field is ignored — the `ff_refresh` cookie is the only refresh credential. Nothing auth-related in `localStorage`/`sessionStorage`. |
-| FR-02.3 | On app load, the session is restored by `POST /auth/refresh` (cookie); success → user + token in memory; 401 → logged-out state without an error screen. |
+| FR-02.3 | On app load, the session is restored by `POST /auth/refresh` (cookie) — it returns tokens only, so the user then comes from `GET /auth/me`; success → user + token in memory; 401 → logged-out state without an error screen. |
 | FR-02.4 | Proactive refresh shortly before `expiresIn` elapses; reactive refresh on a 401: **one** refresh in flight at a time (concurrent 401s wait for it), the original request retried once, a second 401 → logged out. |
 | FR-02.5 | Refresh-token reuse detected by the backend (401 on refresh) logs the user out everywhere in this tab with a clear message. |
 | FR-02.6 | `RequireAuth` guard: unauthenticated users go to `/login?next=<path>`; after login they return to `next` (only same-origin relative paths accepted). Auth pages redirect away when already logged in. |

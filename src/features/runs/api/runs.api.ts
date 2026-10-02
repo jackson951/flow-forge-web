@@ -1,43 +1,61 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
 import { queryKeys } from '@/lib/query-keys';
-import type { Paginated, RunDetail, RunStatus, RunSummary } from '@/types/api';
+import type {
+  CancelResult,
+  DispatchedRun,
+  ManualRunRequest,
+  Page,
+  RetriedRun,
+  RetryRunRequest,
+  RunDetail,
+  RunFilters,
+  RunSummary,
+  StepRun,
+} from '@/types/api';
 
-export interface RunFilters {
-  workflowId?: string;
-  status?: RunStatus;
-  from?: string;
-  to?: string;
-  cursor?: string;
-}
-
-function toQuery(filters: RunFilters): string {
-  const params = new URLSearchParams(
-    Object.entries(filters).filter((e): e is [string, string] => typeof e[1] === 'string'),
-  );
-  const qs = params.toString();
-  return qs ? `?${qs}` : '';
-}
+const base = (ws: string) => `/workspaces/${ws}/runs`;
 
 export const runsApi = {
-  list: (filters: RunFilters) => api.get<Paginated<RunSummary>>(`/runs${toQuery(filters)}`),
-  get: (id: string) => api.get<RunDetail>(`/runs/${id}`),
-  retry: (id: string) => api.post<RunSummary>(`/runs/${id}/retry`),
-  cancel: (id: string) => api.post<RunSummary>(`/runs/${id}/cancel`),
+  list: (ws: string, filters: RunFilters = {}) =>
+    api.get<Page<RunSummary>>(base(ws), { query: { ...filters } }),
+  get: (ws: string, runId: string) => api.get<RunDetail>(`${base(ws)}/${runId}`),
+  steps: (ws: string, runId: string) => api.get<StepRun[]>(`${base(ws)}/${runId}/steps`),
+  /** Manual run of the active version; reuse the same key when retrying the request. */
+  start: (ws: string, workflowId: string, input: ManualRunRequest, idempotencyKey: string) =>
+    api.post<DispatchedRun>(`/workspaces/${ws}/workflows/${workflowId}/runs`, input, {
+      idempotencyKey,
+    }),
+  retry: (ws: string, runId: string, input: RetryRunRequest, idempotencyKey?: string) =>
+    api.post<RetriedRun>(`${base(ws)}/${runId}/retry`, input, { idempotencyKey }),
+  cancel: (ws: string, runId: string) => api.post<CancelResult>(`${base(ws)}/${runId}/cancel`),
 };
 
-export function useRuns(filters: RunFilters) {
-  return useQuery({ queryKey: queryKeys.runs.list(filters), queryFn: () => runsApi.list(filters) });
+export function useRuns(ws: string, filters: RunFilters = {}) {
+  return useQuery({
+    queryKey: queryKeys.runs.list(ws, filters),
+    queryFn: () => runsApi.list(ws, filters),
+  });
 }
 
-export function useRun(id: string) {
-  return useQuery({ queryKey: queryKeys.runs.detail(id), queryFn: () => runsApi.get(id) });
+export function useRun(ws: string, runId: string) {
+  return useQuery({
+    queryKey: queryKeys.runs.detail(ws, runId),
+    queryFn: () => runsApi.get(ws, runId),
+  });
 }
 
-export function useRetryRun() {
+export function useRunSteps(ws: string, runId: string) {
+  return useQuery({
+    queryKey: queryKeys.runs.steps(ws, runId),
+    queryFn: () => runsApi.steps(ws, runId),
+  });
+}
+
+export function useCancelRun(ws: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: runsApi.retry,
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.runs.all }),
+    mutationFn: (runId: string) => runsApi.cancel(ws, runId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.runs.all(ws) }),
   });
 }

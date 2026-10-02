@@ -22,7 +22,7 @@ Definition ↔ canvas mapping, node palette, editing interactions, branch edges,
 | FR-05.2 | Palette from `GET /node-types`, grouped by kind (Triggers, Conditions, Actions); types with `unavailableReason` (e.g. AI not configured on the server) shown disabled with the reason. |
 | FR-05.3 | Add a node by drag-and-drop or click (placed next to the selection); keys generated from the type (`slack_send`, `slack_send_2`, …) matching the backend key pattern; keys editable with validation (unique, pattern, ≤ 64). |
 | FR-05.4 | Exactly one trigger: adding a second trigger is prevented with an explanation; the trigger has no inputs. |
-| FR-05.5 | Connections: actions have one output; conditions have two labelled outputs **true** / **false** that produce `branch` on the edge; no edges into the trigger; no self-loops; cycles prevented at connect time (the backend also rejects them). |
+| FR-05.5 | Connections: actions have one output; conditions have two labelled outputs **true** / **false** that produce `branch` on the edge; no edges into the trigger; no self-loops; **at most one incoming edge per node** (workflows are trees — the backend rejects `MULTIPLE_INCOMING`); cycles prevented at connect time (the backend also rejects them). |
 | FR-05.6 | Delete nodes/edges (Delete/Backspace, context menu); deleting a node removes its edges. |
 | FR-05.7 | Node positions are written to `position`, so the layout survives save and reload; definitions without positions get an automatic top-to-bottom layout. |
 | FR-05.8 | Undo/redo (Ctrl/Cmd+Z, Shift+Z) over definition changes; "unsaved changes" indicator; leaving the page with unsaved changes asks for confirmation. |

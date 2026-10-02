@@ -1,13 +1,16 @@
 import { Activity, LayoutDashboard, Plug, Settings, Workflow, X } from 'lucide-react';
 import { NavLink } from 'react-router';
+import { useWorkspaceId } from '@/features/workspaces/hooks/use-workspace-id';
 import { cn } from '@/lib/cn';
+import { paths } from '@/lib/routes';
 
-const nav = [
-  { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
-  { to: '/workflows', label: 'Workflows', icon: Workflow },
-  { to: '/runs', label: 'Runs', icon: Activity },
-  { to: '/integrations', label: 'Integrations', icon: Plug },
-  { to: '/settings', label: 'Settings', icon: Settings },
+/** Links stay inside the workspace being viewed. */
+const navFor = (ws: string) => [
+  { to: paths.workspace(ws), label: 'Dashboard', icon: LayoutDashboard, end: true },
+  { to: paths.workflows(ws), label: 'Workflows', icon: Workflow },
+  { to: paths.runs(ws), label: 'Runs', icon: Activity },
+  { to: paths.integrations(ws), label: 'Integrations', icon: Plug },
+  { to: paths.settings(ws), label: 'Settings', icon: Settings },
 ];
 
 interface SidebarProps {
@@ -16,6 +19,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ open, onClose }: SidebarProps) {
+  const nav = navFor(useWorkspaceId());
   return (
     <>
       {open && (

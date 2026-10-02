@@ -13,8 +13,11 @@ export function StepTimeline({ steps }: { steps: StepRun[] }) {
           <span className="text-muted ml-auto text-sm tabular-nums">
             {step.durationMs !== null ? `${step.durationMs} ms` : '—'}
           </span>
-          {step.errorMessage && (
-            <p className="text-status-failed w-full pl-12 text-sm">{step.errorMessage}</p>
+          {step.error && (
+            <p className="text-status-failed w-full pl-12 text-sm">
+              {step.error.description}
+              {step.error.message && <span className="text-muted"> — {step.error.message}</span>}
+            </p>
           )}
         </li>
       ))}
