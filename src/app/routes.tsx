@@ -2,6 +2,7 @@ import type { RouteObject } from 'react-router';
 import { RouteError } from '@/components/feedback/route-error';
 import { AppShell } from '@/components/layout/app-shell';
 import { AuthLayout } from '@/components/layout/auth-layout';
+import { RedirectIfAuthenticated } from '@/features/auth/components/redirect-if-authenticated';
 import { RequireAuth } from '@/features/auth/components/require-auth';
 import { LoginPage } from '@/features/auth/pages/login-page';
 import { RegisterPage } from '@/features/auth/pages/register-page';
@@ -17,7 +18,11 @@ import { NotFoundPage } from '@/pages/not-found-page';
 
 export const routes: RouteObject[] = [
   {
-    element: <AuthLayout />,
+    element: (
+      <RedirectIfAuthenticated>
+        <AuthLayout />
+      </RedirectIfAuthenticated>
+    ),
     errorElement: <RouteError />,
     children: [
       { path: paths.login, element: <LoginPage /> },

@@ -1,5 +1,8 @@
 import { screen } from '@testing-library/react';
+import { http } from 'msw';
 import { WS_ID } from '@/test/msw/fixtures';
+import { API, apiError } from '@/test/msw/handlers';
+import { server } from '@/test/msw/server';
 import { renderRoute } from '@/test/render';
 
 describe('routes (Part 01, FR-01.7)', () => {
@@ -9,10 +12,17 @@ describe('routes (Part 01, FR-01.7)', () => {
     [`/w/${WS_ID}/runs`, 'Runs'],
     [`/w/${WS_ID}/integrations`, 'Integrations'],
     [`/w/${WS_ID}/settings`, 'Settings'],
-    ['/login', 'Sign in'],
   ])('%s renders %s', async (path, heading) => {
     renderRoute(path);
     expect(await screen.findByRole('heading', { level: 1, name: heading })).toBeInTheDocument();
+  });
+
+  it('/login renders Sign in for a signed-out visitor', async () => {
+    server.use(
+      http.post(`${API}/auth/refresh`, () => apiError(401, 'Invalid or expired refresh token')),
+    );
+    renderRoute('/login');
+    expect(await screen.findByRole('heading', { level: 1, name: 'Sign in' })).toBeInTheDocument();
   });
 
   it('/ goes to the first workspace of the user', async () => {

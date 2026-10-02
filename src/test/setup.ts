@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom/vitest';
-import { accessToken } from '@/lib/access-token';
+import { resetSessionForTests } from '@/features/auth/session/session';
 import { server } from './msw/server';
 
 // The API is always mocked: a request without a handler fails the test instead of
@@ -7,6 +7,7 @@ import { server } from './msw/server';
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 afterEach(() => {
   server.resetHandlers();
-  accessToken.clear();
+  // Session and access token are module singletons; every test starts signed out/unknown.
+  resetSessionForTests();
 });
 afterAll(() => server.close());

@@ -1,6 +1,7 @@
 import { Menu } from 'lucide-react';
 import { useState } from 'react';
 import { Outlet } from 'react-router';
+import { UserMenu } from '@/features/auth/components/user-menu';
 import { Sidebar } from './sidebar';
 
 export function AppShell() {
@@ -18,7 +19,9 @@ export function AppShell() {
           >
             <Menu className="size-5" />
           </button>
-          <div className="ml-auto">{/* TODO: workspace switcher + user menu */}</div>
+          <div className="ml-auto">
+            <UserMenu />
+          </div>
         </header>
         <main className="min-h-0 flex-1 overflow-y-auto">
           <Outlet />
