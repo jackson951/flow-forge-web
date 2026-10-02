@@ -8,7 +8,11 @@ const PROVIDERS = [
     name: 'GitHub',
     description: 'Start workflows from issues and repository events.',
   },
-  { key: 'MICROSOFT', name: 'Microsoft 365', description: 'Send email from your Outlook account.' },
+  {
+    key: 'MICROSOFT',
+    name: 'Microsoft To Do',
+    description: 'Create tasks in a To Do list of your Microsoft account.',
+  },
   { key: 'SLACK', name: 'Slack', description: 'Post messages to channels.' },
 ] as const;
 

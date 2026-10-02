@@ -8,7 +8,7 @@ Legend: **NOT STARTED** · **IN PROGRESS** · **COMPLETE** (meets the Definition
 
 | # | Part | Status | Notes |
 | --- | --- | --- | --- |
-| 01 | [Foundation and API Contract](01-FOUNDATION-AND-API-CONTRACT.md) | NOT STARTED | Scaffold exists but predates the backend; contract mismatches listed below |
+| 01 | [Foundation and API Contract](01-FOUNDATION-AND-API-CONTRACT.md) | COMPLETE | Verified 2026-10-03: typed client for /api/v1 with the backend error envelope, types generated from the backend Swagger (reproducible), /w/:workspaceId URLs, workspace-scoped query keys, MSW for every endpoint (78 tests), dev proxy checked against the real backend |
 | 02 | [Authentication and Session](02-AUTHENTICATION-AND-SESSION.md) | NOT STARTED | — |
 | 03 | [Workspaces and Members](03-WORKSPACES-AND-MEMBERS.md) | NOT STARTED | — |
 | 04 | [Workflow List and Management](04-WORKFLOW-LIST-AND-MANAGEMENT.md) | NOT STARTED | — |
@@ -27,6 +27,10 @@ Legend: **NOT STARTED** · **IN PROGRESS** · **COMPLETE** (meets the Definition
 ## Product Purpose
 
 The web app is how a person uses FlowForge: sign in, pick a workspace, connect GitHub / Slack / Microsoft, build a small workflow graph (trigger → conditions → actions), publish it, start or watch runs, and understand failures. It is a **developer-tool-quality** UI: fast, honest about state (a run that may have done something says so), keyboard-friendly, and never shows data from another workspace.
+
+## Design Direction
+
+Visual style and screen scope: [design/DESIGN-DIRECTION.md](design/DESIGN-DIRECTION.md) (from the UI mock). **Only screens backed by the real API are built**; mock elements without a backend (credentials page, templates, HTTP/schedule/delay/loop nodes, billing, extra providers, single-step test) are out of scope.
 
 ## Order and Dependencies
 
@@ -83,3 +87,4 @@ The scaffold was written before the backend existed. Known mismatches: base URL 
 | Date | Change |
 | --- | --- |
 | 2026-10-03 | Roadmap and Parts 01–15 written from the backend release state and the existing scaffold. |
+| 2026-10-03 | Design direction added (UI mock; real screens only). Part 01 COMPLETE. Next: Part 02 (authentication and session). |

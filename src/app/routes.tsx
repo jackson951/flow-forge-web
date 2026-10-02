@@ -11,6 +11,8 @@ import { RunDetailPage } from '@/features/runs/pages/run-detail-page';
 import { RunsListPage } from '@/features/runs/pages/runs-list-page';
 import { SettingsPage } from '@/features/settings/pages/settings-page';
 import { WorkflowsListPage } from '@/features/workflows/pages/workflows-list-page';
+import { WorkspaceRedirect } from '@/features/workspaces/components/workspace-redirect';
+import { patterns, paths } from '@/lib/routes';
 import { NotFoundPage } from '@/pages/not-found-page';
 
 export const routes: RouteObject[] = [
@@ -18,11 +20,22 @@ export const routes: RouteObject[] = [
     element: <AuthLayout />,
     errorElement: <RouteError />,
     children: [
-      { path: '/login', element: <LoginPage /> },
-      { path: '/register', element: <RegisterPage /> },
+      { path: paths.login, element: <LoginPage /> },
+      { path: paths.register, element: <RegisterPage /> },
     ],
   },
   {
+    path: paths.home,
+    errorElement: <RouteError />,
+    element: (
+      <RequireAuth>
+        <WorkspaceRedirect />
+      </RequireAuth>
+    ),
+  },
+  {
+    // Every tenant page is under /w/:workspaceId (Part 01, FR-01.7).
+    path: patterns.workspace,
     element: (
       <RequireAuth>
         <AppShell />
@@ -31,19 +44,19 @@ export const routes: RouteObject[] = [
     errorElement: <RouteError />,
     children: [
       { index: true, element: <DashboardPage /> },
-      { path: '/workflows', element: <WorkflowsListPage /> },
+      { path: patterns.workflows, element: <WorkflowsListPage /> },
       {
-        path: '/workflows/:workflowId',
+        path: patterns.workflow,
         // Code-split: React Flow only loads when the editor opens.
         lazy: () =>
           import('@/features/workflows/pages/workflow-editor-page').then((m) => ({
             Component: m.WorkflowEditorPage,
           })),
       },
-      { path: '/runs', element: <RunsListPage /> },
-      { path: '/runs/:runId', element: <RunDetailPage /> },
-      { path: '/integrations', element: <IntegrationsPage /> },
-      { path: '/settings', element: <SettingsPage /> },
+      { path: patterns.runs, element: <RunsListPage /> },
+      { path: patterns.run, element: <RunDetailPage /> },
+      { path: patterns.integrations, element: <IntegrationsPage /> },
+      { path: patterns.settings, element: <SettingsPage /> },
     ],
   },
   { path: '*', element: <NotFoundPage /> },

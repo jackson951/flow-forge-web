@@ -1,13 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
 import { queryKeys } from '@/lib/query-keys';
-import type { DashboardSummary } from '@/types/api';
+import type { Dashboard } from '@/types/api';
 
 export const dashboardApi = {
-  summary: () => api.get<DashboardSummary>('/dashboard'),
+  summary: (ws: string) => api.get<Dashboard>(`/workspaces/${ws}/dashboard`),
 };
 
 /** Metrics always come from the API — the UI never invents operational numbers. */
-export function useDashboardSummary() {
-  return useQuery({ queryKey: queryKeys.dashboard, queryFn: dashboardApi.summary });
+export function useDashboard(ws: string) {
+  return useQuery({ queryKey: queryKeys.dashboard(ws), queryFn: () => dashboardApi.summary(ws) });
 }

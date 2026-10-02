@@ -16,7 +16,8 @@ export default defineConfig({
   },
   test: {
     globals: true,
-    environment: 'jsdom',
+    // jsdom keeping Node's AbortSignal (see the file).
+    environment: './src/test/jsdom-environment.ts',
     setupFiles: ['./src/test/setup.ts'],
     css: false,
   },

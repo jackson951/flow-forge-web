@@ -20,7 +20,16 @@ Run the `flowforge-api` backend alongside it. The dev proxy keeps the browser sa
 | `npm run dev` | Dev server with HMR |
 | `npm run build` | Type-check + production build to `dist/` |
 | `npm run lint` / `typecheck` / `format:check` | Static checks |
-| `npm test` | Vitest + Testing Library |
+| `npm test` | Vitest + Testing Library; the API is mocked by MSW, so no backend is needed |
+| `npm run api:types` | Regenerate `src/types/openapi.ts` from the running backend (`API_DOCS_URL` overrides `http://localhost:3000/api/docs-json`) |
+
+## API contract
+
+- All calls go through `src/lib/api-client.ts` to `/api/v1` on the same origin (Vite proxies `/api` to the backend in dev; nginx in production). Errors arrive as `ApiError` with the backend envelope: `status`, `messages`, `details`/`code`, `requestId`, `retryAfterSeconds`.
+- The access token is kept in memory only (`src/lib/access-token.ts`); the refresh token is the backend's httpOnly cookie.
+- Types: `src/types/openapi.ts` is generated from the backend's Swagger; `src/types/api.ts` re-exports those and adds hand-written types for responses Swagger does not describe (each names its backend source).
+- Tenant pages live under `/w/:workspaceId/...` (`src/lib/routes.ts`); every tenant query key starts with `['ws', workspaceId]` (`src/lib/query-keys.ts`).
+- Mocks: `src/test/msw/` has a handler for every endpoint the app calls, with typed fixtures; a test fails if a call has no handler.
 
 ## Structure
 
@@ -37,6 +46,7 @@ src/
     feedback/     EmptyState, ErrorState, RouteError
   features/
     auth/         login, register, RequireAuth, schemas, api hooks
+    workspaces/   workspace API, current-workspace hook, redirect
     dashboard/
     workflows/    list, editor (React Flow canvas, palette, config panel), node catalog
     runs/         list, detail, step timeline
@@ -49,6 +59,8 @@ src/
 Feature folders own their pages, components and API hooks; `components/` holds only what's shared. The workflow editor is code-split so React Flow loads only when it opens.
 
 ## Design tokens
+
+> Being replaced by the palette in [docs/frontend/design/DESIGN-DIRECTION.md](docs/frontend/design/DESIGN-DIRECTION.md) (navy sidebar, indigo primary) when the shell is restyled.
 
 Defined once in `src/styles/index.css` under `@theme`: ink `#1E2A3B` (navigation, primary actions), canvas `#F4F5F7`, surface `#FFFFFF`, line `#DCE0E6`, muted `#5E6A7A`, and a single ember accent `#F2A33A` reserved for focus rings and the active item. Run statuses have their own colors and always pair with a text label. Type is Instrument Sans, with JetBrains Mono for identifiers only.
 
