@@ -1,6 +1,6 @@
 # 02 — Authentication and Session
 
-**Status:** NOT STARTED (see [00-FRONTEND-ROADMAP.md](00-FRONTEND-ROADMAP.md))
+**Status:** COMPLETE (2026-10-03) — evidence below; see [00-FRONTEND-ROADMAP.md](00-FRONTEND-ROADMAP.md)
 
 ## Objective
 
@@ -73,3 +73,38 @@ Part 01.
 ## Risks / Design Questions
 
 - The cookie is `Secure` + `SameSite=Strict` on `/api/v1/auth`: works same-origin (dev proxy, nginx). A cross-origin deployment would need backend changes — documented, not supported.
+
+## As implemented
+
+| Area | Implementation |
+| --- | --- |
+| Session store | `features/auth/session/session.ts` (framework-free) + `useSession()` (`useSyncExternalStore`): `status` (`unknown`/`authenticated`/`anonymous`), `user`, `endReason` (`logout`/`expired`/`other-tab`). Access token only in `lib/access-token.ts` (memory); `refreshToken` in responses ignored |
+| Refresh | Single flight per tab; **Web Locks** (`flowforge-auth-refresh`) serialise refreshes across tabs; proactive refresh 60 s before `expiresIn`; restore on load = refresh → `GET /auth/me` |
+| 401 handling | `api-client` registers `configureAuth({ refresh, onUnauthorized })`: a 401 triggers the shared refresh and **one** retry; a second 401 ends the session; `skipAuth` on login/register/refresh/logout |
+| Guards | `RequireAuth` (spinner while restoring; anonymous → `/login?next=<page>`, except after a deliberate sign-out); `RedirectIfAuthenticated` on login/register (→ `?next=` or home) |
+| Pages | Login and register with zod schemas mirroring the backend DTOs (email ≤ 254, password 12–128 on register, name trimmed 1–100), backend validation messages on their fields, 409 on the email field, 429 countdown from `Retry-After` with the button disabled, session-ended notice; register signs in and lands in the new workspace |
+| Sign out | User menu in the header: Sign out (`/auth/logout`, local sign-out even if the server is unreachable), Sign out of all devices (`/auth/logout-all`); `BroadcastChannel('flowforge-auth')` signs out other tabs; the query cache is cleared on every session end (`clearCacheOnSessionEnd`) |
+
+## Implementation Evidence
+
+Verified 2026-10-03 on branch `feat/part-02-auth-session`. Browser checks: Playwright (Chromium) → Vite dev proxy → backend `flowforge-api` main (`5020787`) running against a **throwaway** Postgres/Redis (separate containers and ports, removed afterwards; the developer's database was not used).
+
+| ID | Result | Evidence |
+| --- | --- | --- |
+| AC-02.1 | PASS | Browser: register → lands on `/w/<new workspace id>` with the user menu; log in again → returns to the page in `?next=`; wrong password → "Invalid email or password". Component tests: login, register, `?next=` |
+| AC-02.2 | PASS | Browser: reload keeps the session; `localStorage` and `sessionStorage` are `{}`; `document.cookie` is `""`; `ff_refresh` is `httpOnly`, `SameSite=Strict`, path `/api/v1/auth`. Unit test: no token in web storage |
+| AC-02.3 | PASS | `session.test.ts`: five concurrent 401s → exactly one `/auth/refresh`, ten probe calls (5 rejected + 5 retried), all succeed |
+| AC-02.4 | PASS | Unit: failed refresh ends the session once (3 parallel requests → 1 refresh, all reject 401, `endReason: expired`); a 401 after a successful refresh ends the session. Browser: cookies cleared → reload → `/login?next=…` with the sign-in form, exactly one refresh request (401), no loop, no error page |
+| AC-02.5 | PASS | `routes.test.ts` (`safeNextPath`: absolute, protocol-relative, backslash and `javascript:` rejected) and login page tests (`https://evil.example/`, `//evil.example/x` ignored) |
+| AC-02.6 | PASS | Browser: sign out → `/login` with "You are signed out.", refresh cookie removed; the second tab follows with "You signed out in another tab."; sign out of all devices ends the session in a second browser context. Component test: cached queries cleared on sign-out |
+| AC-02.7 | PASS | Login page test: 429 with `Retry-After: 42` → "Try again in 42 s." and the button disabled; `use-retry-countdown.test.ts` (countdown, restart on a new 429, 60 s default) |
+
+Multi-tab refresh (FR-02.9), browser: two tabs loading at the same moment → both refreshes returned 200 (`[200, 200]`), both tabs signed in, and the cookie was still valid on the next reload.
+
+Gate: `format:check` ✔, `lint` ✔, `typecheck` ✔, `npm test` 9 files / 110 tests ✔, `build` ✔.
+
+### Findings
+
+- **Backend: a lost refresh race clears the newer cookie.** `POST /auth/refresh` clears `ff_refresh` on any failure, including a request that only lost the rotation race inside the backend's grace window. If two tabs refresh with the same cookie and the loser's response arrives last, the browser deletes the winner's fresh cookie and the next refresh fails. The frontend avoids the race with Web Locks (verified above); the backend should not clear the cookie when it answers inside the reuse grace window. Derived from the backend code (`auth.controller.ts` `refresh`, `auth.service.ts` grace handling), not reproduced without the lock.
+- A deliberate sign-out does not keep `?next=`, so the next person signing in on the same browser does not land on the previous user's workspace URL; an expired session keeps it.
+- Browser checks used a scratch Playwright script (not committed); the committed E2E suite arrives in Part 13.

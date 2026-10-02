@@ -45,11 +45,12 @@ export class ApiError extends Error {
 }
 
 export const isApiError = (e: unknown): e is ApiError => e instanceof ApiError;
-export const isNotFound = (e: unknown) => isApiError(e) && e.status === 404;
-export const isConflict = (e: unknown) => isApiError(e) && e.status === 409;
-export const isRateLimited = (e: unknown) => isApiError(e) && e.status === 429;
+export const isNotFound = (e: unknown): e is ApiError => isApiError(e) && e.status === 404;
+export const isConflict = (e: unknown): e is ApiError => isApiError(e) && e.status === 409;
+export const isRateLimited = (e: unknown): e is ApiError => isApiError(e) && e.status === 429;
 /** 400 (DTO validation) or 422 (definition validation). */
-export const isValidation = (e: unknown) => isApiError(e) && (e.status === 400 || e.status === 422);
+export const isValidation = (e: unknown): e is ApiError =>
+  isApiError(e) && (e.status === 400 || e.status === 422);
 
 type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
@@ -59,6 +60,22 @@ export interface RequestOptions {
   signal?: AbortSignal;
   /** Query parameters; undefined values are left out. */
   query?: Record<string, string | number | boolean | undefined>;
+  /** No refresh-and-retry on 401 (login, refresh and logout themselves). */
+  skipAuth?: boolean;
+}
+
+/**
+ * Session hooks, registered by the session module (Part 02) so this file does not depend on
+ * it: `refresh` returns a new access token or null; `onUnauthorized` ends the session.
+ */
+interface AuthHandlers {
+  refresh: () => Promise<string | null>;
+  onUnauthorized: () => void;
+}
+let auth: AuthHandlers | null = null;
+
+export function configureAuth(handlers: AuthHandlers): void {
+  auth = handlers;
 }
 
 const isErrorEnvelope = (body: unknown): body is ErrorResponse =>
@@ -104,21 +121,21 @@ async function toApiError(res: Response): Promise<ApiError> {
   });
 }
 
-async function request<T>(
+async function send(
   method: Method,
   path: string,
-  body?: unknown,
-  options: RequestOptions = {},
-): Promise<T> {
+  body: unknown,
+  options: RequestOptions,
+): Promise<Response> {
   const headers: Record<string, string> = { Accept: 'application/json' };
   if (body !== undefined) headers['Content-Type'] = 'application/json';
+  // Read at send time, so a retry after a refresh uses the new token.
   const token = accessToken.get();
   if (token) headers.Authorization = `Bearer ${token}`;
   if (options.idempotencyKey) headers['Idempotency-Key'] = options.idempotencyKey;
 
-  let res: Response;
   try {
-    res = await fetch(buildUrl(path, options.query), {
+    return await fetch(buildUrl(path, options.query), {
       method,
       // Same origin (dev proxy / nginx): sends the httpOnly refresh cookie on /auth routes.
       credentials: 'include',
@@ -134,8 +151,26 @@ async function request<T>(
       message: 'Could not reach the FlowForge API. Check your connection and try again.',
     });
   }
+}
 
-  // Part 02 adds the single-flight refresh on 401 around this call.
+async function request<T>(
+  method: Method,
+  path: string,
+  body?: unknown,
+  options: RequestOptions = {},
+): Promise<T> {
+  let res = await send(method, path, body, options);
+
+  // Expired access token: refresh once (shared with concurrent requests) and retry once.
+  // A second 401 means the session is really over.
+  if (res.status === 401 && !options.skipAuth && auth) {
+    const token = await auth.refresh();
+    if (token) {
+      res = await send(method, path, body, options);
+      if (res.status === 401) auth.onUnauthorized();
+    }
+  }
+
   if (!res.ok) throw await toApiError(res);
   if (res.status === 204) return undefined as T;
   const text = await res.text();
