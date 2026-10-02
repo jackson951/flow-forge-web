@@ -2,7 +2,7 @@
 
 Frontend for **FlowForge** — an integration & workflow automation platform. React 19 · TypeScript · Vite · Tailwind CSS v4 · React Router 7 · TanStack Query · React Flow.
 
-> Scaffold stage: routing, layout, design tokens, API client and feature folders are in place. Pages show designed empty states; data-fetching hooks exist but aren't wired into pages yet.
+> Scaffold stage: routing, layout, design tokens and feature folders are in place; pages show designed empty states. The scaffold predates the backend and does not match its API yet — the delivery plan, starting with that alignment, is in **[docs/frontend](docs/frontend/00-FRONTEND-ROADMAP.md)** (15 parts, built one at a time).
 
 ## Quick start
 
