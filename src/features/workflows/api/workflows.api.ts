@@ -163,3 +163,49 @@ export function useSaveDraft(ws: string, id: string) {
     },
   });
 }
+
+/** Publishes the saved draft at `revision` as a new immutable version (ADMIN, Part 07). */
+export function usePublish(ws: string, id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (revision: number) => workflowsApi.publish(ws, id, revision),
+    onSuccess: (version) => {
+      qc.setQueryData<WorkflowDetail>(queryKeys.workflows.detail(ws, id), (current) =>
+        current
+          ? {
+              ...current,
+              status: 'PUBLISHED',
+              activeVersion: {
+                id: version.id,
+                version: version.version,
+                publishedAt: version.publishedAt,
+              },
+            }
+          : current,
+      );
+      void qc.invalidateQueries({ queryKey: queryKeys.workflows.versions(ws, id) });
+      void qc.invalidateQueries({ queryKey: queryKeys.workflows.list(ws) });
+    },
+  });
+}
+
+/** Versions, newest first, keyset by version number ("Load more"). */
+export function useVersions(ws: string, id: string, enabled = true) {
+  return useInfiniteQuery({
+    queryKey: [...queryKeys.workflows.versions(ws, id), 'list'],
+    queryFn: ({ pageParam }) => workflowsApi.versions(ws, id, { cursor: pageParam }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (last) => last.nextCursor ?? undefined,
+    enabled,
+  });
+}
+
+/** One version with its frozen definition (immutable, so it never goes stale). */
+export function useVersion(ws: string, id: string, version: number | undefined) {
+  return useQuery({
+    queryKey: queryKeys.workflows.version(ws, id, version ?? 0),
+    queryFn: () => workflowsApi.version(ws, id, version!),
+    enabled: version !== undefined,
+    staleTime: Infinity,
+  });
+}

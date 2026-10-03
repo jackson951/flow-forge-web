@@ -25,7 +25,7 @@ function recordSaves(issues: unknown[] = []) {
 
 const openEditor = async (path = URL_) => {
   const result = renderRoute(path);
-  await screen.findByRole('heading', { level: 1, name: workflowDetail.name }, { timeout: 20_000 });
+  await screen.findByRole('heading', { level: 1, name: workflowDetail.name }, { timeout: 30_000 });
   return result;
 };
 
@@ -39,6 +39,13 @@ const canvasNode = (key: string) =>
  * which user-event's synthetic events lack in jsdom. Dragging is checked in the browser.
  */
 const selectNode = (key: string) => fireEvent.click(canvasNode(key));
+
+// The editor route is lazy; load it once up front so the first test's wait is not spent
+// transforming React Flow on a slow machine.
+beforeAll(
+  () => import('./workflow-editor-page').then(() => import('./workflow-version-page')),
+  180_000,
+);
 
 describe('Workflow editor canvas (Part 05)', () => {
   it('opens the saved draft on the canvas', async () => {
@@ -204,7 +211,7 @@ describe('Workflow editor canvas (Part 05)', () => {
     await userEvent.click(await within(palette()).findByRole('button', { name: /Condition/ }));
     await userEvent.click(screen.getByRole('button', { name: 'Save' }));
     expect(await screen.findByRole('alert')).toHaveTextContent(/changed elsewhere/);
-    expect(screen.getByText('Not saved')).toBeInTheDocument();
+    expect(screen.getByText('Changed elsewhere')).toBeInTheDocument();
     expect(screen.getByText('3/50 steps')).toBeInTheDocument();
   });
 

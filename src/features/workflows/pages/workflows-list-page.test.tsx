@@ -130,7 +130,7 @@ describe('Workflows list (Part 04)', () => {
     expect(body).toEqual({ name: 'Triage issues' });
     // Let the lazily loaded editor (React Flow) finish inside this test.
     expect(
-      await screen.findByRole('heading', { level: 1 }, { timeout: 20_000 }),
+      await screen.findByRole('heading', { level: 1 }, { timeout: 30_000 }),
     ).toBeInTheDocument();
   });
 

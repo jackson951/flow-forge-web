@@ -64,6 +64,13 @@ export const routes: RouteObject[] = [
             Component: m.WorkflowEditorPage,
           })),
       },
+      {
+        path: patterns.workflowVersion,
+        lazy: () =>
+          import('@/features/workflows/pages/workflow-version-page').then((m) => ({
+            Component: m.WorkflowVersionPage,
+          })),
+      },
       { path: patterns.runs, element: <RunsListPage /> },
       { path: patterns.run, element: <RunDetailPage /> },
       { path: patterns.integrations, element: <IntegrationsPage /> },
