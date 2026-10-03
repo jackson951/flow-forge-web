@@ -11,7 +11,6 @@ import { FeaturesPage, SecurityPage } from '@/features/marketing/info-pages';
 import { HomeGate, IntegrationsEntry } from '@/features/marketing/public-entry';
 import { PublicLayout } from '@/features/marketing/public-layout';
 import { IntegrationsPage } from '@/features/integrations/pages/integrations-page';
-import { RunDetailPage } from '@/features/runs/pages/run-detail-page';
 import { RunsListPage } from '@/features/runs/pages/runs-list-page';
 import { AccountSettingsPage } from '@/features/settings/pages/account-settings-page';
 import { DangerZonePage } from '@/features/settings/pages/danger-zone-page';
@@ -88,7 +87,14 @@ export const routes: RouteObject[] = [
           })),
       },
       { path: patterns.runs, element: <RunsListPage /> },
-      { path: patterns.run, element: <RunDetailPage /> },
+      {
+        path: patterns.run,
+        // Code-split: the "path taken" canvas uses React Flow, which only loads on demand.
+        lazy: () =>
+          import('@/features/runs/pages/run-detail-page').then((m) => ({
+            Component: m.RunDetailPage,
+          })),
+      },
       { path: patterns.integrations, element: <IntegrationsPage /> },
       {
         path: patterns.settings,

@@ -19,8 +19,8 @@ Legend: **NOT STARTED** · **IN PROGRESS** · **COMPLETE** (meets the Definition
 | 09 | [Dashboard](09-DASHBOARD.md) | COMPLETE | Verified 2026-10-03: component tests + product-owner QA |
 | 10 | [Integrations](10-INTEGRATIONS.md) | COMPLETE | Verified 2026-10-03 for GitHub/Slack/Microsoft: component tests + product-owner QA. BYOK AI connections: later enhancement (backend Part 23) |
 | 11 | [Account and Settings](11-ACCOUNT-AND-SETTINGS.md) | COMPLETE | Verified 2026-10-03: component tests + product-owner QA |
-| 12 | [UX Quality and Accessibility](12-UX-QUALITY-AND-ACCESSIBILITY.md) | IN PROGRESS | QA passed 2026-10-03; 399 tests and build green. Open: bundle budget (254 KB > 200 KB, React Flow pulled in by run detail) — fixed first in Part 13 |
-| 13 | [Testing and Quality Gate](13-TESTING-AND-QUALITY-GATE.md) | NOT STARTED | — |
+| 12 | [UX Quality and Accessibility](12-UX-QUALITY-AND-ACCESSIBILITY.md) | COMPLETE | Verified 2026-10-03: axe on every page, error mapping, toasts, keyboard connect, responsive, public site, robust auth; product-owner QA passed; bundle budget fixed in Part 13 (188.8 KB gzip) |
+| 13 | [Testing and Quality Gate](13-TESTING-AND-QUALITY-GATE.md) | IN PROGRESS | 2026-10-03: coverage thresholds (95.25 % lines; ≥ 90 % pure logic), gate script + CI coverage/bundle, Playwright harness with real backend stack and six journeys — E2E suite not run yet |
 | 14 | [Build, Docker and CI](14-BUILD-DOCKER-AND-CI.md) | NOT STARTED | — |
 | 15 | [Frontend Release Readiness](15-FRONTEND-RELEASE-READINESS.md) | NOT STARTED | — |
 
@@ -102,3 +102,4 @@ The scaffold was written before the backend existed. Known mismatches: base URL 
 | 2026-10-03 | Part 11 implemented; awaiting product-owner QA. |
 | 2026-10-03 | Part 12 implemented, extended with the public website and robust auth pages (product owner); committed before the final gate run finished — Part 13 picks up anything it finds. |
 | 2026-10-03 | Product-owner QA passed for Parts 08–12 (real backend + worker: runs, branches, Slack, GitHub trigger). Parts 08–11 COMPLETE; Part 12 open only on the bundle budget. Next: Part 13 (fix the budget first). |
+| 2026-10-03 | Part 12 COMPLETE (bundle fixed: run detail lazy, 188.8 KB). Part 13 implemented except the E2E run (harness + journeys ready). |

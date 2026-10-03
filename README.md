@@ -23,6 +23,18 @@ Run the `flowforge-api` backend alongside it. The dev proxy keeps the browser sa
 | `npm test` | Vitest + Testing Library; the API is mocked by MSW, so no backend is needed |
 | `npm run api:types` | Regenerate `src/types/openapi.ts` from the running backend (`API_DOCS_URL` overrides `http://localhost:3000/api/docs-json`) |
 
+## Testing
+
+| Command | What it runs |
+| --- | --- |
+| `npm test` | Unit and component tests (Vitest + Testing Library + MSW). Offline: any request without an MSW handler fails the test |
+| `npm run test:cov` | The same with coverage; thresholds (≥ 70 % lines overall, ≥ 90 % on pure-logic modules) fail the run |
+| `npm run check:bundle` | After `npm run build`: initial JS ≤ 200 KB gzip and React Flow not in the initial load |
+| `npm run gate` | format → lint → typecheck → coverage → build → bundle budget (what CI runs) |
+| `npm run test:e2e` | Playwright journeys against the **real backend**: starts an isolated Docker Compose stack (`e2e/docker-compose.e2e.yml`: Postgres on tmpfs, Redis, migrate, API, worker, fake AI, TEST webhooks) with throwaway secrets, builds and serves the app on :4173, runs the journeys, removes the stack |
+
+E2E prerequisites: Docker, the backend checkout (default `../../flowforge-api/flowforge-api`, override with `FLOWFORGE_API_DIR`), and once `npm run test:e2e:install` for Chromium. `E2E_KEEP_STACK=1` keeps the stack for debugging; `E2E_EXTERNAL_API=http://localhost:3000` uses a backend you started yourself (journey 2 then needs the TEST provider enabled). Retries are off on purpose: a flaky test is fixed or quarantined, never silently retried.
+
 ## API contract
 
 - All calls go through `src/lib/api-client.ts` to `/api/v1` on the same origin (Vite proxies `/api` to the backend in dev; nginx in production). Errors arrive as `ApiError` with the backend envelope: `status`, `messages`, `details`/`code`, `requestId`, `retryAfterSeconds`.
