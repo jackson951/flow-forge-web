@@ -15,23 +15,23 @@ Run the `flowforge-api` backend alongside it. The dev proxy keeps the browser sa
 
 ## Scripts
 
-| Command | Purpose |
-| --- | --- |
-| `npm run dev` | Dev server with HMR |
-| `npm run build` | Type-check + production build to `dist/` |
-| `npm run lint` / `typecheck` / `format:check` | Static checks |
-| `npm test` | Vitest + Testing Library; the API is mocked by MSW, so no backend is needed |
-| `npm run api:types` | Regenerate `src/types/openapi.ts` from the running backend (`API_DOCS_URL` overrides `http://localhost:3000/api/docs-json`) |
+| Command                                       | Purpose                                                                                                                     |
+| --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `npm run dev`                                 | Dev server with HMR                                                                                                         |
+| `npm run build`                               | Type-check + production build to `dist/`                                                                                    |
+| `npm run lint` / `typecheck` / `format:check` | Static checks                                                                                                               |
+| `npm test`                                    | Vitest + Testing Library; the API is mocked by MSW, so no backend is needed                                                 |
+| `npm run api:types`                           | Regenerate `src/types/openapi.ts` from the running backend (`API_DOCS_URL` overrides `http://localhost:3000/api/docs-json`) |
 
 ## Testing
 
-| Command | What it runs |
-| --- | --- |
-| `npm test` | Unit and component tests (Vitest + Testing Library + MSW). Offline: any request without an MSW handler fails the test |
-| `npm run test:cov` | The same with coverage; thresholds (≥ 70 % lines overall, ≥ 90 % on pure-logic modules) fail the run |
-| `npm run check:bundle` | After `npm run build`: initial JS ≤ 200 KB gzip and React Flow not in the initial load |
-| `npm run gate` | format → lint → typecheck → coverage → build → bundle budget (what CI runs) |
-| `npm run test:e2e` | Playwright journeys against the **real backend**: starts an isolated Docker Compose stack (`e2e/docker-compose.e2e.yml`: Postgres on tmpfs, Redis, migrate, API, worker, fake AI, TEST webhooks) with throwaway secrets, builds and serves the app on :4173, runs the journeys, removes the stack |
+| Command                | What it runs                                                                                                                                                                                                                                                                                      |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm test`             | Unit and component tests (Vitest + Testing Library + MSW). Offline: any request without an MSW handler fails the test                                                                                                                                                                             |
+| `npm run test:cov`     | The same with coverage; thresholds (≥ 70 % lines overall, ≥ 90 % on pure-logic modules) fail the run                                                                                                                                                                                              |
+| `npm run check:bundle` | After `npm run build`: initial JS ≤ 200 KB gzip and React Flow not in the initial load                                                                                                                                                                                                            |
+| `npm run gate`         | format → lint → typecheck → coverage → build → bundle budget (what CI runs)                                                                                                                                                                                                                       |
+| `npm run test:e2e`     | Playwright journeys against the **real backend**: starts an isolated Docker Compose stack (`e2e/docker-compose.e2e.yml`: Postgres on tmpfs, Redis, migrate, API, worker, fake AI, TEST webhooks) with throwaway secrets, builds and serves the app on :4173, runs the journeys, removes the stack |
 
 E2E prerequisites: Docker, the backend checkout (default `../../flowforge-api/flowforge-api`, override with `FLOWFORGE_API_DIR`), and once `npm run test:e2e:install` for Chromium. `E2E_KEEP_STACK=1` keeps the stack for debugging; `E2E_EXTERNAL_API=http://localhost:3000` uses a backend you started yourself (journey 2 then needs the TEST provider enabled). Retries are off on purpose: a flaky test is fixed or quarantined, never silently retried.
 
@@ -78,4 +78,25 @@ Logo: `src/components/brand/logo.tsx` (`LogoMark`, `Logo` with `tone` and the ta
 
 ## Docker
 
-`docker build -t flowforge-web .` serves the build via nginx, proxying `/api/` to a container named `api`.
+The image builds with Node 22 and serves `dist/` from unprivileged nginx (uid 101, port 8080). It holds no Node, source, `.env` or build-time secrets. nginx:
+
+- serves the SPA, falling back to `index.html` for deep links; the shell is `no-store`, hashed `/assets/` are cached immutably;
+- proxies `/api/` to the `api:3000` upstream on the same origin, so the `SameSite=Strict` refresh cookie works;
+- sends a strict CSP (`script-src 'self'`, `frame-ancestors 'none'`, no third-party origins; fonts are self-hosted), `nosniff`, `Referrer-Policy: no-referrer`, `X-Frame-Options: DENY`, and HSTS only when served over HTTPS (directly or via `X-Forwarded-Proto: https`).
+
+### Full stack
+
+`docker-compose.yml` runs Postgres, Redis, backend migrate → API + worker and the web container. The backend is built from the `flowforge-api` checkout (`FLOWFORGE_API_DIR`, default `../../flowforge-api/flowforge-api`).
+
+```bash
+cp stack.env.example stack.env   # fill in JWT secrets (+ encryption keys / integrations); git-ignored
+docker compose up -d --build
+# open http://localhost:8080
+docker compose down              # add -v to drop the stack's database
+```
+
+The stack uses its own project name, volumes and port, so it does not touch a local dev database or the backend's own Compose stack.
+
+### CI
+
+`.github/workflows/ci.yml` runs format, lint, typecheck, tests with coverage, build and the bundle budget. It also runs a gitleaks scan of the history, builds the image, scans it with Trivy (fails on fixable HIGH/CRITICAL), and smoke-tests the container (non-root, security headers, deep-link fallback, immutable assets). The browser E2E suite (`e2e.yml`) is a manual workflow because it needs the backend repository. Dependabot keeps npm, Actions and base images current.

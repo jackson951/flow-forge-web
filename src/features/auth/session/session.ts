@@ -36,6 +36,8 @@ const listeners = new Set<() => void>();
 let refreshTimer: ReturnType<typeof setTimeout> | undefined;
 let inFlight: Promise<string | null> | null = null;
 let restoring: Promise<void> | null = null;
+/** Bumped by a reset; refresh/restore work started before it must not touch the new state. */
+let epoch = 0;
 const onEndCallbacks = new Set<(reason: EndReason) => void>();
 
 const channel: BroadcastChannel | null =
@@ -80,12 +82,15 @@ function end(reason: EndReason, broadcast = true): void {
  * while it runs. Never throws.
  */
 export function refresh(): Promise<string | null> {
+  const started = epoch;
   inFlight ??= withRefreshLock(async () => {
     try {
       const tokens = await api.post<TokenResponse>('/auth/refresh', undefined, { skipAuth: true });
+      if (started !== epoch) return null;
       applyTokens(tokens);
       return tokens.accessToken;
     } catch (err) {
+      if (started !== epoch) return null;
       // 401: no valid refresh cookie (expired, logged out, reuse detected). Anything else
       // (network, 5xx) also ends the session — there is no usable access token left.
       // Only a session that existed can "end": a first visit without a cookie is simply
@@ -120,17 +125,20 @@ export const session = {
 
   /** On app load: refresh cookie → access token → user. Resolves either way. */
   restore(): Promise<void> {
+    const started = epoch;
     restoring ??= (async () => {
       const token = await refresh();
+      if (started !== epoch) return;
       if (!token) {
         set({ status: 'anonymous', user: null });
         return;
       }
       try {
         const user = await api.get<PublicUser>('/auth/me');
+        if (started !== epoch) return;
         set({ status: 'authenticated', user, endReason: null });
       } catch {
-        end('expired');
+        if (started === epoch) end('expired');
       }
     })().finally(() => {
       restoring = null;
@@ -155,6 +163,7 @@ configureAuth({ refresh, onUnauthorized: () => end('expired') });
 
 /** Test helper: back to the initial state. */
 export function resetSessionForTests(): void {
+  epoch += 1;
   clearTimeout(refreshTimer);
   inFlight = null;
   restoring = null;

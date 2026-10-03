@@ -4,7 +4,7 @@ import { api, ApiError } from '@/lib/api-client';
 import { authResponse, user } from '@/test/msw/fixtures';
 import { API, apiError } from '@/test/msw/handlers';
 import { server } from '@/test/msw/server';
-import { refresh, session } from './session';
+import { refresh, resetSessionForTests, session } from './session';
 
 /** /probe answers only to the refreshed token, like an API call made with an expired token. */
 function probeAndRefresh(
@@ -171,5 +171,23 @@ describe('session (Part 02)', () => {
     expect(stored).not.toContain('token');
     expect(stored).not.toContain(authResponse.accessToken);
     expect(document.cookie).toBe('');
+  });
+
+  it('a restore still running when the store is reset does not leak into the next state', async () => {
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => (release = resolve));
+    server.use(
+      http.post(`${API}/auth/refresh`, async () => {
+        await gate;
+        return HttpResponse.json({ accessToken: 'stale-token', refreshToken: 'x', expiresIn: 900 });
+      }),
+      http.get(`${API}/auth/me`, () => HttpResponse.json(user)),
+    );
+    const stale = session.restore();
+    resetSessionForTests();
+    release();
+    await stale;
+    expect(session.getState().status).toBe('unknown');
+    expect(accessToken.get()).toBeNull();
   });
 });

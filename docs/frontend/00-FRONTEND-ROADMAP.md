@@ -21,7 +21,7 @@ Legend: **NOT STARTED** · **IN PROGRESS** · **COMPLETE** (meets the Definition
 | 11 | [Account and Settings](11-ACCOUNT-AND-SETTINGS.md) | COMPLETE | Verified 2026-10-03: component tests + product-owner QA |
 | 12 | [UX Quality and Accessibility](12-UX-QUALITY-AND-ACCESSIBILITY.md) | COMPLETE | Verified 2026-10-03: axe on every page, error mapping, toasts, keyboard connect, responsive, public site, robust auth; product-owner QA passed; bundle budget fixed in Part 13 (188.8 KB gzip) |
 | 13 | [Testing and Quality Gate](13-TESTING-AND-QUALITY-GATE.md) | IN PROGRESS | 2026-10-03: coverage thresholds (95.25 % lines; ≥ 90 % pure logic), gate script + CI coverage/bundle, Playwright harness with real backend stack and six journeys — E2E suite not run yet |
-| 14 | [Build, Docker and CI](14-BUILD-DOCKER-AND-CI.md) | NOT STARTED | — |
+| 14 | [Build, Docker and CI](14-BUILD-DOCKER-AND-CI.md) | IN PROGRESS | Implemented; local gate green (400 tests). Container, CI and browser criteria await QA and the PR CI run |
 | 15 | [Frontend Release Readiness](15-FRONTEND-RELEASE-READINESS.md) | NOT STARTED | — |
 
 ## Product Purpose

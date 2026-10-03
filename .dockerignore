@@ -1,5 +1,15 @@
 node_modules
 dist
 coverage
-.env
+playwright-report
+test-results
+blob-report
+e2e
+docs
 .git
+.github
+.env
+.env.*
+stack.env
+*.log
+.DS_Store
