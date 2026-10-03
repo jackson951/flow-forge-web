@@ -11,7 +11,7 @@ import {
   type NodeChange,
 } from '@xyflow/react';
 import { useCallback, useMemo, useState, type DragEvent } from 'react';
-import type { NodeKind } from '@/types/api';
+import type { NodeKind, StepStatus } from '@/types/api';
 import type { EditorAction } from '../../editor/editor-reducer';
 import { canConnect } from '../../editor/graph-rules';
 import { toFlow, type FlowEdge, type FlowNode } from '../../editor/mapping';
@@ -29,6 +29,8 @@ interface WorkflowCanvasProps {
   labelFor: (type: string) => string;
   issueCount: (key: string) => number;
   readOnly?: boolean;
+  /** Run view: step statuses overlaid on the nodes (Part 08). */
+  statusFor?: (key: string) => StepStatus | undefined;
 }
 
 /**
@@ -44,11 +46,12 @@ export function WorkflowCanvas({
   labelFor,
   issueCount,
   readOnly = false,
+  statusFor,
 }: WorkflowCanvasProps) {
   const { screenToFlowPosition } = useReactFlow();
   const flow = useMemo(
-    () => toFlow(definition, { labelFor, issueCount, readOnly }),
-    [definition, labelFor, issueCount, readOnly],
+    () => toFlow(definition, { labelFor, issueCount, readOnly, statusFor }),
+    [definition, labelFor, issueCount, readOnly, statusFor],
   );
   // Local copy for React Flow (live drag positions, measured sizes). Re-derived during render
   // whenever the reducer's definition or the selection changes — the definition always wins.

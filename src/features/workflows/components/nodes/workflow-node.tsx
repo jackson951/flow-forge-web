@@ -1,6 +1,7 @@
 import { Handle, Position, type NodeProps } from '@xyflow/react';
 import { CircleAlert, Zap } from 'lucide-react';
 import { NodeTypeIcon } from '@/components/brand/node-type-icon';
+import { StatusBadge } from '@/components/ui';
 import { cn } from '@/lib/cn';
 import type { FlowNode } from '../../editor/mapping';
 
@@ -21,6 +22,8 @@ export function WorkflowNode({ data, selected }: NodeProps<WorkflowFlowNode>) {
         'bg-surface relative w-64 rounded-xl border px-3 py-2.5 text-left shadow-sm transition-shadow',
         selected ? 'border-primary ring-primary/30 ring-2' : 'border-line hover:shadow-md',
         issues > 0 && !selected && 'border-status-failed/60',
+        data.stepStatus === 'SKIPPED' && 'opacity-50',
+        data.stepStatus === 'FAILED' && !selected && 'border-status-failed',
       )}
     >
       {data.kind !== 'TRIGGER' && (
@@ -51,6 +54,11 @@ export function WorkflowNode({ data, selected }: NodeProps<WorkflowFlowNode>) {
           </span>
         )}
       </div>
+      {data.stepStatus && (
+        <div className="mt-1.5">
+          <StatusBadge status={data.stepStatus} />
+        </div>
+      )}
       {data.kind === 'CONDITION' ? (
         <>
           <span className="text-status-succeeded absolute -bottom-5 left-[28%] -translate-x-1/2 text-[10px] font-semibold">
