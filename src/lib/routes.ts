@@ -5,9 +5,14 @@
 export const paths = {
   login: '/login',
   register: '/register',
-  /** Resolves to the user's workspace (Part 03 remembers the last one). */
+  /** Public homepage when signed out; otherwise the user's workspace (Part 03/12). */
   home: '/',
-  /** Where the backend sends the browser after an OAuth / app installation (Part 10). */
+  /** Public website (Part 12). */
+  features: '/features',
+  security: '/security',
+  publicIntegrations: '/integrations',
+  /** Where the backend sends the browser after an OAuth / app installation (Part 10); the
+   * same path is the public catalogue when there is no callback query. */
   integrationCallback: '/integrations',
   workspace: (ws: string) => `/w/${ws}`,
   workflows: (ws: string) => `/w/${ws}/workflows`,

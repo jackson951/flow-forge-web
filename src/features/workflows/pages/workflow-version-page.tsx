@@ -6,7 +6,7 @@ import { Link, useNavigate, useParams } from 'react-router';
 import { ErrorState } from '@/components/feedback/error-state';
 import { buttonClasses, Button, Spinner } from '@/components/ui';
 import { useWorkspace } from '@/features/workspaces/hooks/use-current-workspace';
-import { isApiError, isNotFound } from '@/lib/api-client';
+import { isNotFound } from '@/lib/api-client';
 import { formatDateTime, formatRelative } from '@/lib/format';
 import { paths } from '@/lib/routes';
 import { useNodeTypes, useVersion, useWorkflow } from '../api/workflows.api';
@@ -58,10 +58,7 @@ export function WorkflowVersionPage() {
         {isNotFound(error) || !Number.isInteger(number) ? (
           <ErrorState title="Version not found" message="This workflow has no such version." />
         ) : (
-          <ErrorState
-            message={error?.message ?? 'Could not load the version'}
-            requestId={isApiError(error) ? error.requestId : undefined}
-          />
+          <ErrorState error={error} />
         )}
       </div>
     );
@@ -150,7 +147,7 @@ export function WorkflowVersionPage() {
         </div>
         <aside
           aria-label="Selected step"
-          className="border-line bg-surface hidden w-80 shrink-0 overflow-y-auto border-l lg:block"
+          className="border-line bg-surface hidden w-80 shrink-0 overflow-y-auto border-l md:block"
         >
           <NodeConfigPanel
             node={selected}

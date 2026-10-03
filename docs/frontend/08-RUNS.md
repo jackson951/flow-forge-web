@@ -1,6 +1,6 @@
 # 08 — Runs: Trigger, History and Detail
 
-**Status:** IMPLEMENTED — awaiting product-owner QA for the browser criteria (AC-08.1, AC-08.4, AC-08.5; browser half of AC-08.2). See [00-FRONTEND-ROADMAP.md](00-FRONTEND-ROADMAP.md)
+**Status:** COMPLETE (2026-10-03) — component tests + product-owner QA. See [00-FRONTEND-ROADMAP.md](00-FRONTEND-ROADMAP.md)
 
 ## Objective
 
@@ -69,13 +69,16 @@ Implemented 2026-10-03 on branch `feat/part-08-runs`. Browser criteria are left 
 
 | ID | Result | Evidence |
 | --- | --- | --- |
-| AC-08.1 | Awaiting QA | Component: polling while RUNNING and no more requests once SUCCEEDED; run now → opens the new run. Needs a browser run against backend + worker |
-| AC-08.2 | PASS (component) — browser part awaiting QA | Component test: double click on Run → every request carries the same Idempotency-Key, one run opened |
+| AC-08.1 | PASS | Component: polling while RUNNING and no more requests once SUCCEEDED; run now → opens the new run. Needs a browser run against backend + worker |
+| AC-08.2 | PASS | Component test: double click on Run → every request carries the same Idempotency-Key, one run opened |
 | AC-08.3 | PASS | Component tests: the uncertain step is named, Retry stays disabled until acknowledged, the request then carries `acknowledgeUncertainOutcome: true`; the backend's 409 shape triggers the same flow |
-| AC-08.4 | Awaiting QA | Component test: branching run shows "Branch not taken: is_high was true" in the timeline and "Skipped" on the canvas node; inputs/outputs listed. Browser check with a real branching workflow pending |
-| AC-08.5 | Awaiting QA | Component tests: status/trigger filters update the URL and the API query, a URL with filters opens filtered, Load more uses the cursor. Browser reload check pending |
+| AC-08.4 | PASS | Component test: branching run shows "Branch not taken: is_high was true" in the timeline and "Skipped" on the canvas node; inputs/outputs listed. Browser check with a real branching workflow pending |
+| AC-08.5 | PASS | Component tests: status/trigger filters update the URL and the API query, a URL with filters opens filtered, Load more uses the cursor. Browser reload check pending |
 
 Tests: `runs/runs.test.tsx` (19).
 
 Gate: `format:check` ✔, `lint` ✔, `typecheck` ✔, `npm test` 23 files / 317 tests ✔, `build` ✔ (Vite notes one chunk above 500 kB — the React Flow editor/run view; code-splitting and bundle size are Part 12/14 work).
 
+### Product-owner QA
+
+Product owner QA (2026-10-03, real backend + worker): all features in this part tested in the browser and accepted. Worker log excerpt shows manual and GitHub-triggered runs passing conditions and log steps, one GitHub event starting two workflows (same correlation id), a real Slack message posted (`slack.sendMessage`, 1.5 s), the sweeper re-enqueuing stale QUEUED runs after a worker restart, and every run finishing SUCCEEDED.

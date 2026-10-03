@@ -1,6 +1,7 @@
-import { Activity, GitBranch, Plug } from 'lucide-react';
-import { Outlet } from 'react-router';
+import { Activity, ArrowLeft, GitBranch, Plug } from 'lucide-react';
+import { Link, Outlet } from 'react-router';
 import { Logo } from '@/components/brand/logo';
+import { paths } from '@/lib/routes';
 
 /** Only what FlowForge actually does (backend release report, "Supported capabilities"). */
 const HIGHLIGHTS = [
@@ -38,7 +39,9 @@ export function AuthLayout() {
           aria-hidden
           className="pointer-events-none absolute -bottom-40 -left-24 size-96 rounded-full bg-cyan-500/15 blur-3xl"
         />
-        <Logo tagline className="relative" />
+        <Link to={paths.home} aria-label="FlowForge home" className="relative w-fit">
+          <Logo tagline />
+        </Link>
         <div className="relative max-w-md">
           <p className="text-3xl leading-tight font-semibold text-white">
             When something happens in one tool, make the next thing happen in another.
@@ -64,7 +67,16 @@ export function AuthLayout() {
 
       <main className="bg-canvas flex flex-col items-center justify-center p-6">
         <div className="w-full max-w-sm">
-          <Logo tone="dark" tagline className="mb-8 lg:hidden" />
+          <Link to={paths.home} aria-label="FlowForge home" className="mb-8 block w-fit lg:hidden">
+            <Logo tone="dark" tagline />
+          </Link>
+          <Link
+            to={paths.home}
+            className="text-muted hover:text-ink mb-3 inline-flex items-center gap-1.5 text-sm"
+          >
+            <ArrowLeft className="size-4" aria-hidden />
+            Back to home
+          </Link>
           <div className="border-line bg-surface rounded-xl border p-8 shadow-sm">
             <Outlet />
           </div>

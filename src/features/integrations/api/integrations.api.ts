@@ -94,6 +94,7 @@ export function useDisconnect(ws: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (connectionId: string) => integrationsApi.disconnect(ws, connectionId),
+    meta: { success: 'Disconnected' },
     onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.integrations.connections(ws) }),
   });
 }

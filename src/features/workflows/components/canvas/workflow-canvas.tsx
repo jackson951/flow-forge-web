@@ -82,7 +82,9 @@ export function WorkflowCanvas({
         ),
       }));
       for (const change of changes) {
-        if (change.type === 'position' && change.dragging === false && change.position) {
+        // Drag end (dragging: false) or a keyboard move (arrow keys on a focused node: no
+        // dragging flag) is a real move; in-progress drag updates stay local.
+        if (change.type === 'position' && change.dragging !== true && change.position) {
           dispatch({ type: 'moveNode', key: change.id, position: change.position });
         }
         if (change.type === 'select' && change.selected) onSelect(change.id);

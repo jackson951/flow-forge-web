@@ -29,7 +29,7 @@ export function VersionsPanel({ workspaceId, workflowId, onRestore }: VersionsPa
           </div>
         )}
         {versions.isError && (
-          <ErrorState message={versions.error.message} onRetry={() => void versions.refetch()} />
+          <ErrorState error={versions.error} onRetry={() => void versions.refetch()} />
         )}
         {versions.isSuccess && !items.length && (
           <EmptyState

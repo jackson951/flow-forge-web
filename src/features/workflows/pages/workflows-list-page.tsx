@@ -26,7 +26,6 @@ import { PageHeader } from '@/components/layout/page-header';
 import { ActionMenu, Button, Skeleton, type ActionMenuItem } from '@/components/ui';
 import { useWorkspace } from '@/features/workspaces/hooks/use-current-workspace';
 import { policy } from '@/features/workspaces/policy';
-import { isApiError } from '@/lib/api-client';
 import { cn } from '@/lib/cn';
 import { formatDateTime, formatRelative } from '@/lib/format';
 import { paths } from '@/lib/routes';
@@ -111,13 +110,7 @@ export function WorkflowsListPage() {
         </div>
       )}
 
-      {list.isError && (
-        <ErrorState
-          message={list.error.message}
-          requestId={isApiError(list.error) ? list.error.requestId : undefined}
-          onRetry={() => void list.refetch()}
-        />
-      )}
+      {list.isError && <ErrorState error={list.error} onRetry={() => void list.refetch()} />}
 
       {list.isSuccess && items.length === 0 && (
         <EmptyState

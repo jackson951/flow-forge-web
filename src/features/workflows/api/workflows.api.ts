@@ -84,6 +84,7 @@ export function useCreateWorkflow(ws: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: CreateWorkflowRequest) => workflowsApi.create(ws, input),
+    meta: { success: 'Workflow created' },
     onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.workflows.all(ws) }),
   });
 }
@@ -99,10 +100,15 @@ export function useWorkflowList(ws: string, filters: Omit<WorkflowListFilters, '
 }
 
 /** Mutations that change a workflow's row refetch every list of the workspace. */
-function useWorkflowMutation<TArgs, TResult>(ws: string, fn: (args: TArgs) => Promise<TResult>) {
+function useWorkflowMutation<TArgs, TResult>(
+  ws: string,
+  fn: (args: TArgs) => Promise<TResult>,
+  success: string,
+) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: fn,
+    meta: { success },
     onSettled: () => qc.invalidateQueries({ queryKey: queryKeys.workflows.all(ws) }),
   });
 }
@@ -114,6 +120,7 @@ export function useUpdateWorkflow(ws: string) {
   return useMutation({
     mutationFn: ({ id, ...input }: { id: string } & UpdateWorkflowRequest) =>
       workflowsApi.update(ws, id, input),
+    meta: { success: 'Workflow details saved' },
     onMutate: async ({ id, ...input }) => {
       const key = queryKeys.workflows.all(ws);
       await qc.cancelQueries({ queryKey: key });
@@ -138,13 +145,13 @@ export function useUpdateWorkflow(ws: string) {
 }
 
 export const useDuplicateWorkflow = (ws: string) =>
-  useWorkflowMutation(ws, (id: string) => workflowsApi.duplicate(ws, id));
+  useWorkflowMutation(ws, (id: string) => workflowsApi.duplicate(ws, id), 'Workflow duplicated');
 export const useArchiveWorkflow = (ws: string) =>
-  useWorkflowMutation(ws, (id: string) => workflowsApi.archive(ws, id));
+  useWorkflowMutation(ws, (id: string) => workflowsApi.archive(ws, id), 'Workflow archived');
 export const useUnarchiveWorkflow = (ws: string) =>
-  useWorkflowMutation(ws, (id: string) => workflowsApi.unarchive(ws, id));
+  useWorkflowMutation(ws, (id: string) => workflowsApi.unarchive(ws, id), 'Workflow unarchived');
 export const useDeleteWorkflow = (ws: string) =>
-  useWorkflowMutation(ws, (id: string) => workflowsApi.remove(ws, id));
+  useWorkflowMutation(ws, (id: string) => workflowsApi.remove(ws, id), 'Workflow deleted');
 
 /**
  * Explicit draft save (Part 05). The response's `draftRevision` becomes the next
@@ -169,6 +176,7 @@ export function usePublish(ws: string, id: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (revision: number) => workflowsApi.publish(ws, id, revision),
+    meta: { success: (v) => `Published v${(v as { version: number }).version}` },
     onSuccess: (version) => {
       qc.setQueryData<WorkflowDetail>(queryKeys.workflows.detail(ws, id), (current) =>
         current
