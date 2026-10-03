@@ -1,6 +1,6 @@
 # 07 — Drafts, Validation, Publishing and Versions
 
-**Status:** COMPLETE WITH DEFERRALS (2026-10-03) — evidence below; the browser checks (AC-07.1, AC-07.2, AC-07.4) were not run. See [00-FRONTEND-ROADMAP.md](00-FRONTEND-ROADMAP.md)
+**Status:** COMPLETE (2026-10-03) — evidence below; browser criteria verified by the product owner's manual QA. See [00-FRONTEND-ROADMAP.md](00-FRONTEND-ROADMAP.md)
 
 ## Objective
 
@@ -63,10 +63,10 @@ Verified 2026-10-03 on branch `feat/part-07-publishing`.
 
 | ID | Result | Evidence |
 | --- | --- | --- |
-| AC-07.1 | PARTIAL — browser not run | Component test: an edit is saved about 2 s later with the right `expectedRevision`, "Saved at …" and the next revision appear. Reload-shows-saved-draft not exercised in a browser |
-| AC-07.2 | PARTIAL — browser (two tabs) not run | Unit: 409 stops the queue and refuses further saves. Component: conflict dialog; "Reload theirs" loads the newer draft (revision 9) without sending anything; "Overwrite" re-saves with revision 9 |
+| AC-07.1 | PASS | Product owner QA (browser): edit → "Saved at …" after ~2 s; reload shows the saved draft. Component test: an edit is saved about 2 s later with the right `expectedRevision`, "Saved at …" and the next revision appear. |
+| AC-07.2 | PASS | Product owner QA (two tabs): the second save shows "This draft changed elsewhere" with Reload theirs / Overwrite. Unit: 409 stops the queue and refuses further saves. Component: conflict dialog; "Reload theirs" loads the newer draft (revision 9) without sending anything; "Overwrite" re-saves with revision 9 |
 | AC-07.3 | PASS | Component test with backend issue fixtures (unreachable, cycle, config, reference warning): all listed, workflow-level apart, clicking the step entry selects it and shows its issues on the panel |
-| AC-07.4 | PARTIAL — browser not run | Component tests: publish confirmation → `POST publish { expectedRevision }` → "Published v3"; versions panel lists v2 (active) with Open link; version page opens read-only and "Restore into draft" returns to the editor with the version restored. Against the real backend: not run |
+| AC-07.4 | PASS | Product owner QA (browser, real backend): publish → "Published vN"; listed in Versions; opens read-only; restore into draft works. Component tests: publish confirmation → `POST publish { expectedRevision }` → "Published v3"; versions panel lists v2 (active) with Open link; version page opens read-only and "Restore into draft" returns to the editor with the version restored. |
 | AC-07.5 | PASS | Component tests: publish disabled with the reason for nothing changed, unsaved changes, validation errors, MEMBER, archived |
 
 Tests: `draft-saver.test.ts` (7: revision chaining, no overlap / latest wins, issues reported, conflict, overwrite/reload, retry after failure, conflict shape), `workflow-publishing.test.tsx` (13).
@@ -74,6 +74,8 @@ Tests: `draft-saver.test.ts` (7: revision chaining, no overlap / latest wins, is
 Gate: `format:check` ✔, `lint` ✔, `typecheck` ✔, `build` ✔. `npm test`: full run 22 files / 298 tests — all passed except the first test of the two editor test files, which timed out (44 s) while the lazy editor chunk loaded; fixed by loading that module in `beforeAll`, after which both files passed in a targeted re-run (26/26). The full suite was not re-run again because of the machine's speed.
 
 ### Notes
+
+- Collapsible side panels (product owner request) confirmed by the product owner's QA.
 
 - Machine: during this part the development machine had about 1 GB of free memory (Docker/kind, editors, browser), and test setup took up to 80 s. Test timeouts were raised (60 s per test, 30 s to open the editor) so the suite is not flaky on it; single tests themselves run in well under a second once loaded.
 - The draft-vs-active comparison is exact because the backend stores the draft in the same parsed form it freezes on publish; layout (positions) counts as a change, as it does for the backend's `NO_CHANGES` check.
