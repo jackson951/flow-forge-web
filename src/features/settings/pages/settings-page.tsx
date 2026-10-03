@@ -1,3 +1,4 @@
+import { Settings, SlidersHorizontal, Users } from 'lucide-react';
 import { NavLink, Outlet } from 'react-router';
 import { PageContainer } from '@/components/layout/page-container';
 import { PageHeader } from '@/components/layout/page-header';
@@ -9,12 +10,16 @@ import { paths } from '@/lib/routes';
 export function SettingsPage() {
   const workspace = useWorkspace();
   const tabs = [
-    { to: paths.settings(workspace.id), label: 'General', end: true },
-    { to: paths.settingsMembers(workspace.id), label: 'Members', end: false },
+    { to: paths.settings(workspace.id), label: 'General', icon: SlidersHorizontal, end: true },
+    { to: paths.settingsMembers(workspace.id), label: 'Members', icon: Users, end: false },
   ];
   return (
     <PageContainer>
-      <PageHeader title="Settings" description={`Workspace settings for ${workspace.name}.`} />
+      <PageHeader
+        title="Settings"
+        icon={Settings}
+        description={`Workspace settings for ${workspace.name}.`}
+      />
       <nav aria-label="Settings sections" className="border-line mt-6 flex gap-1 border-b">
         {tabs.map((tab) => (
           <NavLink
@@ -23,13 +28,14 @@ export function SettingsPage() {
             end={tab.end}
             className={({ isActive }) =>
               cn(
-                '-mb-px border-b-2 px-3 py-2 text-sm',
+                '-mb-px flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm',
                 isActive
                   ? 'border-primary text-primary font-medium'
                   : 'text-muted hover:text-ink border-transparent',
               )
             }
           >
+            <tab.icon className="size-4" aria-hidden />
             {tab.label}
           </NavLink>
         ))}

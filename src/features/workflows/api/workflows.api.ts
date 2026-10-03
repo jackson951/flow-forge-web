@@ -1,4 +1,10 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type InfiniteData,
+} from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
 import { queryKeys } from '@/lib/query-keys';
 import type {
@@ -79,5 +85,81 @@ export function useCreateWorkflow(ws: string) {
   return useMutation({
     mutationFn: (input: CreateWorkflowRequest) => workflowsApi.create(ws, input),
     onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.workflows.all(ws) }),
+  });
+}
+
+/** Keyset-paginated list: each page passes the previous page's `nextCursor` (Part 04). */
+export function useWorkflowList(ws: string, filters: Omit<WorkflowListFilters, 'cursor'> = {}) {
+  return useInfiniteQuery({
+    queryKey: queryKeys.workflows.list(ws, { ...filters, paged: true }),
+    queryFn: ({ pageParam }) => workflowsApi.list(ws, { ...filters, cursor: pageParam }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (last) => last.nextCursor ?? undefined,
+  });
+}
+
+/** Mutations that change a workflow's row refetch every list of the workspace. */
+function useWorkflowMutation<TArgs, TResult>(ws: string, fn: (args: TArgs) => Promise<TResult>) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: fn,
+    onSettled: () => qc.invalidateQueries({ queryKey: queryKeys.workflows.all(ws) }),
+  });
+}
+
+/** Rename / description, shown in the list immediately and rolled back on failure. */
+export function useUpdateWorkflow(ws: string) {
+  const qc = useQueryClient();
+  type Pages = InfiniteData<Page<WorkflowSummary>>;
+  return useMutation({
+    mutationFn: ({ id, ...input }: { id: string } & UpdateWorkflowRequest) =>
+      workflowsApi.update(ws, id, input),
+    onMutate: async ({ id, ...input }) => {
+      const key = queryKeys.workflows.all(ws);
+      await qc.cancelQueries({ queryKey: key });
+      const previous = qc.getQueriesData<Pages>({ queryKey: key });
+      qc.setQueriesData<Pages>({ queryKey: key }, (data) =>
+        data?.pages
+          ? {
+              ...data,
+              pages: data.pages.map((page) => ({
+                ...page,
+                items: page.items.map((w) => (w.id === id ? { ...w, ...input } : w)),
+              })),
+            }
+          : data,
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, context) =>
+      context?.previous.forEach(([key, data]) => qc.setQueryData(key, data)),
+    onSettled: () => qc.invalidateQueries({ queryKey: queryKeys.workflows.all(ws) }),
+  });
+}
+
+export const useDuplicateWorkflow = (ws: string) =>
+  useWorkflowMutation(ws, (id: string) => workflowsApi.duplicate(ws, id));
+export const useArchiveWorkflow = (ws: string) =>
+  useWorkflowMutation(ws, (id: string) => workflowsApi.archive(ws, id));
+export const useUnarchiveWorkflow = (ws: string) =>
+  useWorkflowMutation(ws, (id: string) => workflowsApi.unarchive(ws, id));
+export const useDeleteWorkflow = (ws: string) =>
+  useWorkflowMutation(ws, (id: string) => workflowsApi.remove(ws, id));
+
+/**
+ * Explicit draft save (Part 05). The response's `draftRevision` becomes the next
+ * `expectedRevision`; autosave and conflict handling come with Part 07.
+ */
+export function useSaveDraft(ws: string, id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ revision, definition }: { revision: number; definition: WorkflowDefinition }) =>
+      workflowsApi.saveDraft(ws, id, revision, definition),
+    onSuccess: ({ draftRevision, issues }, { definition }) => {
+      qc.setQueryData<WorkflowDetail>(queryKeys.workflows.detail(ws, id), (current) =>
+        current ? { ...current, draftRevision, draftDefinition: definition, issues } : current,
+      );
+      void qc.invalidateQueries({ queryKey: queryKeys.workflows.list(ws) });
+    },
   });
 }

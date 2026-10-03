@@ -6,6 +6,7 @@ import { useSession } from '@/features/auth/session/use-session';
 import { isApiError } from '@/lib/api-client';
 import { paths } from '@/lib/routes';
 import { useCurrentWorkspace } from '../hooks/use-current-workspace';
+import { WorkspaceContext } from '../hooks/workspace-context';
 import { lastWorkspace } from '../last-workspace';
 
 /**
@@ -22,7 +23,11 @@ export function WorkspaceGuard({ children }: { children: ReactNode }) {
     if (workspaceId && user) lastWorkspace.set(user.id, workspaceId);
   }, [workspaceId, user]);
 
-  if (current.status === 'ready') return <>{children}</>;
+  if (current.status === 'ready') {
+    return (
+      <WorkspaceContext.Provider value={current.workspace}>{children}</WorkspaceContext.Provider>
+    );
+  }
   if (current.status === 'loading') {
     return (
       <div className="flex h-full items-center justify-center">

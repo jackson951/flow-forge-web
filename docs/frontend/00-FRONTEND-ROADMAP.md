@@ -11,13 +11,13 @@ Legend: **NOT STARTED** · **IN PROGRESS** · **COMPLETE** (meets the Definition
 | 01 | [Foundation and API Contract](01-FOUNDATION-AND-API-CONTRACT.md) | COMPLETE | Verified 2026-10-03: typed client for /api/v1 with the backend error envelope, types generated from the backend Swagger (reproducible), /w/:workspaceId URLs, workspace-scoped query keys, MSW for every endpoint (78 tests), dev proxy checked against the real backend |
 | 02 | [Authentication and Session](02-AUTHENTICATION-AND-SESSION.md) | COMPLETE | Verified 2026-10-03 in Chromium against the real backend: token in memory only, httpOnly cookie, restore on reload, single-flight refresh + Web Locks across tabs, sign-out across tabs and devices, safe ?next=, 429 countdown. Backend finding: a lost refresh race clears the newer cookie |
 | 03 | [Workspaces and Members](03-WORKSPACES-AND-MEMBERS.md) | COMPLETE | Verified 2026-10-03 with two real users: switcher, guard for foreign workspace URLs, last-used workspace, create/rename/leave/delete, members with backend-identical role policy; new palette and logo, branded login. Backend finding reproduced 5/5: a reload during session refresh signs the user out |
-| 04 | [Workflow List and Management](04-WORKFLOW-LIST-AND-MANAGEMENT.md) | NOT STARTED | — |
-| 05 | [Workflow Editor Canvas](05-WORKFLOW-EDITOR-CANVAS.md) | NOT STARTED | — |
+| 04 | [Workflow List and Management](04-WORKFLOW-LIST-AND-MANAGEMENT.md) | COMPLETE | Verified 2026-10-03: keyset Load more, filters in URL, create/rename (optimistic)/duplicate/archive/unarchive/delete with archive-instead on 409, member restrictions; menus never clipped (portal), icons everywhere incl. GitHub/Slack/Microsoft logos. Product owner tested manually |
+| 05 | [Workflow Editor Canvas](05-WORKFLOW-EDITOR-CANVAS.md) | COMPLETE | Verified 2026-10-03 in Chromium against the real backend: palette drag, mouse-drawn condition branches saved with correct `branch`, layout persists across reload, rules mirror the backend validator, undo/redo of every edit (keyboard delete fixed to one step), unsaved-changes guard, archived read-only; Anthropic logo for AI steps |
 | 06 | [Node Configuration and Data Mapping](06-NODE-CONFIGURATION-AND-DATA-MAPPING.md) | NOT STARTED | — |
 | 07 | [Drafts, Validation, Publishing and Versions](07-DRAFTS-VALIDATION-PUBLISHING.md) | NOT STARTED | — |
 | 08 | [Runs: Trigger, History and Detail](08-RUNS.md) | NOT STARTED | — |
 | 09 | [Dashboard](09-DASHBOARD.md) | NOT STARTED | — |
-| 10 | [Integrations](10-INTEGRATIONS.md) | NOT STARTED | — |
+| 10 | [Integrations](10-INTEGRATIONS.md) | NOT STARTED | Includes BYOK AI connections (OpenAI, Anthropic; several per workspace); needs backend Part 23 |
 | 11 | [Account and Settings](11-ACCOUNT-AND-SETTINGS.md) | NOT STARTED | — |
 | 12 | [UX Quality and Accessibility](12-UX-QUALITY-AND-ACCESSIBILITY.md) | NOT STARTED | Cross-cutting; checked again in every later part |
 | 13 | [Testing and Quality Gate](13-TESTING-AND-QUALITY-GATE.md) | NOT STARTED | — |
@@ -77,6 +77,8 @@ The scaffold was written before the backend existed. Known mismatches: base URL 
 
 - All acceptance criteria verified, with evidence (test names, screenshots or recorded browser checks, command output).
 - `npm run format:check`, `lint`, `typecheck`, `test`, `build` pass.
+- **Icons everywhere (product owner rule, 2026-10-03):** no text-only UI. Providers show their real logos (GitHub, Slack, Microsoft — `components/brand/provider-icons.tsx`), node types their icon (`NodeTypeIcon`), and statuses, actions, page headers, filters, empty states and metadata get a meaningful lucide icon. Icons are decorative (`aria-hidden`); the text label stays for accessibility.
+- **Menus are never clipped (product owner rule, 2026-10-03):** row-action menus, dropdowns and popovers render through a portal with fixed positioning (shared `ActionMenu`), opening upward near the bottom — never `absolute` inside a table or scroll container. Browser checks open the menu on the last row.
 - New UI: loading, empty, error and permission-denied states designed; keyboard reachable; labels on every control; status never conveyed by colour alone (Part 12 checklist).
 - API calls go through the typed client; server data through TanStack Query with keys from `query-keys.ts`; workspace id part of every tenant query key.
 - No `any`; no unused code; components small enough to read.
@@ -90,3 +92,5 @@ The scaffold was written before the backend existed. Known mismatches: base URL 
 | 2026-10-03 | Design direction added (UI mock; real screens only). Part 01 COMPLETE. Next: Part 02 (authentication and session). |
 | 2026-10-03 | Part 02 COMPLETE. Next: Part 03 (workspaces and members). |
 | 2026-10-03 | Part 03 COMPLETE (with the new logo and branded login). Next: Part 04 (workflow list and management). |
+| 2026-10-03 | Product owner rules added to the DoD: icons everywhere; menus never clipped. Part 04 COMPLETE. Next: Part 05 (workflow editor canvas). |
+| 2026-10-03 | Part 05 COMPLETE. Product owner decision: AI runs on workspace API keys (BYOK), never silently on the server's key — Part 10 updated, backend Part 23 specified. Next: Part 06 (node configuration) or backend Part 23. |

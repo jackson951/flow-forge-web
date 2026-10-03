@@ -13,6 +13,7 @@ import {
   useMembers,
   useRemoveMember,
 } from '@/features/workspaces/api/workspaces.api';
+import { RoleBadge } from '@/features/workspaces/components/role-badge';
 import { useWorkspace } from '@/features/workspaces/hooks/use-current-workspace';
 import { policy, ROLE_LABEL, ROLES, type MemberRef } from '@/features/workspaces/policy';
 import { isApiError, isNotFound } from '@/lib/api-client';
@@ -147,7 +148,7 @@ function MemberRow({ member, me }: { member: Member; me: MemberRef }) {
             ))}
           </Select>
         ) : (
-          <span>{ROLE_LABEL[member.role]}</span>
+          <RoleBadge role={member.role} />
         )}
       </td>
       <td className="text-muted hidden px-6 py-3 md:table-cell">
