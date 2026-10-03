@@ -5,7 +5,8 @@ import { Button, Field, Input } from '@/components/ui';
 import type { ValidationIssue } from '@/types/api';
 import type { EditorAction } from '../editor/editor-reducer';
 import { keyProblem } from '../editor/keys';
-import type { NodeDefinition } from '../types/workflow-definition';
+import { NodeSettings } from '../config/components/node-settings';
+import type { NodeDefinition, WorkflowDefinition } from '../types/workflow-definition';
 
 interface NodeConfigPanelProps {
   node: NodeDefinition | null;
@@ -14,11 +15,14 @@ interface NodeConfigPanelProps {
   issues: ValidationIssue[];
   dispatch: (action: EditorAction) => void;
   readOnly?: boolean;
+  /** The whole draft: references may only point at steps before this one. */
+  definition: WorkflowDefinition;
+  labelFor: (type: string) => string;
 }
 
 /**
  * Right-hand panel for the selected step (Part 05): identity, key (how later steps reference
- * it), its validation issues and delete. The type-specific settings form is Part 06.
+ * it), its type-specific settings (Part 06), its validation issues and delete.
  */
 export function NodeConfigPanel(props: NodeConfigPanelProps) {
   if (!props.node) {
@@ -44,7 +48,9 @@ function SelectedNodePanel({
   otherKeys,
   issues,
   dispatch,
-  readOnly,
+  readOnly = false,
+  definition,
+  labelFor,
 }: NodeConfigPanelProps & { node: NodeDefinition }) {
   const [draftKey, setDraftKey] = useState(node.key);
   const problem = draftKey === node.key ? null : keyProblem(draftKey, otherKeys);
@@ -102,9 +108,18 @@ function SelectedNodePanel({
           <Settings2 className="text-muted size-4" aria-hidden />
           Settings
         </h3>
-        <p className="text-muted mt-1 text-sm">
-          The settings form for this step type is not available yet.
-        </p>
+        <div className="mt-3">
+          <NodeSettings
+            node={node}
+            definition={definition}
+            labelFor={labelFor}
+            issues={issues}
+            readOnly={readOnly}
+            onChange={(config, field) =>
+              dispatch({ type: 'updateConfig', key: node.key, config, field })
+            }
+          />
+        </div>
       </section>
 
       {issues.length > 0 && (

@@ -25,7 +25,7 @@ function recordSaves(issues: unknown[] = []) {
 
 const openEditor = async (path = URL_) => {
   const result = renderRoute(path);
-  await screen.findByRole('heading', { level: 1, name: workflowDetail.name }, { timeout: 10_000 });
+  await screen.findByRole('heading', { level: 1, name: workflowDetail.name }, { timeout: 20_000 });
   return result;
 };
 

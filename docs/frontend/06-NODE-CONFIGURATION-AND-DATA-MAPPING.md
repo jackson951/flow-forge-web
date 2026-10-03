@@ -1,6 +1,6 @@
 # 06 — Node Configuration and Data Mapping
 
-**Status:** NOT STARTED (see [00-FRONTEND-ROADMAP.md](00-FRONTEND-ROADMAP.md))
+**Status:** COMPLETE WITH DEFERRALS (2026-10-03) — evidence below; browser checks waived by the product owner and not run (AC-06.1 backend round trip, AC-06.2 real pickers). See [00-FRONTEND-ROADMAP.md](00-FRONTEND-ROADMAP.md)
 
 ## Objective
 
@@ -51,3 +51,39 @@ Part 05; Part 10 for real connections (forms usable earlier with mock connection
 ## Risks / Design Questions
 
 - Hand-written forms can drift from backend schemas. Mitigation: fixture tests with backend examples; long-term the backend could expose JSON Schema from its zod definitions (proposed as a backend improvement, not required here).
+
+## As implemented
+
+| Area | Implementation |
+| --- | --- |
+| Schemas | `config/schemas.ts`: zod schemas copied field by field from the backend (node-type catalog, conditions, GitHub/Slack/Microsoft node types, AI tasks): limits, patterns, `.strict()`, unique labels/field names ignoring case, reserved `usage`/`meta`, enum values only for enum fields, condition depth ≤ 4 / ≤ 50 comparisons / ≤ 20 per group. `configErrors(type, config)` → messages by path |
+| References | `config/references.ts`: ancestors via the single-parent edges; suggestions = trigger fields (GitHub issue payload as normalised by the backend; manual input has no fixed fields) + known outputs of each upstream step (`ai.classify` → `label`, `confidence`; `ai.extract` → its configured field names; `slack.sendMessage` → `ts`, `channelId`; …). Syntax check identical to the backend's `parseReference`; unknown or non-upstream steps are errors, unknown outputs of known shapes are warnings |
+| Template input | `config/components/template-input.tsx`: typing `{{` opens suggestions filtered by what follows; ↑/↓, Enter/Tab inserts `{{ ref }}` at the caret, Esc closes; "Insert data" button opens the full list; character counter; problems listed under the field. ARIA combobox; the list is a portal with fixed position (never clipped, flips up) |
+| Condition builder | `config/components/condition-builder.tsx`: All (AND) / Any (OR) / Not groups, comparisons with Data / Text / Number / Yes-no / Empty operands, the 13 operators (unary ones hide the right side), add comparison / add group disabled at the limits, remove, plain-language preview, counters "n/50 comparisons · nesting d/4", server issues shown on the comparison they belong to (`all.0.right`) |
+| Pickers | `config/components/connection-select.tsx` (workspace connections of the provider with its logo; none → "Connect <provider>" link to Integrations; needs attention / deleted connection warnings) and `resource-picker.tsx` (search, loading, empty, error with retry, load more for Slack's cursor; inline so never clipped). Changing the connection clears the repository/channel/list that belonged to the old one |
+| Forms | `config/components/node-forms.tsx`: manual trigger (no settings, explains `trigger.*`), GitHub issue opened (connection, repository), condition, log message, Slack (connection, channel, message, @channel/@here off by default with a warning), Microsoft To Do (connection, list, title, notes, due date as text/reference or date picker), AI summarize (text, max words 20–300, default 100), classify (labels as chips, optional subject), extract (fields with name, type, enum values, required, description). AI text can be "Text with data" (template) or "One value as-is" (`{ ref }`) |
+| Framework | `config/components/node-settings.tsx` in the step panel: client errors show once a field is edited or has a value; the server's issues (by `path`) always show, on the same field; a note that secrets belong in connections. Edits dispatch `updateConfig` with the field name — consecutive typing in one field is one undo step (`editor-reducer.ts`) |
+| Not built | A per-step "display name": the backend definition has no such field (the step key is the name) |
+
+## Implementation Evidence
+
+Verified 2026-10-03 on branch `feat/part-06-node-config`.
+
+| ID | Result | Evidence |
+| --- | --- | --- |
+| AC-06.1 | PARTIAL — browser not run | Every publishable node type has a form (component tests for each). `config.test.ts` checks the client schemas against accepted/rejected examples taken from the backend schemas, and the forms' output is asserted exactly in `node-settings.test.tsx`. **Not done:** building a workflow with every type in the browser and validating it with the real backend — the product owner waived the browser run; the script is ready (`part06-check.mjs` in the session scratchpad) |
+| AC-06.2 | NOT VERIFIED — deferred | Pickers tested with MSW in every state (list, search, pick, empty, error + retry, load more, no connection, needs attention). Real repositories/channels/lists need connected GitHub/Slack/Microsoft accounts (Part 10 / product owner) |
+| AC-06.3 | PASS | `config.test.ts`: suggestions are the ancestors only — not the step itself, siblings on the other branch or downstream steps; `ai.extract` outputs follow its fields. Component test: the list after `{{` never offers a downstream step |
+| AC-06.4 | PASS (unit/component) — browser round trip not run | Builder output is the backend grammar exactly (component tests assert the config), depth 4 reached and the 5th level refused; schemas reject depth 5 / 21 items per group. Backend round trip not exercised in a browser |
+| AC-06.5 | PASS | Component test: a server issue with `path: "message"` and the client's "Enter a message" appear in the same field message element; condition issues appear on their comparison |
+
+Tests: `config.test.ts` (19), `node-settings.test.tsx` (24), reducer test for one-undo-step-per-field.
+
+Gate: `format:check` ✔, `lint` ✔, `typecheck` ✔, `npm test` 20 files / 279 tests ✔, `build` ✔.
+
+### Notes
+
+- Bug found by the tests and fixed: "Insert data" inserted at the start of the text when the field was not focused yet; it now inserts at the end.
+- Test timing: under a parallel run on this machine the first editor test (which also loads the lazy editor chunk) took 10–18 s; `testTimeout` is now 30 s, opening the editor in tests waits up to 20 s, and Testing Library's `asyncUtilTimeout` is 5 s. Single-file timings varied by 2× between identical runs (setup/environment included), so this is machine load, not app speed.
+- AI steps keep the current backend shape (`text`, `maxWords` / `labels` / `fields`). Choosing an AI provider connection and model per step comes with BYOK (backend Part 23, frontend Part 10 update).
+

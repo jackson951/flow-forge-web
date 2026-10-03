@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
 import { queryKeys } from '@/lib/query-keys';
 import type {
@@ -39,5 +39,34 @@ export function useConnections(ws: string) {
   return useQuery({
     queryKey: queryKeys.integrations.connections(ws),
     queryFn: () => integrationsApi.connections(ws),
+  });
+}
+
+/** Repositories the GitHub App installation can access (trigger configuration, Part 06). */
+export function useGitHubRepositories(ws: string, connectionId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.integrations.repositories(ws, connectionId ?? ''),
+    queryFn: () => integrationsApi.repositories(ws, connectionId!),
+    enabled: !!connectionId,
+  });
+}
+
+/** Slack channels the bot can post to, page by page (Slack's cursor). */
+export function useSlackChannels(ws: string, connectionId: string | undefined) {
+  return useInfiniteQuery({
+    queryKey: queryKeys.integrations.slackChannels(ws, connectionId ?? ''),
+    queryFn: ({ pageParam }) => integrationsApi.slackChannels(ws, connectionId!, pageParam),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (last) => last.nextCursor ?? undefined,
+    enabled: !!connectionId,
+  });
+}
+
+/** Microsoft To Do lists of the connected account. */
+export function useTodoLists(ws: string, connectionId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.integrations.todoLists(ws, connectionId ?? ''),
+    queryFn: () => integrationsApi.todoLists(ws, connectionId!),
+    enabled: !!connectionId,
   });
 }

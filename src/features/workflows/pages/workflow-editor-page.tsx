@@ -268,6 +268,8 @@ function Editor({ workflow }: { workflow: WorkflowDetail }) {
               dispatch(action);
             }}
             readOnly={readOnly}
+            definition={def}
+            labelFor={labelFor}
           />
         </aside>
       </div>
