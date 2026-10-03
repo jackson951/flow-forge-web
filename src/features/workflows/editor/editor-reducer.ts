@@ -28,7 +28,10 @@ export interface EditorState {
 
 export type EditorAction =
   | { type: 'load'; definition: WorkflowDefinition }
-  | { type: 'markSaved' }
+  /** The backend stored `definition` (defaults to the current one): it becomes the baseline. */
+  | { type: 'markSaved'; definition?: WorkflowDefinition }
+  /** Replaces the whole draft (restore a version) as one undoable edit. */
+  | { type: 'replace'; definition: WorkflowDefinition }
   | {
       type: 'addNode';
       nodeType: string;
@@ -109,7 +112,10 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
       return initialEditorState(action.definition);
 
     case 'markSaved':
-      return { ...state, saved: state.definition };
+      return { ...state, saved: action.definition ?? state.definition };
+
+    case 'replace':
+      return commit(state, action.definition);
 
     case 'addNode': {
       if (action.kind === 'TRIGGER' && def.nodes.some((n) => n.kind === 'TRIGGER')) {

@@ -10,6 +10,8 @@ export const paths = {
   workspace: (ws: string) => `/w/${ws}`,
   workflows: (ws: string) => `/w/${ws}/workflows`,
   workflow: (ws: string, workflowId: string) => `/w/${ws}/workflows/${workflowId}`,
+  workflowVersion: (ws: string, workflowId: string, version: number) =>
+    `/w/${ws}/workflows/${workflowId}/versions/${version}`,
   runs: (ws: string) => `/w/${ws}/runs`,
   run: (ws: string, runId: string) => `/w/${ws}/runs/${runId}`,
   integrations: (ws: string) => `/w/${ws}/integrations`,
@@ -22,6 +24,7 @@ export const patterns = {
   workspace: '/w/:workspaceId',
   workflows: 'workflows',
   workflow: 'workflows/:workflowId',
+  workflowVersion: 'workflows/:workflowId/versions/:version',
   runs: 'runs',
   run: 'runs/:runId',
   integrations: 'integrations',

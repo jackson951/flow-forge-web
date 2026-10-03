@@ -100,7 +100,9 @@ export type IssueCode =
   | 'INVALID_CONDITION'
   | 'INVALID_REFERENCE'
   | 'UNKNOWN_REFERENCE_NODE'
-  | 'NON_ANCESTOR_REFERENCE';
+  | 'NON_ANCESTOR_REFERENCE'
+  /** Publish only: the step's connection is missing or needs attention. */
+  | 'CONNECTION_INVALID';
 
 export interface ValidationIssue {
   code: IssueCode;

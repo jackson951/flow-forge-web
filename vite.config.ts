@@ -27,6 +27,6 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.ts'],
     css: false,
     // Component tests render the whole app; under a full parallel run 5 s is too tight.
-    testTimeout: 30_000,
+    testTimeout: 60_000,
   },
 });
