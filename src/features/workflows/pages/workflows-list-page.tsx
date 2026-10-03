@@ -15,6 +15,7 @@ import {
   Trash2,
   Workflow,
   type LucideIcon,
+  Play,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
@@ -37,6 +38,7 @@ import {
   DeleteWorkflowDialog,
   EditWorkflowDialog,
 } from '../components/workflow-dialogs';
+import { RunNowDialog } from '@/features/runs/components/run-now-dialog';
 import { WorkflowStatusBadge } from '../components/workflow-status-badge';
 
 /** Filter tabs; "All" is everything except archived (the backend default). */
@@ -230,6 +232,7 @@ function WorkflowRow({
   const archived = workflow.status === 'ARCHIVED';
   const href = paths.workflow(workspace.id, workflow.id);
   const error = duplicate.error ?? unarchive.error;
+  const [running, setRunning] = useState(false);
 
   const items: ActionMenuItem[] = [
     {
@@ -243,6 +246,15 @@ function WorkflowRow({
             label: 'Edit details',
             icon: <Pencil className="size-4" aria-hidden />,
             onSelect: () => onDialog('edit'),
+          },
+        ]
+      : []),
+    ...(workflow.status === 'PUBLISHED'
+      ? [
+          {
+            label: 'Run now',
+            icon: <Play className="size-4" aria-hidden />,
+            onSelect: () => setRunning(true),
           },
         ]
       : []),
@@ -338,6 +350,12 @@ function WorkflowRow({
       </td>
       <td className="px-5 py-3 text-right">
         <ActionMenu label={`Actions for ${workflow.name}`} items={items} />
+        <RunNowDialog
+          workflowId={workflow.id}
+          workflowName={workflow.name}
+          open={running}
+          onClose={() => setRunning(false)}
+        />
       </td>
     </tr>
   );

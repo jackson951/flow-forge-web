@@ -1,3 +1,4 @@
+import type { StepStatus } from '@/types/api';
 import type { Edge, Node } from '@xyflow/react';
 import type {
   EdgeDefinition,
@@ -17,6 +18,8 @@ export interface ToFlowOptions {
   labelFor?: (type: string) => string;
   issueCount?: (key: string) => number;
   readOnly?: boolean;
+  /** Run view: each step's status, and whether an edge was taken (Part 08). */
+  statusFor?: (key: string) => StepStatus | undefined;
 }
 
 /**
@@ -44,6 +47,7 @@ export function toFlow(
       config: n.config,
       issueCount: options.issueCount?.(n.key) ?? 0,
       readOnly: options.readOnly,
+      stepStatus: options.statusFor?.(n.key),
     },
   }));
   const edges: FlowEdge[] = definition.edges.map((e) => ({
@@ -55,6 +59,7 @@ export function toFlow(
     deletable: !options.readOnly,
     data: e.branch ? { branch: e.branch } : {},
     className: e.branch ? `branch-${e.branch}` : undefined,
+    ...(options.statusFor && edgeStyle(options.statusFor(e.from), options.statusFor(e.to))),
   }));
   return { nodes, edges };
 }
@@ -76,4 +81,14 @@ export function toDefinition(nodes: FlowNode[], edges: FlowEdge[]): WorkflowDefi
         : { from: e.source, to: e.target },
     ),
   };
+}
+
+const RAN: (StepStatus | undefined)[] = ['SUCCEEDED', 'FAILED', 'RUNNING', 'RETRYING'];
+
+/** Run view: the path the run took is solid and coloured; edges not taken are faint. */
+function edgeStyle(from: StepStatus | undefined, to: StepStatus | undefined): Partial<FlowEdge> {
+  const taken = RAN.includes(from) && RAN.includes(to);
+  return taken
+    ? { animated: to === 'RUNNING', style: { stroke: 'var(--color-primary)', strokeWidth: 2 } }
+    : { style: { stroke: 'var(--color-line)', strokeDasharray: '4 4' } };
 }

@@ -15,6 +15,7 @@ import {
   PanelRightClose,
   PanelRightOpen,
   PartyPopper,
+  Play,
   Redo2,
   Rocket,
   Save,
@@ -41,6 +42,7 @@ import {
   useWorkflow,
   workflowsApi,
 } from '../api/workflows.api';
+import { RunNowDialog } from '@/features/runs/components/run-now-dialog';
 import { WorkflowCanvas } from '../components/canvas/workflow-canvas';
 import { IssuesPanel } from '../components/issues-panel';
 import { NodeConfigPanel } from '../components/node-config-panel';
@@ -117,6 +119,7 @@ function Editor({ workflow }: { workflow: WorkflowDetail }) {
   // The conflict dialog shows while there is a conflict, unless the user chose to decide later.
   const [conflictDismissed, setConflictDismissed] = useState(false);
   const [restoreAsk, setRestoreAsk] = useState<number | null>(null);
+  const [runOpen, setRunOpen] = useState(false);
   const [banner, setBanner] = useState<{ tone: 'success' | 'info'; text: string } | null>(null);
   const readOnly = workflow.status === 'ARCHIVED';
   const canPublish = policy.canManage(workspace.role);
@@ -304,6 +307,16 @@ function Editor({ workflow }: { workflow: WorkflowDetail }) {
       },
     });
 
+  // Run now (Part 08): the active version runs; webhook-triggered workflows run on events.
+  const activeTrigger = active.data?.definition.nodes.find((n) => n.kind === 'TRIGGER');
+  const runBlocked = readOnly
+    ? 'Archived workflows cannot be run.'
+    : activeNumber === undefined
+      ? 'Publish the workflow before running it.'
+      : activeTrigger && activeTrigger.type !== 'manual.trigger'
+        ? `Runs automatically when its trigger fires (${labelFor(activeTrigger.type)}).`
+        : null;
+
   const publishError = publish.error
     ? issuesFromError(publish.error)
       ? 'The draft cannot be published yet. The issues are listed below the canvas.'
@@ -395,6 +408,23 @@ function Editor({ workflow }: { workflow: WorkflowDetail }) {
             <Save className="size-4" aria-hidden />
             Save
           </Button>
+          <span title={runBlocked ?? undefined}>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setRunOpen(true)}
+              disabled={!!runBlocked}
+              aria-describedby={runBlocked ? 'run-blocked' : undefined}
+            >
+              <Play className="size-4" aria-hidden />
+              Run now
+            </Button>
+          </span>
+          {runBlocked && (
+            <span id="run-blocked" className="sr-only">
+              {runBlocked}
+            </span>
+          )}
           <span title={publishBlocked ?? undefined}>
             <Button
               size="sm"
@@ -607,6 +637,13 @@ function Editor({ workflow }: { workflow: WorkflowDetail }) {
           )}
         </aside>
       </div>
+
+      <RunNowDialog
+        workflowId={workflow.id}
+        workflowName={workflow.name}
+        open={runOpen}
+        onClose={() => setRunOpen(false)}
+      />
 
       <Dialog
         open={publishOpen}

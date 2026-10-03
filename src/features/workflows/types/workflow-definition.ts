@@ -3,7 +3,7 @@
  * (flowforge-api/src/engine/definition/definition.schema.ts). The canvas is a view of this;
  * the definition is the source of truth.
  */
-import type { NodeKind } from '@/types/api';
+import type { NodeKind, StepStatus } from '@/types/api';
 
 export interface NodePosition {
   x: number;
@@ -58,4 +58,6 @@ export type FlowNodeData = {
   issueCount?: number;
   /** Read-only canvas (archived workflow, version view). */
   readOnly?: boolean;
+  /** Run view: the step's status in that run (Part 08). */
+  stepStatus?: StepStatus;
 };

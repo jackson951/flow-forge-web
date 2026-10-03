@@ -1,32 +1,92 @@
-import { CircleAlert, Timer } from 'lucide-react';
+import { ExternalLink, Info, Repeat, Timer } from 'lucide-react';
 import { NodeTypeIcon } from '@/components/brand/node-type-icon';
 import { StatusBadge } from '@/components/ui';
+import { cn } from '@/lib/cn';
 import type { StepRun } from '@/types/api';
+import { formatDuration } from '../run-helpers';
+import { ErrorExplanation } from './error-explanation';
+import { JsonView } from './json-view';
 
-/** Ordered list of executed steps. A real sequence, so it's an <ol>. */
-export function StepTimeline({ steps }: { steps: StepRun[] }) {
+interface StepTimelineProps {
+  steps: StepRun[];
+  labelFor: (type: string) => string;
+  /** Why skipped steps did not run (branch not taken / run stopped). */
+  skipReasons: Map<string, string>;
+  /** Retention removed stored inputs/outputs. */
+  payloadsTrimmed: boolean;
+}
+
+/** Steps in execution order (Part 08, FR-08.4). A real sequence, so it's an <ol>. */
+export function StepTimeline({ steps, labelFor, skipReasons, payloadsTrimmed }: StepTimelineProps) {
+  const ordered = [...steps].sort((a, b) => a.sequence - b.sequence);
   return (
-    <ol className="divide-line border-line bg-surface divide-y rounded-xl border">
-      {steps.map((step) => (
-        <li key={step.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3">
-          <NodeTypeIcon type={step.nodeType} size="sm" />
-          <span className="font-mono text-sm">{step.nodeKey}</span>
-          <StatusBadge status={step.status} />
-          <span className="text-muted ml-auto inline-flex items-center gap-1 text-sm tabular-nums">
-            <Timer className="size-3.5" aria-hidden />
-            {step.durationMs !== null ? `${step.durationMs} ms` : '—'}
-          </span>
-          {step.error && (
-            <p className="text-status-failed flex w-full items-start gap-1.5 pl-11 text-sm">
-              <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
-              <span>
-                {step.error.description}
-                {step.error.message && <span className="text-muted"> — {step.error.message}</span>}
+    <ol
+      aria-label="Steps"
+      className="divide-line border-line bg-surface divide-y rounded-xl border"
+    >
+      {ordered.map((step) => {
+        const skipped = step.status === 'SKIPPED';
+        return (
+          <li key={step.id} className={cn('space-y-2 px-4 py-3', skipped && 'bg-canvas/50')}>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <span className="text-muted w-6 text-right font-mono text-xs tabular-nums">
+                {step.sequence}
               </span>
-            </p>
-          )}
-        </li>
-      ))}
+              <NodeTypeIcon type={step.nodeType} size="sm" />
+              <span className="min-w-0">
+                <span className="block text-sm font-medium">{labelFor(step.nodeType)}</span>
+                <span className="text-muted block font-mono text-xs">{step.nodeKey}</span>
+              </span>
+              <StatusBadge status={step.status} />
+              {step.attemptCount > 1 && (
+                <span
+                  className="text-muted inline-flex items-center gap-1 text-xs"
+                  title="Attempts"
+                >
+                  <Repeat className="size-3.5" aria-hidden />
+                  {step.attemptCount} attempts
+                </span>
+              )}
+              <span className="text-muted ml-auto inline-flex items-center gap-1 text-sm tabular-nums">
+                <Timer className="size-3.5" aria-hidden />
+                {formatDuration(step.durationMs)}
+              </span>
+            </div>
+            {skipped && skipReasons.get(step.nodeKey) && (
+              <p className="text-muted flex items-center gap-1.5 pl-9 text-sm">
+                <Info className="size-4 shrink-0" aria-hidden />
+                {skipReasons.get(step.nodeKey)}
+              </p>
+            )}
+            {step.error && (
+              <div className="pl-9">
+                <ErrorExplanation error={step.error} nodeType={step.nodeType} compact />
+              </div>
+            )}
+            {step.externalRef && (
+              <p className="text-muted flex items-center gap-1.5 pl-9 text-xs">
+                <ExternalLink className="size-3.5" aria-hidden />
+                Provider reference <span className="font-mono">{step.externalRef}</span>
+              </p>
+            )}
+            {!skipped && (
+              <div className="grid gap-2 pl-9 md:grid-cols-2">
+                <JsonView
+                  label="Input"
+                  value={step.input}
+                  defaultOpen={step.status === 'FAILED'}
+                  empty={payloadsTrimmed ? 'removed by retention' : 'nothing recorded'}
+                />
+                <JsonView
+                  label="Output"
+                  value={step.output}
+                  empty={payloadsTrimmed ? 'removed by retention' : 'nothing recorded'}
+                />
+              </div>
+            )}
+          </li>
+        );
+      })}
     </ol>
   );
 }

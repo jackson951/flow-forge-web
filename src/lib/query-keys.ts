@@ -32,7 +32,7 @@ export const queryKeys = {
   },
   runs: {
     all: (workspaceId: string) => [...ws(workspaceId), 'runs'] as const,
-    list: (workspaceId: string, filters: RunFilters = {}) =>
+    list: (workspaceId: string, filters: RunFilters | object = {}) =>
       [...ws(workspaceId), 'runs', 'list', filters] as const,
     detail: (workspaceId: string, runId: string) => [...ws(workspaceId), 'runs', runId] as const,
     steps: (workspaceId: string, runId: string) =>
