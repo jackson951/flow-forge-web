@@ -3,7 +3,7 @@ import type { ConnectionStatus } from '@/types/api';
 
 const statusText: Record<ConnectionStatus, { label: string; className: string }> = {
   CONNECTED: { label: 'Connected', className: 'text-status-succeeded' },
-  NEEDS_ATTENTION: { label: 'Needs attention', className: 'text-ember-deep' },
+  NEEDS_ATTENTION: { label: 'Needs attention', className: 'text-status-warning' },
   DISCONNECTED: { label: 'Not connected', className: 'text-muted' },
 };
 

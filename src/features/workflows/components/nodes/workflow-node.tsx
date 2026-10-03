@@ -19,7 +19,7 @@ export function WorkflowNode({ data, selected }: NodeProps<WorkflowFlowNode>) {
     <div
       className={cn(
         'bg-surface w-56 rounded-md border px-3 py-2.5 text-left',
-        selected ? 'border-ember ring-ember/30 ring-2' : 'border-line',
+        selected ? 'border-primary ring-primary/30 ring-2' : 'border-line',
       )}
     >
       {data.kind !== 'TRIGGER' && <Handle type="target" position={Position.Left} />}

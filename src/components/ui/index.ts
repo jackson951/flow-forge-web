@@ -6,3 +6,5 @@ export * from './panel';
 export * from './skeleton';
 export * from './spinner';
 export * from './status-badge';
+export * from './dialog';
+export * from './select';

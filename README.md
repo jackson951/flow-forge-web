@@ -60,9 +60,9 @@ Feature folders own their pages, components and API hooks; `components/` holds o
 
 ## Design tokens
 
-> Being replaced by the palette in [docs/frontend/design/DESIGN-DIRECTION.md](docs/frontend/design/DESIGN-DIRECTION.md) (navy sidebar, indigo primary) when the shell is restyled.
+Defined once in `src/styles/index.css` under `@theme` (rationale and screen scope: [docs/frontend/design/DESIGN-DIRECTION.md](docs/frontend/design/DESIGN-DIRECTION.md)): navy navigation rail `sidebar #0F1629`, indigo `primary #4F46E5` for actions, focus and the active item, `canvas #F5F6FA`, white `surface`, `line #E4E7EC`, `muted #667085`, `ink #101828` for text. Run statuses have their own colours and always pair with a text label. Type is Instrument Sans, with JetBrains Mono for identifiers only.
 
-Defined once in `src/styles/index.css` under `@theme`: ink `#1E2A3B` (navigation, primary actions), canvas `#F4F5F7`, surface `#FFFFFF`, line `#DCE0E6`, muted `#5E6A7A`, and a single ember accent `#F2A33A` reserved for focus rings and the active item. Run statuses have their own colors and always pair with a text label. Type is Instrument Sans, with JetBrains Mono for identifiers only.
+Logo: `src/components/brand/logo.tsx` (`LogoMark`, `Logo` with `tone` and the tagline "Automate what matters"), the same drawing as `public/favicon.svg`.
 
 ## Docker
 

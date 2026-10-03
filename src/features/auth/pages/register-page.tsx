@@ -90,7 +90,7 @@ export function RegisterPage() {
 
       <p className="text-muted mt-6 text-sm">
         Already have an account?{' '}
-        <Link to={paths.login} className="text-ink font-medium underline underline-offset-4">
+        <Link to={paths.login} className="text-primary font-medium underline underline-offset-4">
           Sign in
         </Link>
       </p>

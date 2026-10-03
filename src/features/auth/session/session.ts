@@ -88,7 +88,9 @@ export function refresh(): Promise<string | null> {
     } catch (err) {
       // 401: no valid refresh cookie (expired, logged out, reuse detected). Anything else
       // (network, 5xx) also ends the session — there is no usable access token left.
-      if (state.status !== 'anonymous') end('expired');
+      // Only a session that existed can "end": a first visit without a cookie is simply
+      // signed out, with no "your session has ended" message (restore() sets that state).
+      if (state.status === 'authenticated') end('expired');
       if (!isApiError(err) || err.status !== 401) console.warn('Session refresh failed', err);
       return null;
     }

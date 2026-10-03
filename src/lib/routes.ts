@@ -14,6 +14,7 @@ export const paths = {
   run: (ws: string, runId: string) => `/w/${ws}/runs/${runId}`,
   integrations: (ws: string) => `/w/${ws}/integrations`,
   settings: (ws: string) => `/w/${ws}/settings`,
+  settingsMembers: (ws: string) => `/w/${ws}/settings/members`,
 } as const;
 
 /** Route patterns for the router (same structure as `paths`). */
@@ -25,6 +26,7 @@ export const patterns = {
   run: 'runs/:runId',
   integrations: 'integrations',
   settings: 'settings',
+  settingsMembers: 'members',
 } as const;
 
 /**

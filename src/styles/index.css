@@ -1,25 +1,34 @@
 @import 'tailwindcss';
 
-/* Design tokens — an operations tool: cool neutrals, dark ink rail,
-   one warm "ember" accent reserved for focus and the active path. */
+/* Design tokens (docs/frontend/design/DESIGN-DIRECTION.md): navy navigation rail, white cards on
+   a light canvas, one indigo primary for actions, focus and the active item. Status colours
+   always come with a text label. */
 @theme {
   --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  --color-ink: #1e2a3b;
-  --color-ink-soft: #2b3a50;
-  --color-canvas: #f4f5f7;
+  --color-ink: #101828;
+  --color-canvas: #f5f6fa;
   --color-surface: #ffffff;
-  --color-line: #dce0e6;
-  --color-muted: #5e6a7a;
-  --color-ember: #f2a33a;
-  --color-ember-deep: #b86e0e;
+  --color-line: #e4e7ec;
+  --color-muted: #667085;
 
-  --color-status-succeeded: #2e8b57;
-  --color-status-failed: #c8423b;
-  --color-status-running: #2f6feb;
-  --color-status-queued: #7a8494;
-  --color-status-cancelled: #9aa2ae;
+  --color-sidebar: #0f1629;
+  --color-sidebar-soft: #1d2742;
+  --color-sidebar-text: #c3cad9;
+
+  --color-primary: #4f46e5;
+  --color-primary-hover: #4338ca;
+  --color-primary-soft: #eef2ff;
+  /* For text/icons on the navy rail (indigo itself is too dark there). */
+  --color-primary-light: #a5b4fc;
+
+  --color-status-succeeded: #067647;
+  --color-status-failed: #c01048;
+  --color-status-running: #175cd3;
+  --color-status-queued: #667085;
+  --color-status-cancelled: #98a2b3;
+  --color-status-warning: #b54708;
 }
 
 @layer base {
@@ -32,7 +41,7 @@
     @apply bg-canvas text-ink font-sans antialiased;
   }
   :focus-visible {
-    outline: 2px solid var(--color-ember);
+    outline: 2px solid var(--color-primary);
     outline-offset: 2px;
   }
   @media (prefers-reduced-motion: reduce) {

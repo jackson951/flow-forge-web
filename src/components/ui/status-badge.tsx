@@ -5,7 +5,7 @@ const styles: Record<RunStatus | StepStatus, string> = {
   QUEUED: 'text-status-queued',
   PENDING: 'text-status-queued',
   RUNNING: 'text-status-running',
-  RETRYING: 'text-ember-deep',
+  RETRYING: 'text-status-warning',
   SUCCEEDED: 'text-status-succeeded',
   FAILED: 'text-status-failed',
   CANCELLED: 'text-status-cancelled',

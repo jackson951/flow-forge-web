@@ -78,7 +78,7 @@ export function LoginPage() {
         New to FlowForge?{' '}
         <Link
           to={next ? `${paths.register}?next=${encodeURIComponent(next)}` : paths.register}
-          className="text-ink font-medium underline underline-offset-4"
+          className="text-primary font-medium underline underline-offset-4"
         >
           Create an account
         </Link>

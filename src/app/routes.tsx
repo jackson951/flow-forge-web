@@ -10,8 +10,11 @@ import { DashboardPage } from '@/features/dashboard/pages/dashboard-page';
 import { IntegrationsPage } from '@/features/integrations/pages/integrations-page';
 import { RunDetailPage } from '@/features/runs/pages/run-detail-page';
 import { RunsListPage } from '@/features/runs/pages/runs-list-page';
+import { GeneralSettingsPage } from '@/features/settings/pages/general-settings-page';
+import { MembersPage } from '@/features/settings/pages/members-page';
 import { SettingsPage } from '@/features/settings/pages/settings-page';
 import { WorkflowsListPage } from '@/features/workflows/pages/workflows-list-page';
+import { WorkspaceGuard } from '@/features/workspaces/components/workspace-guard';
 import { WorkspaceRedirect } from '@/features/workspaces/components/workspace-redirect';
 import { patterns, paths } from '@/lib/routes';
 import { NotFoundPage } from '@/pages/not-found-page';
@@ -39,11 +42,14 @@ export const routes: RouteObject[] = [
     ),
   },
   {
-    // Every tenant page is under /w/:workspaceId (Part 01, FR-01.7).
+    // Every tenant page is under /w/:workspaceId (Part 01) and only renders for a workspace
+    // the user belongs to (Part 03).
     path: patterns.workspace,
     element: (
       <RequireAuth>
-        <AppShell />
+        <WorkspaceGuard>
+          <AppShell />
+        </WorkspaceGuard>
       </RequireAuth>
     ),
     errorElement: <RouteError />,
@@ -61,7 +67,14 @@ export const routes: RouteObject[] = [
       { path: patterns.runs, element: <RunsListPage /> },
       { path: patterns.run, element: <RunDetailPage /> },
       { path: patterns.integrations, element: <IntegrationsPage /> },
-      { path: patterns.settings, element: <SettingsPage /> },
+      {
+        path: patterns.settings,
+        element: <SettingsPage />,
+        children: [
+          { index: true, element: <GeneralSettingsPage /> },
+          { path: patterns.settingsMembers, element: <MembersPage /> },
+        ],
+      },
     ],
   },
   { path: '*', element: <NotFoundPage /> },

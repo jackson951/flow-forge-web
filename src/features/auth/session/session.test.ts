@@ -97,7 +97,7 @@ describe('session (Part 02)', () => {
         http.post(`${API}/auth/refresh`, () => apiError(401, 'Invalid or expired refresh token')),
       );
       await session.restore();
-      expect(session.getState()).toMatchObject({ status: 'anonymous', user: null });
+      expect(session.getState()).toEqual({ status: 'anonymous', user: null, endReason: null });
       expect(accessToken.get()).toBeNull();
     });
 
