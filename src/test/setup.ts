@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom/vitest';
-import { configure } from '@testing-library/react';
+import { cleanup, configure } from '@testing-library/react';
 import { resetSessionForTests } from '@/features/auth/session/session';
 import { toastStore } from '@/lib/toast';
 import { server } from './msw/server';
@@ -14,6 +14,10 @@ configure({ asyncUtilTimeout: 10_000 });
 // reaching the network (Part 01, AC-01.5).
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 afterEach(() => {
+  // Unmount first: after hooks run in reverse order, so Testing Library's own cleanup would
+  // come after the reset below, and a still-mounted tree could start a refresh against the
+  // default handlers that the next test's session check then joins.
+  cleanup();
   server.resetHandlers();
   // Session and access token are module singletons; every test starts signed out/unknown.
   resetSessionForTests();

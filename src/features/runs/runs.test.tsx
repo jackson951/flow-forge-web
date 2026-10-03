@@ -17,6 +17,16 @@ import { server } from '@/test/msw/server';
 import { renderRoute } from '@/test/render';
 import type { RunDetail, RunSummary, StepRun, WorkspaceRole } from '@/types/api';
 
+// The editor and run detail are lazy routes; compile them once up front so the first test
+// that opens one does not spend its wait on the cold transform (full parallel runs).
+beforeAll(
+  () =>
+    import('@/features/workflows/pages/workflow-editor-page').then(
+      () => import('@/features/runs/pages/run-detail-page'),
+    ),
+  180_000,
+);
+
 const RUNS = `${API}/workspaces/${WS_ID}/runs`;
 const RUN = `${RUNS}/${RUN_ID}`;
 const WF = `${API}/workspaces/${WS_ID}/workflows/${WORKFLOW_ID}`;

@@ -1,0 +1,114 @@
+# FlowForge full stack (Part 14, FR-14.5): Postgres, Redis, backend migrate → api + worker, and
+# the web container — the whole app on one origin, http://localhost:8080.
+#
+#   cp stack.env.example stack.env   # fill in the secrets (never commit stack.env)
+#   docker compose up -d --build
+#
+# The backend is built from the flowforge-api repository (FLOWFORGE_API_DIR, default: the
+# sibling checkout). Project, container names, ports and volumes are separate from the
+# backend's own docker-compose.yml, so both can exist side by side.
+name: flowforge-stack
+
+x-backend: &backend
+  image: flowforge-api:stack
+  init: true
+  restart: unless-stopped
+  env_file:
+    - path: ./stack.env
+      required: true
+  environment: &backend-env
+    NODE_ENV: production
+    DATABASE_URL: postgresql://flowforge:flowforge@postgres:5432/flowforge?schema=public
+    REDIS_HOST: redis
+    REDIS_PORT: '6379'
+    CORS_ORIGINS: http://localhost:8080
+    FRONTEND_URL: http://localhost:8080
+    # OAuth callbacks go through the web container's /api/ proxy (same origin).
+    OAUTH_REDIRECT_BASE_URL: http://localhost:8080/api/v1/integrations
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: flowforge
+      POSTGRES_PASSWORD: flowforge
+      POSTGRES_DB: flowforge
+    volumes:
+      - stack-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U flowforge -d flowforge']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ['redis-server', '--appendonly', 'yes', '--maxmemory-policy', 'noeviction']
+    volumes:
+      - stack-redisdata:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  migrate:
+    image: flowforge-migrate:stack
+    build:
+      context: ${FLOWFORGE_API_DIR:-../../flowforge-api/flowforge-api}
+      target: migrate
+    environment:
+      DATABASE_URL: postgresql://flowforge:flowforge@postgres:5432/flowforge?schema=public
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    <<: *backend
+    build:
+      context: ${FLOWFORGE_API_DIR:-../../flowforge-api/flowforge-api}
+      target: runtime
+    command: ['node', 'dist/main.js']
+    depends_on:
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://127.0.0.1:3000/api/v1/health/ready']
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+
+  worker:
+    <<: *backend
+    command: ['node', 'dist/worker.js']
+    environment:
+      <<: *backend-env
+      WORKER_HEARTBEAT_FILE: /tmp/flowforge-worker.heartbeat
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'find /tmp/flowforge-worker.heartbeat -mmin -1 | grep -q .']
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  web:
+    image: flowforge-web:stack
+    build: .
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:${WEB_PORT:-8080}:8080'
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  stack-pgdata:
+  stack-redisdata:
