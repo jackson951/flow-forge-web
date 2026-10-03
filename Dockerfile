@@ -10,7 +10,7 @@ COPY . .
 ENV VITE_API_BASE_URL=/api/v1
 RUN npm run build
 
-FROM nginxinc/nginx-unprivileged:1.27-alpine AS runtime
+FROM nginxinc/nginx-unprivileged:1.31-alpine AS runtime
 # Runs as the image's non-root "nginx" user (uid 101) on port 8080.
 COPY --chown=101:101 nginx/default.conf /etc/nginx/conf.d/default.conf
 COPY --chown=101:101 nginx/security-headers.conf /etc/nginx/snippets/security-headers.conf
