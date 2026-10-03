@@ -44,7 +44,7 @@ export function UserMenu() {
         onClick={() => setOpen((v) => !v)}
         className="hover:bg-canvas flex items-center gap-2 rounded-md px-2 py-1.5 text-sm"
       >
-        <span className="bg-ink flex size-7 items-center justify-center rounded-full text-xs font-semibold text-white">
+        <span className="bg-primary flex size-7 items-center justify-center rounded-full text-xs font-semibold text-white">
           {user.name.slice(0, 1).toUpperCase()}
         </span>
         <span className="hidden text-left sm:block">

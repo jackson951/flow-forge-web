@@ -22,6 +22,14 @@ async function fillLogin(email = 'ada@example.test', password = 'correct horse b
 describe('LoginPage (Part 02)', () => {
   beforeEach(signedOut);
 
+  it('a first visit shows no "session ended" notice', async () => {
+    renderRoute('/login');
+    expect(await screen.findByRole('heading', { name: 'Sign in' })).toBeInTheDocument();
+    // Let the background session check (refresh → 401) finish.
+    await waitFor(() => expect(session.getState().status).toBe('anonymous'));
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  });
+
   it('shows validation errors instead of submitting an empty form', async () => {
     renderRoute('/login');
     await userEvent.click(await screen.findByRole('button', { name: 'Sign in' }));

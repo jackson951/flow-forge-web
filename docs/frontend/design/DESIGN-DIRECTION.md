@@ -32,3 +32,11 @@ The mock (`ui-mock.png`, 2026-10-03) sets the **visual style**: dark navy sideba
 | Status | Success / Failed / Running / Queued / Cancelled / Warning | green / red / blue / grey / grey / amber pills, always with a text label |
 
 Exact values are set once in `src/styles/index.css` (`@theme`) when the shell is restyled (Part 03 introduces the workspace switcher in the sidebar; Part 12 audits contrast — primary on white must stay ≥ 4.5:1).
+
+## Logo and wordmark (2026-10-03)
+
+Chosen by the product owner: a stylised **"F" of two flowing bands** — purple→blue on top, blue→cyan below — next to the wordmark **Flow** (solid: ink on white, white on navy) **Forge** (blue→violet gradient; lighter sky→violet stops on navy for contrast), with the tagline **"Automate what matters"** in spaced capitals.
+
+- Implemented as inline SVG in `src/components/brand/logo.tsx` (`LogoMark`, `Logo` with `tone` and `tagline`) and `public/favicon.svg` — vector, so it is sharp at every size; the name is real text for screen readers.
+- Used in the sidebar (mark + wordmark), on the login/register brand panel (with tagline) and above the form on small screens; page title "FlowForge — Automate what matters".
+- The original artwork should be added as `design/logo.png` for reference (the image shared in chat was not saved to disk).

@@ -1,10 +1,12 @@
 import { Activity, LayoutDashboard, Plug, Settings, Workflow, X } from 'lucide-react';
 import { NavLink } from 'react-router';
+import { Logo } from '@/components/brand/logo';
+import { WorkspaceSwitcher } from '@/features/workspaces/components/workspace-switcher';
 import { useWorkspaceId } from '@/features/workspaces/hooks/use-workspace-id';
 import { cn } from '@/lib/cn';
 import { paths } from '@/lib/routes';
 
-/** Links stay inside the workspace being viewed. */
+/** Links stay inside the workspace being viewed. Only sections backed by the API. */
 const navFor = (ws: string) => [
   { to: paths.workspace(ws), label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: paths.workflows(ws), label: 'Workflows', icon: Workflow },
@@ -23,23 +25,25 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   return (
     <>
       {open && (
-        <div aria-hidden className="bg-ink/40 fixed inset-0 z-30 lg:hidden" onClick={onClose} />
+        <div aria-hidden className="bg-sidebar/50 fixed inset-0 z-30 lg:hidden" onClick={onClose} />
       )}
       <aside
         className={cn(
-          'bg-ink fixed inset-y-0 left-0 z-40 flex w-60 flex-col text-white transition-transform lg:static lg:translate-x-0',
+          'bg-sidebar fixed inset-y-0 left-0 z-40 flex w-64 flex-col transition-transform lg:static lg:translate-x-0',
           open ? 'translate-x-0' : '-translate-x-full',
         )}
       >
         <div className="flex h-16 items-center justify-between px-5">
-          <span className="text-lg font-semibold tracking-tight">
-            Flow<span className="text-ember">Forge</span>
-          </span>
-          <button className="lg:hidden" onClick={onClose} aria-label="Close navigation">
+          <Logo />
+          <button
+            className="text-sidebar-text hover:text-white lg:hidden"
+            onClick={onClose}
+            aria-label="Close navigation"
+          >
             <X className="size-5" />
           </button>
         </div>
-        <nav aria-label="Main" className="flex-1 space-y-0.5 px-3 py-2">
+        <nav aria-label="Main" className="flex-1 space-y-1 px-3 py-3">
           {nav.map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
@@ -48,18 +52,28 @@ export function Sidebar({ open, onClose }: SidebarProps) {
               onClick={onClose}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-3 rounded-md border-l-2 px-3 py-2 text-sm',
+                  'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
                   isActive
-                    ? 'border-ember bg-ink-soft font-medium text-white'
-                    : 'hover:bg-ink-soft border-transparent text-white/70 hover:text-white',
+                    ? 'bg-sidebar-soft font-medium text-white'
+                    : 'text-sidebar-text hover:bg-sidebar-soft hover:text-white',
                 )
               }
             >
-              <Icon className="size-4" aria-hidden />
-              {label}
+              {({ isActive }) => (
+                <>
+                  <Icon
+                    className={cn('size-4', isActive ? 'text-primary-light' : '')}
+                    aria-hidden
+                  />
+                  {label}
+                </>
+              )}
             </NavLink>
           ))}
         </nav>
+        <div className="border-sidebar-soft border-t p-3">
+          <WorkspaceSwitcher onNavigate={onClose} />
+        </div>
       </aside>
     </>
   );
