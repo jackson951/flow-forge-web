@@ -109,6 +109,7 @@ describe('RegisterPage (Part 02)', () => {
     await userEvent.type(await screen.findByLabelText('Name'), 'Ada Lovelace');
     await userEvent.type(screen.getByLabelText('Email'), 'ada@example.test');
     await userEvent.type(screen.getByLabelText('Password'), 'correct horse battery');
+    await userEvent.type(screen.getByLabelText('Confirm password'), 'correct horse battery');
     await userEvent.click(screen.getByRole('button', { name: 'Create account' }));
   }
 
@@ -145,8 +146,9 @@ describe('RegisterPage (Part 02)', () => {
     renderRoute('/register');
     await fillRegister();
     expect(
-      await screen.findByText('An account with this email already exists'),
+      await screen.findByText(/An account with this email already exists/),
     ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Sign in instead' })).toHaveAttribute('href', '/login');
     expect(screen.getByLabelText('Email')).toHaveAttribute('aria-invalid', 'true');
   });
 });

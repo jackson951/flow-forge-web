@@ -3,7 +3,6 @@ import { Link } from 'react-router';
 import { ErrorState } from '@/components/feedback/error-state';
 import { buttonClasses, Spinner } from '@/components/ui';
 import { useSession } from '@/features/auth/session/use-session';
-import { isApiError } from '@/lib/api-client';
 import { paths } from '@/lib/routes';
 import { useCurrentWorkspace } from '../hooks/use-current-workspace';
 import { WorkspaceContext } from '../hooks/workspace-context';
@@ -38,11 +37,7 @@ export function WorkspaceGuard({ children }: { children: ReactNode }) {
   if (current.status === 'error') {
     return (
       <div className="p-8">
-        <ErrorState
-          message={current.error.message}
-          requestId={isApiError(current.error) ? current.error.requestId : undefined}
-          onRetry={current.retry}
-        />
+        <ErrorState error={current.error} onRetry={current.retry} />
       </div>
     );
   }

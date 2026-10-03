@@ -22,7 +22,6 @@ import { PageHeader } from '@/components/layout/page-header';
 import { Button, Select, Skeleton, StatusBadge } from '@/components/ui';
 import { useWorkflowList } from '@/features/workflows/api/workflows.api';
 import { useWorkspace } from '@/features/workspaces/hooks/use-current-workspace';
-import { isApiError } from '@/lib/api-client';
 import { cn } from '@/lib/cn';
 import { formatDateTime, formatRelative } from '@/lib/format';
 import { paths } from '@/lib/routes';
@@ -204,13 +203,7 @@ export function RunsListPage() {
             ))}
           </div>
         )}
-        {runs.isError && (
-          <ErrorState
-            message={runs.error.message}
-            requestId={isApiError(runs.error) ? runs.error.requestId : undefined}
-            onRetry={() => void runs.refetch()}
-          />
-        )}
+        {runs.isError && <ErrorState error={runs.error} onRetry={() => void runs.refetch()} />}
         {runs.isSuccess && !items.length && (
           <EmptyState
             icon={History}
@@ -227,12 +220,24 @@ export function RunsListPage() {
             <table className="w-full text-sm">
               <thead className="text-muted border-line border-b text-left text-xs">
                 <tr>
-                  <th className="px-4 py-2 font-medium">Status</th>
-                  <th className="px-4 py-2 font-medium">Workflow</th>
-                  <th className="px-4 py-2 font-medium">Trigger</th>
-                  <th className="px-4 py-2 font-medium">Started</th>
-                  <th className="px-4 py-2 font-medium">Duration</th>
-                  <th className="px-4 py-2 font-medium">Error</th>
+                  <th scope="col" className="px-4 py-2 font-medium">
+                    Status
+                  </th>
+                  <th scope="col" className="px-4 py-2 font-medium">
+                    Workflow
+                  </th>
+                  <th scope="col" className="hidden px-4 py-2 font-medium md:table-cell">
+                    Trigger
+                  </th>
+                  <th scope="col" className="px-4 py-2 font-medium">
+                    Started
+                  </th>
+                  <th scope="col" className="hidden px-4 py-2 font-medium sm:table-cell">
+                    Duration
+                  </th>
+                  <th scope="col" className="hidden px-4 py-2 font-medium lg:table-cell">
+                    Error
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-line divide-y">
@@ -258,7 +263,7 @@ export function RunsListPage() {
                         </Link>
                         <span className="text-muted ml-1.5 text-xs">v{r.version}</span>
                       </td>
-                      <td className="px-4 py-2.5">
+                      <td className="hidden px-4 py-2.5 md:table-cell">
                         <span className="text-muted inline-flex items-center gap-1">
                           <Source.icon className="size-3.5" aria-hidden />
                           {Source.label}
@@ -270,10 +275,10 @@ export function RunsListPage() {
                       >
                         {formatRelative(r.createdAt)}
                       </td>
-                      <td className="text-muted px-4 py-2.5 tabular-nums">
+                      <td className="text-muted hidden px-4 py-2.5 tabular-nums sm:table-cell">
                         {formatDuration(r.durationMs)}
                       </td>
-                      <td className="max-w-xs px-4 py-2.5">
+                      <td className="hidden max-w-xs px-4 py-2.5 lg:table-cell">
                         {r.error && ErrorIcon && (
                           <span
                             className="text-status-failed flex items-center gap-1.5"

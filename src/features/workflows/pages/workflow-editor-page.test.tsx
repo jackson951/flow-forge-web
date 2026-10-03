@@ -54,7 +54,6 @@ describe('Workflow editor canvas (Part 05)', () => {
     expect(canvasNode('log')).toBeInTheDocument();
     expect(within(canvasNode('log')).getByText('Log a message')).toBeInTheDocument();
     expect(screen.getByText('2/50 steps')).toBeInTheDocument();
-    expect(screen.getByText('All changes saved')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
     expect(within(panel()).getByText('Select a step')).toBeInTheDocument();
   });

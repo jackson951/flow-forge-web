@@ -26,7 +26,7 @@ import { WorkflowCanvas } from '@/features/workflows/components/canvas/workflow-
 import { useNodeLabels } from '@/features/workflows/hooks/use-node-labels';
 import { useWorkspace } from '@/features/workspaces/hooks/use-current-workspace';
 import { policy } from '@/features/workspaces/policy';
-import { isApiError, isNotFound } from '@/lib/api-client';
+import { isNotFound } from '@/lib/api-client';
 import { formatDateTime, formatRelative } from '@/lib/format';
 import { paths } from '@/lib/routes';
 import type { RunDetail } from '@/types/api';
@@ -68,11 +68,7 @@ export function RunDetailPage() {
             message="It may have been removed by retention, or it belongs to another workspace."
           />
         ) : (
-          <ErrorState
-            message={run.error.message}
-            requestId={isApiError(run.error) ? run.error.requestId : undefined}
-            onRetry={() => void run.refetch()}
-          />
+          <ErrorState error={run.error} onRetry={() => void run.refetch()} />
         ))}
       {run.isSuccess && <RunView run={run.data} />}
     </PageContainer>
@@ -221,7 +217,7 @@ function RunView({ run }: { run: RunDetail }) {
         {steps.isPending ? (
           <Skeleton className="h-40" />
         ) : steps.isError ? (
-          <ErrorState message={steps.error.message} onRetry={() => void steps.refetch()} />
+          <ErrorState error={steps.error} onRetry={() => void steps.refetch()} />
         ) : (
           <StepTimeline
             steps={stepList}

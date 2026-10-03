@@ -3,7 +3,6 @@ import { Navigate } from 'react-router';
 import { ErrorState } from '@/components/feedback/error-state';
 import { Button, Spinner } from '@/components/ui';
 import { useSession } from '@/features/auth/session/use-session';
-import { isApiError } from '@/lib/api-client';
 import { paths } from '@/lib/routes';
 import { useWorkspaces } from '../api/workspaces.api';
 import { lastWorkspace } from '../last-workspace';
@@ -29,11 +28,7 @@ export function WorkspaceRedirect() {
     const error = workspaces.error;
     return (
       <div className="p-8">
-        <ErrorState
-          message={error.message}
-          requestId={isApiError(error) ? error.requestId : undefined}
-          onRetry={() => void workspaces.refetch()}
-        />
+        <ErrorState error={error} onRetry={() => void workspaces.refetch()} />
       </div>
     );
   }

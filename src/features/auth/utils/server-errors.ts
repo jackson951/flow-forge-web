@@ -1,4 +1,5 @@
 import { isApiError, isRateLimited } from '@/lib/api-client';
+import { presentError } from '@/lib/error-presentation';
 
 export interface ServerErrors<F extends string> {
   /** Messages that belong to a form field (the backend names the property first). */
@@ -27,10 +28,13 @@ export function serverErrors<F extends string>(
     else unmatched.push(message);
   }
   if (unmatched.length) {
-    result.form =
-      error.status === 0 || error.status >= 500
-        ? `${unmatched.join(' ')}${error.requestId ? ` (request ${error.requestId})` : ''}`
-        : unmatched.join(' ');
+    // Network and server failures get the shared wording (Part 12), never raw text.
+    if (error.status === 0 || error.status >= 500) {
+      const p = presentError(error);
+      result.form = `${p.message}${p.requestId ? ` (request ${p.requestId})` : ''}`;
+    } else {
+      result.form = unmatched.join(' ');
+    }
   }
   return result;
 }

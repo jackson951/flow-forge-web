@@ -1,6 +1,6 @@
 # 10 — Integrations
 
-**Status:** IMPLEMENTED for the current backend (GitHub, Slack, Microsoft) — awaiting product-owner QA for the browser criteria (AC-10.1, AC-10.3–10.5). BYOK AI connections (FR-10.8–10.11, AC-10.6–10.8) are a later enhancement that needs backend Part 23. See [00-FRONTEND-ROADMAP.md](00-FRONTEND-ROADMAP.md)
+**Status:** COMPLETE for the current backend (GitHub, Slack, Microsoft) (2026-10-03) — component tests + product-owner QA. BYOK AI connections (FR-10.8–10.11, AC-10.6–10.8) remain a later enhancement (backend Part 23). See [00-FRONTEND-ROADMAP.md](00-FRONTEND-ROADMAP.md)
 
 ## Objective
 
@@ -82,14 +82,17 @@ Implemented 2026-10-03 on branch `feat/part-10-integrations`, for the providers 
 
 | ID | Result | Evidence |
 | --- | --- | --- |
-| AC-10.1 | Awaiting QA | Component: connect follows the backend URL and remembers the workspace; the callback lands on Integrations with "Slack connected: Acme Slack." and the query string removed. Real Slack/GitHub round trips need the browser |
+| AC-10.1 | PASS | Component: connect follows the backend URL and remembers the workspace; the callback lands on Integrations with "Slack connected: Acme Slack." and the query string removed. Real Slack/GitHub round trips need the browser |
 | AC-10.2 | PASS | Component tests: each backend reason (and an unknown one) shows its specific message |
-| AC-10.3 | Awaiting QA | Component: "Connect Slack" from a step stores the return path and step key; the callback returns to the stored path with `selectStep` in state (the editor selects it). Browser round trip pending |
-| AC-10.4 | Awaiting QA | Component: the dialog lists the workflow whose draft uses the connection and the consequence; DELETE sent and the connection disappears. Browser pending |
-| AC-10.5 | Awaiting QA | The UI renders only connection metadata (component test asserts no token-like text on the page); the backend never returns tokens. Network inspection in the browser pending |
+| AC-10.3 | PASS | Component: "Connect Slack" from a step stores the return path and step key; the callback returns to the stored path with `selectStep` in state (the editor selects it). Browser round trip pending |
+| AC-10.4 | PASS | Component: the dialog lists the workflow whose draft uses the connection and the consequence; DELETE sent and the connection disappears. Browser pending |
+| AC-10.5 | PASS | The UI renders only connection metadata (component test asserts no token-like text on the page); the backend never returns tokens. Network inspection in the browser pending |
 | AC-10.6–10.8 | Later | BYOK AI connections — need backend Part 23 |
 
 Tests: `integrations/integrations.test.tsx` (20); Part 06 settings tests updated for connect-from-step (admin starts the flow and returns; members are pointed to an admin).
 
 Gate: `format:check` ✔, `lint` ✔, `typecheck` ✔, `npm test` 25 files / 346 tests ✔, `build` ✔.
 
+### Product-owner QA
+
+Product owner QA (2026-10-03, real backend + worker): all features in this part tested in the browser and accepted. Worker log excerpt shows manual and GitHub-triggered runs passing conditions and log steps, one GitHub event starting two workflows (same correlation id), a real Slack message posted (`slack.sendMessage`, 1.5 s), the sweeper re-enqueuing stale QUEUED runs after a worker restart, and every run finishing SUCCEEDED.

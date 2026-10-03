@@ -1,7 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { CircleAlert, Clock, LoaderCircle, LogIn, Mail } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate, useSearchParams } from 'react-router';
-import { Button, Field, Input } from '@/components/ui';
+import { Button, Field, IconInput, PasswordInput } from '@/components/ui';
 import { paths, safeNextPath } from '@/lib/routes';
 import { useLogin } from '../api/auth.api';
 import { SessionNotice } from '../components/session-notice';
@@ -24,9 +25,11 @@ export function LoginPage() {
     formState: { errors },
   } = useForm<LoginInput>({ resolver: zodResolver(loginSchema) });
 
-  const onSubmit = handleSubmit((values) =>
-    login.mutate(values, { onSuccess: () => navigate(next ?? paths.home, { replace: true }) }),
-  );
+  const onSubmit = handleSubmit((values) => {
+    // One request at a time (Enter pressed twice, double click).
+    if (login.isPending || wait > 0) return;
+    login.mutate(values, { onSuccess: () => navigate(next ?? paths.home, { replace: true }) });
+  });
 
   return (
     <div>
@@ -34,12 +37,18 @@ export function LoginPage() {
       <p className="text-muted mt-1 text-sm">Use the email you registered with.</p>
       <SessionNotice reason={login.isIdle ? endReason : null} />
 
-      <form onSubmit={onSubmit} noValidate className="mt-8 space-y-5">
+      <form onSubmit={onSubmit} noValidate className="mt-8 space-y-5" aria-busy={login.isPending}>
         <Field id="email" label="Email" error={errors.email?.message ?? server.fields.email}>
-          <Input
+          <IconInput
+            icon={Mail}
             id="email"
             type="email"
+            inputMode="email"
             autoComplete="username"
+            autoCapitalize="none"
+            spellCheck={false}
+            autoFocus
+            maxLength={254}
             aria-invalid={!!(errors.email ?? server.fields.email)}
             aria-describedby="email-msg"
             {...register('email')}
@@ -50,26 +59,33 @@ export function LoginPage() {
           label="Password"
           error={errors.password?.message ?? server.fields.password}
         >
-          <Input
+          <PasswordInput
             id="password"
-            type="password"
             autoComplete="current-password"
+            maxLength={128}
             aria-invalid={!!(errors.password ?? server.fields.password)}
-            aria-describedby="password-msg"
+            describedBy="password-msg"
             {...register('password')}
           />
         </Field>
         {server.form && (
-          <p role="alert" className="text-status-failed text-sm">
+          <p role="alert" className="text-status-failed flex items-start gap-1.5 text-sm">
+            <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
             {server.form}
           </p>
         )}
         {wait > 0 && (
-          <p role="alert" className="text-status-failed text-sm">
+          <p role="alert" className="text-status-failed flex items-center gap-1.5 text-sm">
+            <Clock className="size-4 shrink-0" aria-hidden />
             Too many sign-in attempts. Try again in {wait} s.
           </p>
         )}
         <Button type="submit" className="w-full" disabled={login.isPending || wait > 0}>
+          {login.isPending ? (
+            <LoaderCircle className="size-4 animate-spin" aria-hidden />
+          ) : (
+            <LogIn className="size-4" aria-hidden />
+          )}
           {login.isPending ? 'Signing in…' : 'Sign in'}
         </Button>
       </form>

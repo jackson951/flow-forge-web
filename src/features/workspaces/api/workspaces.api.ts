@@ -44,6 +44,7 @@ export function useCreateWorkspace() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: workspacesApi.create,
+    meta: { success: 'Workspace created' },
     onSuccess: (created) => {
       qc.setQueryData<Workspace[]>(queryKeys.workspaces, (list) => [...(list ?? []), created]);
       void qc.invalidateQueries({ queryKey: queryKeys.workspaces });
@@ -55,6 +56,7 @@ export function useRenameWorkspace(ws: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (name: string) => workspacesApi.rename(ws, { name }),
+    meta: { success: 'Workspace renamed' },
     onSuccess: (updated) => {
       qc.setQueryData<Workspace[]>(queryKeys.workspaces, (list) =>
         list?.map((w) => (w.id === updated.id ? updated : w)),
@@ -65,7 +67,11 @@ export function useRenameWorkspace(ws: string) {
 
 export function useDeleteWorkspace(ws: string) {
   const forget = useForgetWorkspace();
-  return useMutation({ mutationFn: () => workspacesApi.remove(ws), onSuccess: () => forget(ws) });
+  return useMutation({
+    mutationFn: () => workspacesApi.remove(ws),
+    meta: { success: 'Workspace deleted' },
+    onSuccess: () => forget(ws),
+  });
 }
 
 export function useMembers(ws: string) {
@@ -76,6 +82,7 @@ export function useAddMember(ws: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: AddMemberRequest) => workspacesApi.addMember(ws, input),
+    meta: { success: 'Member added' },
     onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.members(ws) }),
   });
 }
@@ -85,6 +92,7 @@ export function useChangeRole(ws: string) {
   return useMutation({
     mutationFn: ({ userId, role }: { userId: string } & UpdateMemberRoleRequest) =>
       workspacesApi.changeRole(ws, userId, { role }),
+    meta: { success: 'Role changed' },
     onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.members(ws) }),
   });
 }
@@ -95,6 +103,9 @@ export function useRemoveMember(ws: string, selfId: string | undefined) {
   const forget = useForgetWorkspace();
   return useMutation({
     mutationFn: (userId: string) => workspacesApi.removeMember(ws, userId),
+    meta: {
+      success: (_d, userId) => (userId === selfId ? 'You left the workspace' : 'Member removed'),
+    },
     onSuccess: (_, userId) =>
       userId === selfId ? forget(ws) : qc.invalidateQueries({ queryKey: queryKeys.members(ws) }),
   });

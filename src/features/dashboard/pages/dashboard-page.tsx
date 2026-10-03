@@ -30,7 +30,6 @@ import { Skeleton } from '@/components/ui';
 import { useConnections } from '@/features/integrations/api/integrations.api';
 import { ERROR_CATEGORIES } from '@/features/runs/run-helpers';
 import { useWorkspace } from '@/features/workspaces/hooks/use-current-workspace';
-import { isApiError } from '@/lib/api-client';
 import { cn } from '@/lib/cn';
 import { formatDateTime, formatRelative } from '@/lib/format';
 import { paths } from '@/lib/routes';
@@ -158,11 +157,7 @@ export function DashboardPage() {
         </div>
       )}
       {dashboard.isError && (
-        <ErrorState
-          message={dashboard.error.message}
-          requestId={isApiError(dashboard.error) ? dashboard.error.requestId : undefined}
-          onRetry={() => void dashboard.refetch()}
-        />
+        <ErrorState error={dashboard.error} onRetry={() => void dashboard.refetch()} />
       )}
       {dashboard.data && (
         <div className="space-y-6">
@@ -406,7 +401,9 @@ function Onboarding({
     >
       <h2 className="flex items-center gap-1.5 font-semibold">
         <ListChecks className="text-primary size-5" aria-hidden />
-        Getting started
+        {doneCount === 0
+          ? 'Welcome to FlowForge — let’s get your first workflow running'
+          : 'Getting started'}
         <span className="text-muted ml-2 text-sm font-normal">
           {doneCount} of {items.length} done
         </span>

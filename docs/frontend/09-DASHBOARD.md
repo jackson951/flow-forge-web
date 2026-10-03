@@ -1,6 +1,6 @@
 # 09 — Dashboard
 
-**Status:** IMPLEMENTED — awaiting product-owner QA for the browser criteria (AC-09.1, AC-09.3). See [00-FRONTEND-ROADMAP.md](00-FRONTEND-ROADMAP.md)
+**Status:** COMPLETE (2026-10-03) — component tests + product-owner QA. See [00-FRONTEND-ROADMAP.md](00-FRONTEND-ROADMAP.md)
 
 ## Objective
 
@@ -58,11 +58,14 @@ Implemented 2026-10-03 on branch `feat/part-09-dashboard`. Browser criteria are 
 
 | ID | Result | Evidence |
 | --- | --- | --- |
-| AC-09.1 | Awaiting QA | Component tests: totals and success rates computed from the backend fixture (13 runs, 92.3 %; 84 runs, 95.2 %), per-status counts in text; "—" when nothing finished. Comparing with the run list in a browser is left for QA |
+| AC-09.1 | PASS | Component tests: totals and success rates computed from the backend fixture (13 runs, 92.3 %; 84 runs, 95.2 %), per-status counts in text; "—" when nothing finished. Comparing with the run list in a browser is left for QA |
 | AC-09.2 | PASS | Component tests: top failing links to `/runs?status=FAILED&workflow=<id>`; recent failure links to `/runs/<runId>` and shows the category and description |
-| AC-09.3 | Awaiting QA | Component tests: empty workspace → 0 of 4 with links; workflow but nothing published → 2 of 4; everything done → hidden. Progressing through it in a browser is left for QA |
+| AC-09.3 | PASS | Component tests: empty workspace → 0 of 4 with links; workflow but nothing published → 2 of 4; everything done → hidden. Progressing through it in a browser is left for QA |
 
 Tests: `dashboard/dashboard.test.tsx` (8, incl. `successRate`).
 
 Gate: `format:check` ✔, `lint` ✔, `typecheck` ✔, `npm test` 24 files / 325 tests ✔, `build` ✔.
 
+### Product-owner QA
+
+Product owner QA (2026-10-03, real backend + worker): all features in this part tested in the browser and accepted. Worker log excerpt shows manual and GitHub-triggered runs passing conditions and log steps, one GitHub event starting two workflows (same correlation id), a real Slack message posted (`slack.sendMessage`, 1.5 s), the sweeper re-enqueuing stale QUEUED runs after a worker restart, and every run finishing SUCCEEDED.

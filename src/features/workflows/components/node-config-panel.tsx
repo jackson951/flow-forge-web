@@ -6,6 +6,7 @@ import type { ValidationIssue } from '@/types/api';
 import type { EditorAction } from '../editor/editor-reducer';
 import { keyProblem } from '../editor/keys';
 import { NodeSettings } from '../config/components/node-settings';
+import { NextSteps } from './next-steps';
 import type { NodeDefinition, WorkflowDefinition } from '../types/workflow-definition';
 
 interface NodeConfigPanelProps {
@@ -121,6 +122,14 @@ function SelectedNodePanel({
           />
         </div>
       </section>
+
+      <NextSteps
+        node={node}
+        definition={definition}
+        labelFor={labelFor}
+        dispatch={dispatch}
+        readOnly={readOnly}
+      />
 
       {issues.length > 0 && (
         <section aria-labelledby="node-issues">

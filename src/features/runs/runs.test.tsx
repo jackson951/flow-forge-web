@@ -465,3 +465,21 @@ describe('run detail (Part 08, FR-08.4–08.9)', () => {
     expect(await screen.findByText('Run not found')).toBeInTheDocument();
   });
 });
+
+describe('toasts for finished actions (Part 12, FR-12.3)', () => {
+  it('cancelling a run confirms with a toast as well as on the page', async () => {
+    serveRun({ status: 'RUNNING', completedAt: null, durationMs: null });
+    server.use(
+      http.post(`${RUN}/cancel`, () =>
+        HttpResponse.json({ runId: RUN_ID, status: 'RUNNING', cancelRequested: true }),
+      ),
+    );
+    renderRoute(`/w/${WS_ID}/runs/${RUN_ID}`);
+    await userEvent.click(await screen.findByRole('button', { name: 'Cancel run' }));
+    await userEvent.click(
+      within(screen.getByRole('dialog')).getByRole('button', { name: 'Cancel run' }),
+    );
+    const notifications = await screen.findByLabelText('Notifications');
+    expect(await within(notifications).findByText('Cancellation requested')).toBeInTheDocument();
+  });
+});

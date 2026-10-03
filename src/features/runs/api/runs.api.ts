@@ -76,6 +76,7 @@ export function useStartRun(ws: string, workflowId: string) {
   return useMutation({
     mutationFn: ({ input, idempotencyKey }: { input: ManualRunRequest; idempotencyKey: string }) =>
       runsApi.start(ws, workflowId, input, idempotencyKey),
+    meta: { success: 'Run started' },
     onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.runs.all(ws) }),
   });
 }
@@ -85,6 +86,7 @@ export function useRetryRun(ws: string, runId: string) {
   return useMutation({
     mutationFn: ({ input, idempotencyKey }: { input: RetryRunRequest; idempotencyKey: string }) =>
       runsApi.retry(ws, runId, input, idempotencyKey),
+    meta: { success: 'Retry started' },
     onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.runs.all(ws) }),
   });
 }
@@ -93,6 +95,12 @@ export function useCancelRun(ws: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (runId: string) => runsApi.cancel(ws, runId),
+    meta: {
+      success: (r) =>
+        (r as { status: string }).status === 'CANCELLED'
+          ? 'Run cancelled'
+          : 'Cancellation requested',
+    },
     onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.runs.all(ws) }),
   });
 }

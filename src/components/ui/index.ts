@@ -9,3 +9,4 @@ export * from './status-badge';
 export * from './dialog';
 export * from './select';
 export * from './action-menu';
+export * from './icon-input';

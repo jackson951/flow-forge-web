@@ -7,7 +7,6 @@ import { PageHeader } from '@/components/layout/page-header';
 import { Skeleton } from '@/components/ui';
 import { useWorkspace } from '@/features/workspaces/hooks/use-current-workspace';
 import { policy } from '@/features/workspaces/policy';
-import { isApiError } from '@/lib/api-client';
 import { cn } from '@/lib/cn';
 import type { Connection, IntegrationCallbackParams, IntegrationProviderKey } from '@/types/api';
 import { useConnections, useProviders, useStartConnect } from '../api/integrations.api';
@@ -84,8 +83,7 @@ export function IntegrationsPage() {
       )}
       {loadError && (
         <ErrorState
-          message={loadError.message}
-          requestId={isApiError(loadError) ? loadError.requestId : undefined}
+          error={loadError}
           onRetry={() => {
             void providers.refetch();
             void connections.refetch();

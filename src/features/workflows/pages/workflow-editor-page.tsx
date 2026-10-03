@@ -10,6 +10,7 @@ import {
   History,
   Info,
   LoaderCircle,
+  MonitorSmartphone,
   PanelLeftClose,
   PanelLeftOpen,
   PanelRightClose,
@@ -29,10 +30,11 @@ import { ErrorState } from '@/components/feedback/error-state';
 import { Button, Dialog, Spinner } from '@/components/ui';
 import { useWorkspace } from '@/features/workspaces/hooks/use-current-workspace';
 import { policy } from '@/features/workspaces/policy';
-import { isApiError, isNotFound } from '@/lib/api-client';
+import { isNotFound } from '@/lib/api-client';
 import { cn } from '@/lib/cn';
 import { queryKeys } from '@/lib/query-keys';
 import { paths } from '@/lib/routes';
+import { toast } from '@/lib/toast';
 import type { DraftSaveResult, NodeTypeInfo, ValidationIssue, WorkflowDetail } from '@/types/api';
 import {
   useNodeTypes,
@@ -89,11 +91,7 @@ export function WorkflowEditorPage() {
             message="It may have been deleted, or it belongs to another workspace."
           />
         ) : (
-          <ErrorState
-            message={workflow.error.message}
-            requestId={isApiError(workflow.error) ? workflow.error.requestId : undefined}
-            onRetry={() => void workflow.refetch()}
-          />
+          <ErrorState error={workflow.error} onRetry={() => void workflow.refetch()} />
         )}
       </div>
     );
@@ -220,6 +218,13 @@ function Editor({ workflow }: { workflow: WorkflowDetail }) {
     });
     setSelectedKey(key);
   };
+
+  // Background failure: autosave runs without the user asking, so a failure is also toasted
+  // (the banner below stays as the record).
+  useEffect(() => {
+    if (snapshot.status === 'failed')
+      toast.error('Could not save the draft. Your changes are kept.');
+  }, [snapshot.status]);
 
   // ── Conflict (FR-07.2) ─────────────────────────────────────────────────────
   const fetchFresh = () =>
@@ -474,6 +479,11 @@ function Editor({ workflow }: { workflow: WorkflowDetail }) {
         </div>
       </header>
 
+      <p className="text-muted flex items-center gap-2 border-b border-slate-200 bg-slate-50 px-4 py-2 text-sm md:hidden">
+        <MonitorSmartphone className="size-4 shrink-0" aria-hidden />
+        The editor works best on a larger screen. Step settings and the step list appear from tablet
+        width.
+      </p>
       {readOnly && (
         <div className="flex items-center gap-2 border-b border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-900">
           <Archive className="size-4" aria-hidden />
@@ -612,7 +622,7 @@ function Editor({ workflow }: { workflow: WorkflowDetail }) {
         <aside
           aria-label={side === 'versions' ? 'Versions panel' : 'Selected step'}
           className={cn(
-            'border-line bg-surface hidden shrink-0 flex-col border-l lg:flex',
+            'border-line bg-surface hidden shrink-0 flex-col border-l md:flex',
             panels.right ? 'w-80' : 'w-10',
           )}
         >

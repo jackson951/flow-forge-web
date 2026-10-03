@@ -7,7 +7,9 @@ import { RequireAuth } from '@/features/auth/components/require-auth';
 import { LoginPage } from '@/features/auth/pages/login-page';
 import { RegisterPage } from '@/features/auth/pages/register-page';
 import { DashboardPage } from '@/features/dashboard/pages/dashboard-page';
-import { IntegrationCallbackPage } from '@/features/integrations/pages/integration-callback-page';
+import { FeaturesPage, SecurityPage } from '@/features/marketing/info-pages';
+import { HomeGate, IntegrationsEntry } from '@/features/marketing/public-entry';
+import { PublicLayout } from '@/features/marketing/public-layout';
 import { IntegrationsPage } from '@/features/integrations/pages/integrations-page';
 import { RunDetailPage } from '@/features/runs/pages/run-detail-page';
 import { RunsListPage } from '@/features/runs/pages/runs-list-page';
@@ -18,7 +20,6 @@ import { MembersPage } from '@/features/settings/pages/members-page';
 import { SettingsPage } from '@/features/settings/pages/settings-page';
 import { WorkflowsListPage } from '@/features/workflows/pages/workflows-list-page';
 import { WorkspaceGuard } from '@/features/workspaces/components/workspace-guard';
-import { WorkspaceRedirect } from '@/features/workspaces/components/workspace-redirect';
 import { patterns, paths } from '@/lib/routes';
 import { NotFoundPage } from '@/pages/not-found-page';
 
@@ -36,23 +37,25 @@ export const routes: RouteObject[] = [
     ],
   },
   {
+    // Public homepage when signed out; the user's workspace when signed in (Part 12).
     path: paths.home,
     errorElement: <RouteError />,
-    element: (
-      <RequireAuth>
-        <WorkspaceRedirect />
-      </RequireAuth>
-    ),
+    element: <HomeGate />,
   },
   {
-    // The backend's integration callback lands here (no workspace in the URL), Part 10.
+    // Public catalogue, or the backend's integration callback (Part 10) when it has ?status=.
     path: paths.integrationCallback,
     errorElement: <RouteError />,
-    element: (
-      <RequireAuth>
-        <IntegrationCallbackPage />
-      </RequireAuth>
-    ),
+    element: <IntegrationsEntry />,
+  },
+  {
+    // Public website (Part 12).
+    element: <PublicLayout />,
+    errorElement: <RouteError />,
+    children: [
+      { path: paths.features, element: <FeaturesPage /> },
+      { path: paths.security, element: <SecurityPage /> },
+    ],
   },
   {
     // Every tenant page is under /w/:workspaceId (Part 01) and only renders for a workspace

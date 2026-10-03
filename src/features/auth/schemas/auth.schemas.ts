@@ -22,5 +22,14 @@ export const registerSchema = z.object({
   password: z.string().min(12, 'Use at least 12 characters').max(128, 'Use at most 128 characters'),
 });
 
+/** Register form: the API fields plus a confirmation that never leaves the browser. */
+export const registerFormSchema = registerSchema
+  .extend({ confirmPassword: z.string().min(1, 'Type the password again') })
+  .refine((v) => v.password === v.confirmPassword, {
+    message: 'The passwords do not match',
+    path: ['confirmPassword'],
+  });
+
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
+export type RegisterFormInput = z.infer<typeof registerFormSchema>;

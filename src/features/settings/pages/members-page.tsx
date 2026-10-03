@@ -63,11 +63,7 @@ export function MembersPage() {
       )}
       {members.isError && (
         <div className="p-6">
-          <ErrorState
-            message={members.error.message}
-            requestId={isApiError(members.error) ? members.error.requestId : undefined}
-            onRetry={() => void members.refetch()}
-          />
+          <ErrorState error={members.error} onRetry={() => void members.refetch()} />
         </div>
       )}
       {members.isSuccess && me && (
