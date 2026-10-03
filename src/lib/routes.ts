@@ -7,6 +7,8 @@ export const paths = {
   register: '/register',
   /** Resolves to the user's workspace (Part 03 remembers the last one). */
   home: '/',
+  /** Where the backend sends the browser after an OAuth / app installation (Part 10). */
+  integrationCallback: '/integrations',
   workspace: (ws: string) => `/w/${ws}`,
   workflows: (ws: string) => `/w/${ws}/workflows`,
   workflow: (ws: string, workflowId: string) => `/w/${ws}/workflows/${workflowId}`,

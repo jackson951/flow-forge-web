@@ -8,6 +8,8 @@ export interface ConfigScope {
   /** Checks a reference used in this step. */
   problem: (ref: string) => ReferenceProblem | null;
   readOnly: boolean;
+  /** The step being configured (to come back to it after connecting an integration). */
+  nodeKey?: string;
 }
 
 export const ConfigScopeContext = createContext<ConfigScope>({

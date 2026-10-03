@@ -7,6 +7,7 @@ import { RequireAuth } from '@/features/auth/components/require-auth';
 import { LoginPage } from '@/features/auth/pages/login-page';
 import { RegisterPage } from '@/features/auth/pages/register-page';
 import { DashboardPage } from '@/features/dashboard/pages/dashboard-page';
+import { IntegrationCallbackPage } from '@/features/integrations/pages/integration-callback-page';
 import { IntegrationsPage } from '@/features/integrations/pages/integrations-page';
 import { RunDetailPage } from '@/features/runs/pages/run-detail-page';
 import { RunsListPage } from '@/features/runs/pages/runs-list-page';
@@ -38,6 +39,16 @@ export const routes: RouteObject[] = [
     element: (
       <RequireAuth>
         <WorkspaceRedirect />
+      </RequireAuth>
+    ),
+  },
+  {
+    // The backend's integration callback lands here (no workspace in the URL), Part 10.
+    path: paths.integrationCallback,
+    errorElement: <RouteError />,
+    element: (
+      <RequireAuth>
+        <IntegrationCallbackPage />
       </RequireAuth>
     ),
   },

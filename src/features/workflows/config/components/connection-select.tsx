@@ -1,9 +1,10 @@
 import { CircleAlert, Plug, TriangleAlert } from 'lucide-react';
-import { Link } from 'react-router';
+import { Link, useLocation } from 'react-router';
 import { ProviderIcon } from '@/components/brand/provider-icons';
 import { PROVIDER_NAMES } from '@/components/brand/providers';
-import { Select, Skeleton } from '@/components/ui';
-import { useConnections } from '@/features/integrations/api/integrations.api';
+import { Button, Select, Skeleton } from '@/components/ui';
+import { useConnections, useStartConnect } from '@/features/integrations/api/integrations.api';
+import { policy } from '@/features/workspaces/policy';
 import { useWorkspace } from '@/features/workspaces/hooks/use-current-workspace';
 import { paths } from '@/lib/routes';
 import type { Connection, IntegrationProviderKey } from '@/types/api';
@@ -29,8 +30,11 @@ export function ConnectionSelect({
   invalid,
 }: ConnectionSelectProps) {
   const workspace = useWorkspace();
-  const { readOnly } = useConfigScope();
+  const { readOnly, nodeKey } = useConfigScope();
   const connections = useConnections(workspace.id);
+  const start = useStartConnect(workspace.id);
+  const location = useLocation();
+  const canManage = policy.canManage(workspace.role);
   const name = PROVIDER_NAMES[provider];
 
   if (connections.isPending) return <Skeleton className="h-10" />;
@@ -45,18 +49,43 @@ export function ConnectionSelect({
 
   const mine = connections.data.filter((c) => c.provider === provider);
   const selected = mine.find((c) => c.id === value);
+  const connectHere = () =>
+    start.mutate({ provider, returnTo: location.pathname, stepKey: nodeKey });
+
   if (!mine.length) {
     return (
-      <div className="border-line bg-canvas flex items-center gap-3 rounded-lg border border-dashed p-3">
-        <ProviderIcon provider={provider} className="size-5 shrink-0" />
-        <p className="text-muted flex-1 text-sm">No {name} connection in this workspace yet.</p>
-        <Link
-          to={paths.integrations(workspace.id)}
-          className="text-primary inline-flex items-center gap-1 text-sm font-medium hover:underline"
-        >
-          <Plug className="size-4" aria-hidden />
-          Connect {name}
-        </Link>
+      <div className="border-line bg-canvas space-y-2 rounded-lg border border-dashed p-3">
+        <div className="flex items-center gap-3">
+          <ProviderIcon provider={provider} className="size-5 shrink-0" />
+          <p className="text-muted flex-1 text-sm">No {name} connection in this workspace yet.</p>
+          {canManage ? (
+            <Button size="sm" onClick={connectHere} disabled={start.isPending || readOnly}>
+              <Plug className="size-4" aria-hidden />
+              {start.isPending ? 'Opening…' : `Connect ${name}`}
+            </Button>
+          ) : (
+            <Link
+              to={paths.integrations(workspace.id)}
+              className="text-primary inline-flex items-center gap-1 text-sm font-medium hover:underline"
+            >
+              <Plug className="size-4" aria-hidden />
+              Integrations
+            </Link>
+          )}
+        </div>
+        {canManage ? (
+          <p className="text-muted text-xs">
+            You come back to this step after connecting. Wait until the draft shows “Saved” first so
+            no change is lost.
+          </p>
+        ) : (
+          <p className="text-muted text-xs">Ask an owner or admin to connect {name}.</p>
+        )}
+        {start.error && (
+          <p role="alert" className="text-status-failed text-xs">
+            Could not start the connection: {start.error.message}
+          </p>
+        )}
       </div>
     );
   }

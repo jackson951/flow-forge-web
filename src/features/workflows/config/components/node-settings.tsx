@@ -43,6 +43,7 @@ export function NodeSettings({
       suggestions: availableReferences(definition, node.key, labelFor),
       problem: (ref) => referenceProblem(definition, node.key, ref),
       readOnly,
+      nodeKey: node.key,
     }),
     [definition, node.key, labelFor, readOnly],
   );
