@@ -1,6 +1,6 @@
 # 12 — UX Quality and Accessibility
 
-**Status:** QA PASSED — one open item: AC-12.4 bundle budget FAILS (254 KB > 200 KB; React Flow in the initial bundle via the run detail page). Fix scheduled at the start of Part 13; the part is complete once the budget passes. See [00-FRONTEND-ROADMAP.md](00-FRONTEND-ROADMAP.md)
+**Status:** COMPLETE (2026-10-03) — product-owner QA passed; the bundle budget (AC-12.4) fixed at the start of Part 13. See [00-FRONTEND-ROADMAP.md](00-FRONTEND-ROADMAP.md)
 
 ## Objective
 
@@ -75,7 +75,7 @@ Implemented 2026-10-03 on branch `feat/part-12-ux-a11y`.
 | AC-12.1 | PASS (automated) | `a11y.test.tsx`: no serious/critical axe violations on every app page, sign-in, register and the 4 public pages (two issues found and fixed: toaster region label, hero image label) |
 | AC-12.2 | PASS (product-owner QA) | Keyboard path exists (focusable nodes + arrow moves, "Connect to" menus, dialogs trap focus); a recorded keyboard-only run is left for product-owner QA |
 | AC-12.3 | PASS | `error-presentation.test.tsx`: each status class → agreed title/message/retry; no raw details; ErrorState and toasts tested |
-| AC-12.4 | **FAIL** | `npm run check:bundle`: initial JS **254.3 KB gzip** (budget 200 KB) and React Flow is in the initial bundle — the run detail page (Part 08) imports the canvas statically for its "path taken" view. Fix: load the run detail page (or its canvas) on demand like the editor; to do in Part 13 |
+| AC-12.4 | PASS (fixed in Part 13) | First measured FAIL: 254.3 KB gzip with React Flow in the initial bundle (the run detail page imported the canvas statically). Fix: the run detail route is loaded on demand like the editor. After: **initial JS 188.8 KB gzip** (budget 200 KB), React Flow in its own on-demand chunk; `npm run check:bundle` → OK; now enforced in CI |
 | AC-12.5 | PASS (product-owner QA) | Responsive changes above; screenshots at 1024/768 px left for QA |
 
 Not done (recorded honestly): list virtualisation beyond 200 rows (lists are keyset-paged, 20 per page; virtualisation deferred); tables hide columns rather than becoming stacked cards on narrow screens.

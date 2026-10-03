@@ -18,5 +18,8 @@ jobs:
       - run: npm run format:check
       - run: npm run lint
       - run: npm run typecheck
-      - run: npm test
+      # Part 13: coverage thresholds are part of the gate (FR-13.2).
+      - run: npm run test:cov
       - run: npm run build
+      # Part 12/13: initial JS ≤ 200 KB gzip, React Flow loaded on demand.
+      - run: npm run check:bundle

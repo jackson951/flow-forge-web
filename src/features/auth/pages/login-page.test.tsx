@@ -14,8 +14,11 @@ const signedOut = () =>
   );
 
 async function fillLogin(email = 'ada@example.test', password = 'correct horse battery') {
+  // The form appears once the background session check has settled (signed out); typing
+  // before that races the check (seen intermittently in full parallel runs).
+  await waitFor(() => expect(session.getState().status).toBe('anonymous'));
   await userEvent.type(await screen.findByLabelText('Email'), email);
-  await userEvent.type(screen.getByLabelText('Password'), password);
+  await userEvent.type(await screen.findByLabelText('Password'), password);
   await userEvent.click(screen.getByRole('button', { name: 'Sign in' }));
 }
 

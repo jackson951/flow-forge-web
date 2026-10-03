@@ -1,0 +1,43 @@
+name: E2E
+
+# Part 13: Playwright against the real backend (API + worker from the flowforge-api repository).
+# Opt-in (manual) until the backend repository location/access for CI is settled; run locally
+# with `npm run test:e2e`.
+on:
+  workflow_dispatch:
+    inputs:
+      api_repository:
+        description: Backend repository (owner/name)
+        required: true
+        default: jackson951/flowforge-api
+      api_ref:
+        description: Backend branch, tag or commit
+        required: true
+        default: main
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.api_repository }}
+          ref: ${{ inputs.api_ref }}
+          path: flowforge-api
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run test:e2e:install
+      - run: npm run test:e2e
+        env:
+          CI: 'true'
+          FLOWFORGE_API_DIR: ${{ github.workspace }}/flowforge-api
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report
