@@ -1,4 +1,6 @@
-import { ChevronDown, LogOut, MonitorX } from 'lucide-react';
+import { ChevronDown, LogOut, MonitorX, UserRound } from 'lucide-react';
+import { Link, useParams } from 'react-router';
+import { paths } from '@/lib/routes';
 import { useEffect, useId, useRef, useState } from 'react';
 import { useLogout, useLogoutAll } from '../api/auth.api';
 import { useSession } from '../session/use-session';
@@ -6,6 +8,7 @@ import { useSession } from '../session/use-session';
 /** Signed-in user with sign-out actions (Part 02, FR-02.7). */
 export function UserMenu() {
   const { user } = useSession();
+  const { workspaceId } = useParams<{ workspaceId: string }>();
   const [open, setOpen] = useState(false);
   const menuId = useId();
   const ref = useRef<HTMLDivElement>(null);
@@ -59,6 +62,17 @@ export function UserMenu() {
           role="menu"
           className="border-line bg-surface absolute right-0 z-50 mt-1 w-56 rounded-md border py-1 shadow-lg"
         >
+          {workspaceId && (
+            <Link
+              role="menuitem"
+              to={paths.settingsAccount(workspaceId)}
+              onClick={() => setOpen(false)}
+              className="hover:bg-canvas flex w-full items-center gap-2 px-3 py-2 text-left text-sm"
+            >
+              <UserRound className="size-4" aria-hidden />
+              Account settings
+            </Link>
+          )}
           <button
             type="button"
             role="menuitem"

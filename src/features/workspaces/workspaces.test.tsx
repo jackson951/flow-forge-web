@@ -187,12 +187,12 @@ describe('members and roles (Part 03, AC-03.3)', () => {
 
   it('an OWNER sees delete; an ADMIN does not', async () => {
     asRole('OWNER');
-    const owner = renderRoute(`/w/${WS_ID}/settings`);
+    const owner = renderRoute(`/w/${WS_ID}/settings/danger`);
     expect(await screen.findByRole('button', { name: 'Delete workspace' })).toBeInTheDocument();
     owner.unmount();
 
     asRole('ADMIN');
-    renderRoute(`/w/${WS_ID}/settings`);
+    renderRoute(`/w/${WS_ID}/settings/danger`);
     expect(await screen.findByRole('button', { name: 'Leave workspace' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Delete workspace' })).not.toBeInTheDocument();
   });
@@ -291,7 +291,7 @@ describe('rename, leave and delete (AC-03.4)', () => {
         HttpResponse.json(deleted ? workspaces.filter((w) => w.id !== WS_ID) : workspaces),
       ),
     );
-    const { router } = renderRoute(`/w/${WS_ID}/settings`);
+    const { router } = renderRoute(`/w/${WS_ID}/settings/danger`);
     await userEvent.click(await screen.findByRole('button', { name: 'Delete workspace' }));
     const dialog = screen.getByRole('dialog', { name: 'Delete Acme?' });
     const confirm = within(dialog).getByRole('button', { name: 'Delete workspace' });
@@ -313,7 +313,7 @@ describe('rename, leave and delete (AC-03.4)', () => {
         HttpResponse.json(left ? workspaces.filter((w) => w.id !== WS_ID) : workspaces),
       ),
     );
-    const { router } = renderRoute(`/w/${WS_ID}/settings`);
+    const { router } = renderRoute(`/w/${WS_ID}/settings/danger`);
     await userEvent.click(await screen.findByRole('button', { name: 'Leave workspace' }));
     const dialog = screen.getByRole('dialog', { name: 'Leave Acme?' });
     await userEvent.click(within(dialog).getByRole('button', { name: 'Leave workspace' }));

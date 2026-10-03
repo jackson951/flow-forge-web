@@ -11,6 +11,8 @@ import { IntegrationCallbackPage } from '@/features/integrations/pages/integrati
 import { IntegrationsPage } from '@/features/integrations/pages/integrations-page';
 import { RunDetailPage } from '@/features/runs/pages/run-detail-page';
 import { RunsListPage } from '@/features/runs/pages/runs-list-page';
+import { AccountSettingsPage } from '@/features/settings/pages/account-settings-page';
+import { DangerZonePage } from '@/features/settings/pages/danger-zone-page';
 import { GeneralSettingsPage } from '@/features/settings/pages/general-settings-page';
 import { MembersPage } from '@/features/settings/pages/members-page';
 import { SettingsPage } from '@/features/settings/pages/settings-page';
@@ -91,6 +93,8 @@ export const routes: RouteObject[] = [
         children: [
           { index: true, element: <GeneralSettingsPage /> },
           { path: patterns.settingsMembers, element: <MembersPage /> },
+          { path: patterns.settingsAccount, element: <AccountSettingsPage /> },
+          { path: patterns.settingsDanger, element: <DangerZonePage /> },
         ],
       },
     ],
