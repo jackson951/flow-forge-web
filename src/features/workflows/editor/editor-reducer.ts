@@ -22,6 +22,8 @@ export interface EditorState {
   notice: string | null;
   /** The definition as last loaded or saved; `dirty` compares against it. */
   saved: WorkflowDefinition;
+  /** Field of the last config edit; further typing in it extends that undo step. */
+  lastEdit: string | null;
 }
 
 export type EditorAction =
@@ -41,7 +43,11 @@ export type EditorAction =
   | { type: 'removeNodes'; keys: string[]; edgeIds?: string[] }
   | { type: 'removeEdges'; ids: string[] }
   | { type: 'renameKey'; from: string; to: string }
-  | { type: 'updateConfig'; key: string; config: Record<string, unknown> }
+  /**
+   * `field` names what was edited (e.g. "text"); consecutive edits of the same field of the
+   * same step are one undo step, so undo does not go back one keystroke at a time.
+   */
+  | { type: 'updateConfig'; key: string; config: Record<string, unknown>; field?: string }
   | { type: 'undo' }
   | { type: 'redo' }
   | { type: 'dismissNotice' };
@@ -54,6 +60,7 @@ export const initialEditorState = (definition: WorkflowDefinition): EditorState 
   future: [],
   notice: null,
   saved: definition,
+  lastEdit: null,
 });
 
 /** Unsaved changes (structural comparison). */
@@ -68,6 +75,7 @@ function commit(state: EditorState, definition: WorkflowDefinition): EditorState
     past: [...state.past, state.definition].slice(-HISTORY_LIMIT),
     future: [],
     notice: null,
+    lastEdit: null,
   };
 }
 
@@ -211,11 +219,17 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
       });
     }
 
-    case 'updateConfig':
-      return commit(state, {
+    case 'updateConfig': {
+      const next = {
         ...def,
         nodes: def.nodes.map((n) => (n.key === action.key ? { ...n, config: action.config } : n)),
-      });
+      };
+      const edit = action.field ? `${action.key}:${action.field}` : null;
+      if (edit && edit === state.lastEdit && state.past.length) {
+        return { ...state, definition: next, future: [], notice: null };
+      }
+      return { ...commit(state, next), lastEdit: edit };
+    }
 
     case 'undo': {
       const previous = state.past.at(-1);
@@ -226,13 +240,21 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
         past: state.past.slice(0, -1),
         future: [def, ...state.future],
         notice: null,
+        lastEdit: null,
       };
     }
 
     case 'redo': {
       const [next, ...rest] = state.future;
       if (!next) return state;
-      return { ...state, definition: next, past: [...state.past, def], future: rest, notice: null };
+      return {
+        ...state,
+        definition: next,
+        past: [...state.past, def],
+        future: rest,
+        notice: null,
+        lastEdit: null,
+      };
     }
 
     case 'dismissNotice':

@@ -1,5 +1,11 @@
 import type { WorkflowDefinition } from '../types/workflow-definition';
-import { editorReducer, initialEditorState, isDirty, type EditorAction } from './editor-reducer';
+import {
+  editorReducer,
+  initialEditorState,
+  isDirty,
+  type EditorAction,
+  type EditorState,
+} from './editor-reducer';
 import { canConnect } from './graph-rules';
 import { generateKey, keyProblem } from './keys';
 import { autoLayout } from './layout';
@@ -331,6 +337,30 @@ describe('editor reducer (AC-05.5)', () => {
       expect(s.definition).toEqual(states[i].definition);
     }
     expect(isDirty(editorReducer(s, { type: 'markSaved' }))).toBe(false);
+  });
+
+  it('typing in one settings field is one undo step; another field starts a new one', () => {
+    const type = (s: EditorState, field: string, message: string) =>
+      editorReducer(s, { type: 'updateConfig', key: 'log', config: { message }, field });
+    let s = initialEditorState(branching);
+    s = type(s, 'message', 'H');
+    s = type(s, 'message', 'Hi');
+    s = type(s, 'message', 'Hi!');
+    expect(s.past).toHaveLength(1);
+    s = editorReducer(s, {
+      type: 'updateConfig',
+      key: 'log',
+      config: { message: 'Hi!', x: 1 },
+      field: 'x',
+    });
+    expect(s.past).toHaveLength(2);
+    s = editorReducer(s, { type: 'undo' });
+    expect(s.definition.nodes.find((n) => n.key === 'log')?.config).toEqual({ message: 'Hi!' });
+    s = editorReducer(s, { type: 'undo' });
+    expect(s.definition).toEqual(branching);
+    // After undo, typing again starts a fresh step instead of extending the undone one.
+    s = type(editorReducer(s, { type: 'redo' }), 'message', 'Hey');
+    expect(s.past).toHaveLength(2);
   });
 
   it('a new edit after undo drops the redo history', () => {
