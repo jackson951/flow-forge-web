@@ -8,7 +8,8 @@ import { WorkspaceContext } from '@/features/workspaces/hooks/workspace-context'
 import { connections as connectionFixtures, workspaces, WS_ID } from '@/test/msw/fixtures';
 import { API, apiError } from '@/test/msw/handlers';
 import { server } from '@/test/msw/server';
-import type { Connection, ValidationIssue } from '@/types/api';
+import { browser } from '@/features/integrations/connect-flow';
+import type { Connection, ValidationIssue, WorkspaceRole } from '@/types/api';
 import type { NodeDefinition, WorkflowDefinition } from '../../types/workflow-definition';
 import { measureCondition, type ConditionGroup } from '../schemas';
 import { NodeSettings } from './node-settings';
@@ -45,7 +46,11 @@ function workflow(target: Omit<NodeDefinition, 'key'>): WorkflowDefinition {
 
 function setup(
   target: Omit<NodeDefinition, 'key'>,
-  { issues = [], readOnly = false }: { issues?: ValidationIssue[]; readOnly?: boolean } = {},
+  {
+    issues = [],
+    readOnly = false,
+    role = 'OWNER',
+  }: { issues?: ValidationIssue[]; readOnly?: boolean; role?: WorkspaceRole } = {},
 ) {
   const configs: Record<string, unknown>[] = [];
   function Harness() {
@@ -72,7 +77,7 @@ function setup(
   render(
     <QueryClientProvider client={client}>
       <MemoryRouter>
-        <WorkspaceContext.Provider value={workspaces[0]}>
+        <WorkspaceContext.Provider value={{ ...workspaces[0], role }}>
           <Harness />
         </WorkspaceContext.Provider>
       </MemoryRouter>
@@ -187,14 +192,35 @@ describe('node settings forms (Part 06)', () => {
     expect(last()).toEqual({ connectionId: other.id, text: 'Hi' });
   });
 
-  it('offers "Connect <provider>" when the workspace has no connection (FR-06.3)', async () => {
+  it('admins connect from the step and come back to it (FR-06.3, Part 10 FR-10.3)', async () => {
     withConnections([]);
-    setup({ kind: 'ACTION', type: 'slack.sendMessage', config: {} });
-    expect(await screen.findByRole('link', { name: 'Connect Slack' })).toHaveAttribute(
-      'href',
-      `/w/${WS_ID}/integrations`,
+    const assign = vi.spyOn(browser, 'assign').mockImplementation(() => undefined);
+    server.use(
+      http.post(`${INTEGRATIONS}/SLACK/connect`, () =>
+        HttpResponse.json({ url: 'https://slack.com/oauth/v2/authorize?state=s' }),
+      ),
     );
+    setup({ kind: 'ACTION', type: 'slack.sendMessage', config: {} });
+    await userEvent.click(await screen.findByRole('button', { name: 'Connect Slack' }));
+    await waitFor(() =>
+      expect(assign).toHaveBeenCalledWith('https://slack.com/oauth/v2/authorize?state=s'),
+    );
+    expect(JSON.parse(sessionStorage.getItem('flowforge.integrations.return')!)).toEqual({
+      provider: 'SLACK',
+      returnTo: '/',
+      stepKey: 'target',
+      workspaceId: WS_ID,
+    });
     expect(screen.getByText('Choose a connection first.')).toBeInTheDocument();
+    assign.mockRestore();
+    sessionStorage.clear();
+  });
+
+  it('members are pointed to an admin instead', async () => {
+    withConnections([]);
+    setup({ kind: 'ACTION', type: 'slack.sendMessage', config: {} }, { role: 'MEMBER' });
+    expect(await screen.findByText('Ask an owner or admin to connect Slack.')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Connect Slack' })).not.toBeInTheDocument();
   });
 
   it('warns about a connection that needs attention', async () => {

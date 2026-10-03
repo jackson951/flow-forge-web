@@ -42,6 +42,10 @@ import {
   useWorkflow,
   workflowsApi,
 } from '../api/workflows.api';
+import {
+  callbackErrorMessage,
+  type IntegrationReturnState,
+} from '@/features/integrations/connect-flow';
 import { RunNowDialog } from '@/features/runs/components/run-now-dialog';
 import { WorkflowCanvas } from '../components/canvas/workflow-canvas';
 import { IssuesPanel } from '../components/issues-panel';
@@ -266,6 +270,29 @@ function Editor({ workflow }: { workflow: WorkflowDetail }) {
   );
   const restore = (version: number) =>
     void loadVersion(version).then((v) => applyRestore(version, v.definition));
+  // Back from connecting an integration (Part 10): reselect the step and say how it went.
+  const returned = location.state as IntegrationReturnState | null;
+  useEffect(() => {
+    if (!returned?.integrationResult) return;
+    const { integrationResult: r, selectStep: step } = returned;
+    void navigate(location.pathname, { replace: true, state: null });
+    if (step) {
+      setTimeout(() => selectNode(step), 0);
+    }
+    setTimeout(
+      () =>
+        setBanner(
+          r.status === 'connected'
+            ? {
+                tone: 'success',
+                text: 'Connected. Choose the new connection in the step’s settings.',
+              }
+            : { tone: 'info', text: callbackErrorMessage(r.reason, 'The provider') },
+        ),
+      0,
+    );
+  }, [returned, navigate, location.pathname, selectNode]);
+
   const pendingRestore = (location.state as RestoreState | null)?.restoreVersion;
   useEffect(() => {
     if (pendingRestore === undefined || readOnly) return;
