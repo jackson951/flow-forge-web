@@ -12,7 +12,8 @@ import {
 } from '@/features/workspaces/api/workspaces.api';
 import { workspaceNameSchema } from '@/features/workspaces/schemas';
 import { useWorkspace } from '@/features/workspaces/hooks/use-current-workspace';
-import { policy, ROLE_LABEL } from '@/features/workspaces/policy';
+import { RoleBadge } from '@/features/workspaces/components/role-badge';
+import { policy } from '@/features/workspaces/policy';
 import { paths } from '@/lib/routes';
 
 export function GeneralSettingsPage() {
@@ -86,7 +87,9 @@ function WorkspaceDetails() {
       </form>
       <dl className="mt-6 grid max-w-md grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm">
         <dt className="text-muted">Your role</dt>
-        <dd>{ROLE_LABEL[workspace.role]}</dd>
+        <dd>
+          <RoleBadge role={workspace.role} />
+        </dd>
         <dt className="text-muted">Workspace id</dt>
         <dd className="flex items-center gap-2">
           <code className="font-mono text-xs">{workspace.id}</code>

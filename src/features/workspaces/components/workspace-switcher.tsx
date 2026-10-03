@@ -6,7 +6,7 @@ import { cn } from '@/lib/cn';
 import { queryKeys } from '@/lib/query-keys';
 import { useWorkspaces } from '../api/workspaces.api';
 import { useWorkspace } from '../hooks/use-current-workspace';
-import { ROLE_LABEL } from '../policy';
+import { RoleBadge } from './role-badge';
 import { sameSectionIn } from '../same-section';
 import { CreateWorkspaceDialog } from './create-workspace-dialog';
 
@@ -64,7 +64,7 @@ export function WorkspaceSwitcher({ onNavigate }: { onNavigate?: () => void }) {
         </span>
         <span className="min-w-0 flex-1">
           <span className="block truncate text-sm font-medium text-white">{current.name}</span>
-          <span className="text-sidebar-text block text-xs">{ROLE_LABEL[current.role]}</span>
+          <RoleBadge role={current.role} className="text-sidebar-text text-xs" />
         </span>
         <ChevronsUpDown className="text-sidebar-text size-4 shrink-0" aria-hidden />
       </button>
@@ -96,7 +96,7 @@ export function WorkspaceSwitcher({ onNavigate }: { onNavigate?: () => void }) {
                 )}
               >
                 <span className="min-w-0 flex-1 truncate">{w.name}</span>
-                <span className="text-muted text-xs">{ROLE_LABEL[w.role]}</span>
+                <RoleBadge role={w.role} className="text-muted text-xs" />
                 {w.id === current.id && <Check className="text-primary size-4" aria-hidden />}
               </li>
             ))}
