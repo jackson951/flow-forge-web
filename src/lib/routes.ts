@@ -19,6 +19,8 @@ export const paths = {
   integrations: (ws: string) => `/w/${ws}/integrations`,
   settings: (ws: string) => `/w/${ws}/settings`,
   settingsMembers: (ws: string) => `/w/${ws}/settings/members`,
+  settingsAccount: (ws: string) => `/w/${ws}/settings/account`,
+  settingsDanger: (ws: string) => `/w/${ws}/settings/danger`,
 } as const;
 
 /** Route patterns for the router (same structure as `paths`). */
@@ -32,6 +34,8 @@ export const patterns = {
   integrations: 'integrations',
   settings: 'settings',
   settingsMembers: 'members',
+  settingsAccount: 'account',
+  settingsDanger: 'danger',
 } as const;
 
 /**

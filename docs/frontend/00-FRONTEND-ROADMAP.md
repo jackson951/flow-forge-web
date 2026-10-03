@@ -18,7 +18,7 @@ Legend: **NOT STARTED** · **IN PROGRESS** · **COMPLETE** (meets the Definition
 | 08 | [Runs: Trigger, History and Detail](08-RUNS.md) | IN PROGRESS | 2026-10-03: implemented — run now (idempotent, backpressure), run list with URL filters + live updates, run detail with path taken, skip reasons, error categories and next steps, cancel, retry with uncertain-outcome acknowledgement; component tests green. Awaiting product-owner QA in the browser |
 | 09 | [Dashboard](09-DASHBOARD.md) | IN PROGRESS | 2026-10-03: implemented — run health (24 h / 7 d, success rate as a number), top failing workflows and recent failures linking to filtered runs / run detail, connections needing attention, onboarding checklist from real data, 30 s refresh; component tests green. Awaiting product-owner QA |
 | 10 | [Integrations](10-INTEGRATIONS.md) | IN PROGRESS | 2026-10-03: implemented for the current backend — GitHub/Slack/Microsoft cards, several connections per provider, connect round trip with return to the starting place (incl. a step's settings), callback landing with a message per reason, reconnect, disconnect naming affected workflows; component tests green. Awaiting product-owner QA. BYOK AI connections: later enhancement (backend Part 23) |
-| 11 | [Account and Settings](11-ACCOUNT-AND-SETTINGS.md) | NOT STARTED | — |
+| 11 | [Account and Settings](11-ACCOUNT-AND-SETTINGS.md) | IN PROGRESS | 2026-10-03: implemented — tabs Workspace / Members / Account / Danger zone (deep-linkable), read-only account details (backend cannot change them), sign out here / everywhere, user-menu link; component tests green. Awaiting product-owner QA |
 | 12 | [UX Quality and Accessibility](12-UX-QUALITY-AND-ACCESSIBILITY.md) | NOT STARTED | Cross-cutting; checked again in every later part |
 | 13 | [Testing and Quality Gate](13-TESTING-AND-QUALITY-GATE.md) | NOT STARTED | — |
 | 14 | [Build, Docker and CI](14-BUILD-DOCKER-AND-CI.md) | NOT STARTED | — |
@@ -99,3 +99,4 @@ The scaffold was written before the backend existed. Known mismatches: base URL 
 | 2026-10-03 | Part 08 implemented; awaiting product-owner QA (the product owner tests each part in the browser). |
 | 2026-10-03 | Part 09 implemented; awaiting product-owner QA. |
 | 2026-10-03 | Product owner decision: finish the frontend for what the backend has now; anything else (e.g. BYOK AI) is a later enhancement. Part 10 implemented for GitHub/Slack/Microsoft; awaiting product-owner QA. |
+| 2026-10-03 | Part 11 implemented; awaiting product-owner QA. |

@@ -1,4 +1,4 @@
-import { Settings, SlidersHorizontal, Users } from 'lucide-react';
+import { Settings, SlidersHorizontal, TriangleAlert, UserRound, Users } from 'lucide-react';
 import { NavLink, Outlet } from 'react-router';
 import { PageContainer } from '@/components/layout/page-container';
 import { PageHeader } from '@/components/layout/page-header';
@@ -10,17 +10,27 @@ import { paths } from '@/lib/routes';
 export function SettingsPage() {
   const workspace = useWorkspace();
   const tabs = [
-    { to: paths.settings(workspace.id), label: 'General', icon: SlidersHorizontal, end: true },
+    { to: paths.settings(workspace.id), label: 'Workspace', icon: SlidersHorizontal, end: true },
     { to: paths.settingsMembers(workspace.id), label: 'Members', icon: Users, end: false },
+    { to: paths.settingsAccount(workspace.id), label: 'Account', icon: UserRound, end: false },
+    {
+      to: paths.settingsDanger(workspace.id),
+      label: 'Danger zone',
+      icon: TriangleAlert,
+      end: false,
+    },
   ];
   return (
     <PageContainer>
       <PageHeader
         title="Settings"
         icon={Settings}
-        description={`Workspace settings for ${workspace.name}.`}
+        description={`Your account and the settings of ${workspace.name}.`}
       />
-      <nav aria-label="Settings sections" className="border-line mt-6 flex gap-1 border-b">
+      <nav
+        aria-label="Settings sections"
+        className="border-line mt-6 flex flex-wrap gap-1 border-b"
+      >
         {tabs.map((tab) => (
           <NavLink
             key={tab.to}
