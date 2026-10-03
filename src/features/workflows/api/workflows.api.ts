@@ -145,3 +145,21 @@ export const useUnarchiveWorkflow = (ws: string) =>
   useWorkflowMutation(ws, (id: string) => workflowsApi.unarchive(ws, id));
 export const useDeleteWorkflow = (ws: string) =>
   useWorkflowMutation(ws, (id: string) => workflowsApi.remove(ws, id));
+
+/**
+ * Explicit draft save (Part 05). The response's `draftRevision` becomes the next
+ * `expectedRevision`; autosave and conflict handling come with Part 07.
+ */
+export function useSaveDraft(ws: string, id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ revision, definition }: { revision: number; definition: WorkflowDefinition }) =>
+      workflowsApi.saveDraft(ws, id, revision, definition),
+    onSuccess: ({ draftRevision, issues }, { definition }) => {
+      qc.setQueryData<WorkflowDetail>(queryKeys.workflows.detail(ws, id), (current) =>
+        current ? { ...current, draftRevision, draftDefinition: definition, issues } : current,
+      );
+      void qc.invalidateQueries({ queryKey: queryKeys.workflows.list(ws) });
+    },
+  });
+}

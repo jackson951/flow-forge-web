@@ -1,5 +1,5 @@
-import { MousePointerClick, ScrollText, Sparkles, Split, Workflow } from 'lucide-react';
-import { GitHubIcon, MicrosoftIcon, SlackIcon } from './provider-icons';
+import { MousePointerClick, ScrollText, Split, Workflow } from 'lucide-react';
+import { AnthropicIcon, GitHubIcon, MicrosoftIcon, SlackIcon } from './provider-icons';
 
 export type Visual = { Icon: (p: { className?: string }) => React.ReactNode; tile: string };
 
@@ -17,7 +17,7 @@ export function nodeTypeVisual(type: string): Visual {
     case 'microsoft':
       return { Icon: MicrosoftIcon, tile: 'bg-white ring-1 ring-line' };
     case 'ai':
-      return { Icon: Sparkles, tile: 'bg-violet-50 text-violet-600' };
+      return { Icon: AnthropicIcon, tile: 'bg-[#F0EEE6] text-[#191919]' };
     case 'condition':
       return { Icon: Split, tile: 'bg-amber-50 text-amber-600' };
     case 'manual':

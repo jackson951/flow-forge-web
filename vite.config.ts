@@ -26,5 +26,7 @@ export default defineConfig({
     environment: './src/test/jsdom-environment.ts',
     setupFiles: ['./src/test/setup.ts'],
     css: false,
+    // Component tests render the whole app; under a full parallel run 5 s is too tight.
+    testTimeout: 15_000,
   },
 });

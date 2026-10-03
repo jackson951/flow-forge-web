@@ -48,8 +48,14 @@ export const NODE_KEY_PATTERN = /^[a-zA-Z][a-zA-Z0-9_]{0,63}$/;
 
 /** Data carried by each React Flow node on the canvas. */
 export type FlowNodeData = {
+  /** The node's key (also the React Flow id). */
+  key: string;
   label: string;
   nodeType: string;
   kind: NodeKind;
   config: Record<string, unknown>;
+  /** Validation issues on this node (backend, Part 07). */
+  issueCount?: number;
+  /** Read-only canvas (archived workflow, version view). */
+  readOnly?: boolean;
 };

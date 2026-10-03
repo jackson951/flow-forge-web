@@ -128,6 +128,10 @@ describe('Workflows list (Part 04)', () => {
     await userEvent.click(within(dialog).getByRole('button', { name: 'Create and open editor' }));
     await waitFor(() => expect(target(router)).toBe(`${URL_}/${wf(9).id}`));
     expect(body).toEqual({ name: 'Triage issues' });
+    // Let the lazily loaded editor (React Flow) finish inside this test.
+    expect(
+      await screen.findByRole('heading', { level: 1 }, { timeout: 10_000 }),
+    ).toBeInTheDocument();
   });
 
   it('validates the name before creating', async () => {
