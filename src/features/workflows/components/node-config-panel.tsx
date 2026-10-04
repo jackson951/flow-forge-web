@@ -19,6 +19,8 @@ interface NodeConfigPanelProps {
   /** The whole draft: references may only point at steps before this one. */
   definition: WorkflowDefinition;
   labelFor: (type: string) => string;
+  /** Extra trigger fields to suggest (a captured webhook test delivery, Part 19). */
+  sampleTriggerFields?: string[];
 }
 
 /**
@@ -52,6 +54,7 @@ function SelectedNodePanel({
   readOnly = false,
   definition,
   labelFor,
+  sampleTriggerFields,
 }: NodeConfigPanelProps & { node: NodeDefinition }) {
   const [draftKey, setDraftKey] = useState(node.key);
   const problem = draftKey === node.key ? null : keyProblem(draftKey, otherKeys);
@@ -116,6 +119,7 @@ function SelectedNodePanel({
             labelFor={labelFor}
             issues={issues}
             readOnly={readOnly}
+            sampleTriggerFields={sampleTriggerFields}
             onChange={(config, field) =>
               dispatch({ type: 'updateConfig', key: node.key, config, field })
             }

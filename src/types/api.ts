@@ -376,3 +376,45 @@ export interface ConnectionTestResult {
   message?: string;
   durationMs?: number;
 }
+
+// ── Generic webhooks (backend Part 24: hook-admin.service.ts) ────────────────
+
+/** `GET …/workflows/:id/webhook`. A generated `secret` arrives once (first admin read). */
+export interface WebhookDetails {
+  provisioned: boolean;
+  active?: boolean;
+  url?: string;
+  path?: string;
+  verificationMode?: string;
+  secretHint?: string | null;
+  secret?: string;
+  previousSecretExpiresAt?: string | null;
+  previousUrlExpiresAt?: string | null;
+  listening?: boolean;
+}
+
+export type DeliveryStatus = 'RECEIVED' | 'PROCESSED' | 'IGNORED' | 'FAILED' | 'REJECTED';
+
+export interface WebhookDelivery {
+  id: string;
+  deliveryId: string;
+  status: DeliveryStatus;
+  reason: string | null;
+  receivedAt: string;
+  sizeBytes: number | null;
+  sourceIp: string | null;
+  duplicateCount: number;
+  lastDuplicateAt: string | null;
+  run: { id: string; status: RunStatus } | null;
+}
+
+export interface WebhookCapture {
+  listening: boolean;
+  /** The captured request (method, kept headers, query, body), once one arrived. */
+  event: {
+    method?: string;
+    headers?: Record<string, string>;
+    query?: unknown;
+    body?: unknown;
+  } | null;
+}

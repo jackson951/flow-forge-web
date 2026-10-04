@@ -32,6 +32,7 @@ import { HttpRequestForm } from './http-request-form';
 import { ResourcePicker } from './resource-picker';
 import { ScheduleTriggerForm } from './schedule-trigger-form';
 import { TemplateInput } from './template-input';
+import { WebhookTriggerForm } from './webhook-trigger-form';
 
 export interface FormProps {
   config: Record<string, unknown>;
@@ -62,6 +63,8 @@ export function NodeForm({ type, ...props }: FormProps & { type: string }) {
       return <ScheduleTriggerForm {...props} />;
     case 'http.request':
       return <HttpRequestForm {...props} />;
+    case 'webhook.received':
+      return <WebhookTriggerForm {...props} />;
     case 'github.issue.created':
       return <GitHubTriggerForm {...props} />;
     case 'condition':

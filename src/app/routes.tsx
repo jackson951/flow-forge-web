@@ -10,7 +10,6 @@ import { DashboardPage } from '@/features/dashboard/pages/dashboard-page';
 import { FeaturesPage, SecurityPage } from '@/features/marketing/info-pages';
 import { HomeGate, IntegrationsEntry } from '@/features/marketing/public-entry';
 import { PublicLayout } from '@/features/marketing/public-layout';
-import { IntegrationsPage } from '@/features/integrations/pages/integrations-page';
 import { RunsListPage } from '@/features/runs/pages/runs-list-page';
 import { AccountSettingsPage } from '@/features/settings/pages/account-settings-page';
 import { DangerZonePage } from '@/features/settings/pages/danger-zone-page';
@@ -95,7 +94,14 @@ export const routes: RouteObject[] = [
             Component: m.RunDetailPage,
           })),
       },
-      { path: patterns.integrations, element: <IntegrationsPage /> },
+      {
+        path: patterns.integrations,
+        // Code-split (Part 19): connection dialogs and provider catalogue load on demand.
+        lazy: () =>
+          import('@/features/integrations/pages/integrations-page').then((m) => ({
+            Component: m.IntegrationsPage,
+          })),
+      },
       {
         path: patterns.settings,
         element: <SettingsPage />,

@@ -1,6 +1,7 @@
 import { authApi } from '@/features/auth/api/auth.api';
 import { dashboardApi } from '@/features/dashboard/api/dashboard.api';
 import { integrationsApi } from '@/features/integrations/api/integrations.api';
+import { webhookApi } from '@/features/workflows/api/webhook.api';
 import { runsApi } from '@/features/runs/api/runs.api';
 import { workflowsApi } from '@/features/workflows/api/workflows.api';
 import { EMPTY_DEFINITION } from '@/features/workflows/types/workflow-definition';
@@ -60,6 +61,15 @@ const calls: Record<string, Record<string, () => Promise<unknown>>> = {
   dashboardApi: {
     summary: () => dashboardApi.summary(WS_ID),
   },
+  webhookApi: {
+    details: () => webhookApi.details(WS_ID, WORKFLOW_ID),
+    rotateSecret: () => webhookApi.rotateSecret(WS_ID, WORKFLOW_ID),
+    rotateUrl: () => webhookApi.rotateUrl(WS_ID, WORKFLOW_ID),
+    deliveries: () => webhookApi.deliveries(WS_ID, WORKFLOW_ID),
+    replay: () => webhookApi.replay(WS_ID, WORKFLOW_ID, 'd1'),
+    listen: () => webhookApi.listen(WS_ID, WORKFLOW_ID),
+    captured: () => webhookApi.captured(WS_ID, WORKFLOW_ID),
+  },
   integrationsApi: {
     providers: () => integrationsApi.providers(),
     connections: () => integrationsApi.connections(WS_ID),
@@ -80,7 +90,15 @@ const calls: Record<string, Record<string, () => Promise<unknown>>> = {
   },
 };
 
-const modules = { authApi, workspacesApi, workflowsApi, runsApi, dashboardApi, integrationsApi };
+const modules = {
+  authApi,
+  workspacesApi,
+  workflowsApi,
+  runsApi,
+  dashboardApi,
+  integrationsApi,
+  webhookApi,
+};
 
 describe('MSW serves every API function (Part 01, AC-01.5)', () => {
   for (const [module, fns] of Object.entries(calls)) {

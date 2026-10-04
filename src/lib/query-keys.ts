@@ -29,6 +29,12 @@ export const queryKeys = {
       [...ws(workspaceId), 'workflows', workflowId, 'versions'] as const,
     version: (workspaceId: string, workflowId: string, version: number) =>
       [...ws(workspaceId), 'workflows', workflowId, 'versions', version] as const,
+    webhook: (workspaceId: string, workflowId: string) =>
+      [...ws(workspaceId), 'workflows', workflowId, 'webhook'] as const,
+    webhookDeliveries: (workspaceId: string, workflowId: string) =>
+      [...ws(workspaceId), 'workflows', workflowId, 'webhook', 'deliveries'] as const,
+    webhookCapture: (workspaceId: string, workflowId: string) =>
+      [...ws(workspaceId), 'workflows', workflowId, 'webhook', 'capture'] as const,
   },
   runs: {
     all: (workspaceId: string) => [...ws(workspaceId), 'runs'] as const,
