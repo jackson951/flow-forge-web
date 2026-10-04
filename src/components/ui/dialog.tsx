@@ -1,6 +1,7 @@
 import { X } from 'lucide-react';
 import { useEffect, useId, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import { cn } from '@/lib/cn';
 
 interface DialogProps {
   open: boolean;
@@ -8,6 +9,8 @@ interface DialogProps {
   title: string;
   description?: ReactNode;
   children: ReactNode;
+  /** `lg` for forms with two columns (wider, scrolls inside when taller than the screen). */
+  size?: 'md' | 'lg';
 }
 
 const FOCUSABLE =
@@ -17,7 +20,7 @@ const FOCUSABLE =
  * Modal dialog: labelled by its title, focus moves inside and is trapped there, Escape and
  * the backdrop close it, and focus returns to the element that opened it.
  */
-export function Dialog({ open, onClose, title, description, children }: DialogProps) {
+export function Dialog({ open, onClose, title, description, children, size = 'md' }: DialogProps) {
   const titleId = useId();
   const descriptionId = useId();
   const panel = useRef<HTMLDivElement>(null);
@@ -60,7 +63,12 @@ export function Dialog({ open, onClose, title, description, children }: DialogPr
 
   if (!open) return null;
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 pt-[10vh]">
+    <div
+      className={cn(
+        'fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4',
+        size === 'lg' ? 'pt-[6vh]' : 'pt-[10vh]',
+      )}
+    >
       <div aria-hidden className="bg-sidebar/50 fixed inset-0" onClick={onClose} />
       <div
         ref={panel}
@@ -69,7 +77,10 @@ export function Dialog({ open, onClose, title, description, children }: DialogPr
         aria-labelledby={titleId}
         aria-describedby={description ? descriptionId : undefined}
         tabIndex={-1}
-        className="border-line bg-surface relative w-full max-w-md rounded-xl border p-6 shadow-xl"
+        className={cn(
+          'border-line bg-surface relative flex w-full flex-col rounded-xl border p-6 shadow-xl',
+          size === 'lg' ? 'max-h-[88vh] max-w-3xl' : 'max-w-md',
+        )}
       >
         <div className="flex items-start justify-between gap-4">
           <h2 id={titleId} className="text-lg font-semibold">
@@ -89,7 +100,7 @@ export function Dialog({ open, onClose, title, description, children }: DialogPr
             {description}
           </div>
         )}
-        <div className="mt-5">{children}</div>
+        <div className={cn('mt-5', size === 'lg' && '-mx-1 overflow-y-auto px-1')}>{children}</div>
       </div>
     </div>,
     document.body,

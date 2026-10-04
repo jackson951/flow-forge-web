@@ -46,6 +46,20 @@ registerOutputs('schedule.trigger', {
   ],
 });
 
+// ── Part 18: HTTP request (the body's shape depends on the API: any path below it) ─
+
+registerOutputs('http.request', {
+  output: () => [
+    { path: 'status', description: 'HTTP status code, e.g. 200' },
+    { path: 'body', description: 'Response body (parsed JSON or text); use body.<field>' },
+    { path: 'statusText', description: 'Status text, e.g. OK' },
+    { path: 'headers', description: 'Response headers; use headers.<name>' },
+    { path: 'bodyTruncated', description: 'true when the body was cut to fit' },
+    { path: 'durationMs', description: 'How long the request took' },
+    { path: 'finalUrl', description: 'URL after redirects' },
+  ],
+});
+
 // ── Node types of Parts 01–15 ────────────────────────────────────────────────
 
 registerOutputs('github.issue.created', {

@@ -11,6 +11,12 @@ import { cn } from '@/lib/cn';
 import type { Connection, IntegrationCallbackParams, IntegrationProviderKey } from '@/types/api';
 import { useConnections, useProviders, useStartConnect } from '../api/integrations.api';
 import { DisconnectDialog } from '../components/disconnect-dialog';
+import {
+  CreateHttpConnectionDialog,
+  EditHttpConnectionDialog,
+  ReplaceCredentialsDialog,
+  TestHttpConnectionDialog,
+} from '../components/http-connection-dialogs';
 import { ProviderCard } from '../components/provider-card';
 import {
   callbackErrorMessage,
@@ -30,6 +36,10 @@ export function IntegrationsPage() {
   const canManage = policy.canManage(workspace.role);
   const [disconnecting, setDisconnecting] = useState<Connection | null>(null);
   const [connectingKey, setConnectingKey] = useState<IntegrationProviderKey | null>(null);
+  const [creatingHttp, setCreatingHttp] = useState(false);
+  const [testing, setTesting] = useState<Connection | null>(null);
+  const [editing, setEditing] = useState<Connection | null>(null);
+  const [replacing, setReplacing] = useState<Connection | null>(null);
   // The result of a provider round trip arrives once in router state; keep it, then clear it
   // so a reload does not show it again.
   const [result, setResult] = useState<IntegrationCallbackParams | null>(
@@ -102,7 +112,14 @@ export function IntegrationsPage() {
               connections={connections.data.filter((c) => c.provider === info.key)}
               canManage={canManage}
               connecting={connectingKey === info.key && !start.isError}
-              onConnect={() => connect(info.key)}
+              onConnect={() =>
+                connectionTypes.get(info.key) === 'CREDENTIALS'
+                  ? setCreatingHttp(true)
+                  : connect(info.key)
+              }
+              onTest={setTesting}
+              onEdit={setEditing}
+              onReplaceCredentials={setReplacing}
               onDisconnect={setDisconnecting}
               highlightId={result?.status === 'connected' ? result.connectionId : undefined}
             />
@@ -110,6 +127,10 @@ export function IntegrationsPage() {
         </div>
       )}
       <DisconnectDialog connection={disconnecting} onClose={() => setDisconnecting(null)} />
+      <CreateHttpConnectionDialog open={creatingHttp} onClose={() => setCreatingHttp(false)} />
+      <TestHttpConnectionDialog connection={testing} onClose={() => setTesting(null)} />
+      <EditHttpConnectionDialog connection={editing} onClose={() => setEditing(null)} />
+      <ReplaceCredentialsDialog connection={replacing} onClose={() => setReplacing(null)} />
     </PageContainer>
   );
 }

@@ -68,6 +68,15 @@ const calls: Record<string, Record<string, () => Promise<unknown>>> = {
     repositories: () => integrationsApi.repositories(WS_ID, CONNECTION_ID),
     slackChannels: () => integrationsApi.slackChannels(WS_ID, CONNECTION_ID),
     todoLists: () => integrationsApi.todoLists(WS_ID, CONNECTION_ID),
+    createHttp: () =>
+      integrationsApi.createHttp(WS_ID, {
+        name: 'API',
+        credentials: { authType: 'bearer', token: 'x' },
+      }),
+    testHttp: () => integrationsApi.testHttp(WS_ID, CONNECTION_ID, { url: 'https://a.example' }),
+    updateHttp: () => integrationsApi.updateHttp(WS_ID, CONNECTION_ID, { name: 'API 2' }),
+    rotateHttp: () =>
+      integrationsApi.rotateHttp(WS_ID, CONNECTION_ID, { authType: 'bearer', token: 'y' }),
   },
 };
 

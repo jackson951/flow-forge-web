@@ -14,7 +14,6 @@ const props = {
 
 describe('node types whose form comes later (Part 16, FR-16.8)', () => {
   it.each([
-    ['http.request', 18],
     ['webhook.received', 19],
     ['http.poll', 20],
     ['jira.issue.created', 21],
