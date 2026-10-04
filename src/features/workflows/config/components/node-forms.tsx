@@ -2,6 +2,7 @@ import {
   BookMarked,
   CalendarDays,
   Hash,
+  Hourglass,
   Info,
   ListTodo,
   Lock,
@@ -23,6 +24,7 @@ import { cn } from '@/lib/cn';
 import { useConfigScope } from '../config-scope';
 import { asCondition } from '../condition-model';
 import { LIMITS, type ConditionGroup } from '../schemas';
+import { upcomingFormPart } from '../upcoming-forms';
 import { ConditionBuilder } from './condition-builder';
 import { ConnectionSelect } from './connection-select';
 import { ReferenceInput } from './reference-input';
@@ -71,12 +73,21 @@ export function NodeForm({ type, ...props }: FormProps & { type: string }) {
     case 'ai.extract':
       return <ExtractForm {...props} />;
     default:
-      return (
-        <p className="text-muted text-sm">
-          There is no settings form for this step type in this version of the app.
-        </p>
-      );
+      return <PendingForm type={type} />;
   }
+}
+
+/** No form yet: say so, and leave the step's existing settings untouched. */
+function PendingForm({ type }: { type: string }) {
+  const part = upcomingFormPart(type);
+  return (
+    <Note icon={<Hourglass className="size-4" aria-hidden />}>
+      {part
+        ? `The settings form for this step arrives in frontend Part ${part}.`
+        : 'There is no settings form for this step type in this version of the app.'}{' '}
+      Its current settings are kept as they are when you save.
+    </Note>
+  );
 }
 
 function Note({

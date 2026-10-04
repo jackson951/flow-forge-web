@@ -16,7 +16,8 @@ import { ProviderIcon } from '@/components/brand/provider-icons';
 import { Button } from '@/components/ui';
 import { cn } from '@/lib/cn';
 import { formatDateTime, formatRelative } from '@/lib/format';
-import type { Connection, ConnectionStatus } from '@/types/api';
+import type { Connection, ConnectionStatus, ConnectionType } from '@/types/api';
+import { statusReasonMessage } from '../status-reasons';
 import type { ProviderInfo } from '../provider-catalog';
 
 const STATUS: Record<ConnectionStatus, { label: string; icon: LucideIcon; className: string }> = {
@@ -32,6 +33,8 @@ const STATUS: Record<ConnectionStatus, { label: string; icon: LucideIcon; classN
 interface ProviderCardProps {
   info: ProviderInfo;
   configured: boolean;
+  /** OAUTH: redirect to the provider. CREDENTIALS: a form (HTTP, Part 18). */
+  connectionType: ConnectionType;
   connections: Connection[];
   canManage: boolean;
   connecting: boolean;
@@ -45,6 +48,7 @@ interface ProviderCardProps {
 export function ProviderCard({
   info,
   configured,
+  connectionType,
   connections,
   canManage,
   connecting,
@@ -79,7 +83,14 @@ export function ProviderCard({
             ))}
           </p>
         </div>
-        {configured ? (
+        {configured && connectionType === 'CREDENTIALS' ? (
+          canManage && (
+            <span className="text-muted inline-flex items-center gap-1.5 text-sm">
+              <Info className="size-4" aria-hidden />
+              Creating HTTP connections arrives with the HTTP request step
+            </span>
+          )
+        ) : configured ? (
           canManage && (
             <Button
               variant={connections.length ? 'secondary' : 'primary'}
@@ -127,6 +138,7 @@ export function ProviderCard({
               key={c.id}
               connection={c}
               canManage={canManage}
+              canReconnect={connectionType === 'OAUTH'}
               highlighted={c.id === highlightId}
               onReconnect={onConnect}
               onDisconnect={() => onDisconnect(c)}
@@ -153,6 +165,7 @@ export function ProviderCard({
 function ConnectionItem({
   connection: c,
   canManage,
+  canReconnect,
   highlighted,
   onReconnect,
   onDisconnect,
@@ -160,6 +173,7 @@ function ConnectionItem({
 }: {
   connection: Connection;
   canManage: boolean;
+  canReconnect: boolean;
   highlighted: boolean;
   onReconnect: () => void;
   onDisconnect: () => void;
@@ -188,7 +202,7 @@ function ConnectionItem({
         </span>
         {canManage && (
           <span className="flex gap-1.5">
-            {c.status !== 'CONNECTED' && (
+            {c.status !== 'CONNECTED' && canReconnect && (
               <Button size="sm" variant="secondary" onClick={onReconnect} disabled={connecting}>
                 <RefreshCw className="size-4" aria-hidden />
                 Reconnect
@@ -209,8 +223,7 @@ function ConnectionItem({
       {c.status === 'NEEDS_ATTENTION' && (
         <p className="text-status-warning mt-1.5 flex items-start gap-1.5 text-sm">
           <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
-          The provider rejected FlowForge’s access (the token was revoked or expired, or the app was
-          uninstalled). Steps using this connection fail until it is reconnected.
+          {statusReasonMessage(c)}
         </p>
       )}
       {c.scopes.length > 0 && (
@@ -221,6 +234,15 @@ function ConnectionItem({
     </li>
   );
 }
+
+const HTTP_AUTH: Record<string, string> = {
+  none: 'No authentication',
+  bearer: 'Bearer token',
+  basic: 'Basic auth',
+  apiKeyHeader: 'API key (header)',
+  apiKeyQuery: 'API key (query)',
+  customHeaders: 'Custom headers',
+};
 
 /** Safe, useful metadata the backend returns (never tokens). */
 function connectionDetails(c: Connection): string | null {
@@ -242,5 +264,12 @@ function connectionDetails(c: Connection): string | null {
   }
   if (c.provider === 'MICROSOFT' && typeof m.displayName === 'string') return m.displayName;
   if (c.provider === 'SLACK') return 'Slack workspace';
+  if (c.provider === 'GMAIL') return 'Mailbox';
+  if (c.provider === 'HTTP') {
+    const auth = typeof m.authType === 'string' ? (HTTP_AUTH[m.authType] ?? m.authType) : null;
+    const hint = typeof m.secretHint === 'string' && m.authType !== 'none' ? m.secretHint : null;
+    const base = typeof m.baseUrl === 'string' ? m.baseUrl : null;
+    return [auth, hint, base].filter(Boolean).join(' · ') || null;
+  }
   return null;
 }

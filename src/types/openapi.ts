@@ -250,6 +250,23 @@ export interface paths {
     patch: operations['WorkflowsController_update_v1'];
     trace?: never;
   };
+  '/api/v1/workspaces/{workspaceId}/workflows/{id}/poll': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** HTTP poll trigger state: last poll, status, items fired */
+    get: operations['WorkflowsController_pollState_v1'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/workspaces/{workspaceId}/workflows/{id}/draft': {
     parameters: {
       query?: never;
@@ -403,6 +420,129 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/webhooks/hooks/{hookId}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Generic inbound webhook: verifies, deduplicates, filters and queues a run (if this method is enabled on the hook); also answers challenge-echo validation */
+    get: operations['HooksController_get_v1'];
+    /** Generic inbound webhook: verifies, deduplicates, filters and queues a run (if this method is enabled on the hook) */
+    put: operations['HooksController_put_v1'];
+    /** Generic inbound webhook: verifies, deduplicates, filters and queues a run (if this method is enabled on the hook) */
+    post: operations['HooksController_post_v1'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    /** Generic inbound webhook: verifies, deduplicates, filters and queues a run (if this method is enabled on the hook) */
+    patch: operations['HooksController_patch_v1'];
+    trace?: never;
+  };
+  '/api/v1/workspaces/{workspaceId}/workflows/{workflowId}/webhook': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Webhook URL, status and secret hint (a generated secret is shown once, to an admin) */
+    get: operations['WorkflowWebhookController_details_v1'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/workspaces/{workspaceId}/workflows/{workflowId}/webhook/rotate-secret': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** New webhook secret; the old one stays valid for a grace period (ADMIN) */
+    post: operations['WorkflowWebhookController_rotateSecret_v1'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/workspaces/{workspaceId}/workflows/{workflowId}/webhook/rotate-url': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** New webhook URL; the old one keeps working for a grace period (ADMIN) */
+    post: operations['WorkflowWebhookController_rotateUrl_v1'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/workspaces/{workspaceId}/workflows/{workflowId}/webhook/deliveries': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Recent webhook deliveries: status, reason, size, run (no secrets) */
+    get: operations['WorkflowWebhookController_deliveries_v1'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/workspaces/{workspaceId}/workflows/{workflowId}/webhook/deliveries/{deliveryId}/replay': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Start a new run from a stored webhook delivery (ADMIN) */
+    post: operations['WorkflowWebhookController_replay_v1'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/workspaces/{workspaceId}/workflows/{workflowId}/webhook/listen': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** The captured test delivery, if one arrived */
+    get: operations['WorkflowWebhookController_captured_v1'];
+    put?: never;
+    /** Capture the next delivery to this (unpublished) webhook for 10 minutes */
+    post: operations['WorkflowWebhookController_listen_v1'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/workspaces/{workspaceId}/runs': {
     parameters: {
       query?: never;
@@ -522,6 +662,75 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/workspaces/{workspaceId}/integrations/http': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Create an HTTP connection (API key / bearer / basic) (ADMIN) */
+    post: operations['IntegrationsController_createHttp_v1'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/workspaces/{workspaceId}/integrations/{connectionId}/test': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Test an HTTP connection against a URL (outcome only) (ADMIN) */
+    post: operations['IntegrationsController_testHttp_v1'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/workspaces/{workspaceId}/integrations/{connectionId}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    /** Disconnect an integration (revokes provider tokens where supported) (ADMIN) */
+    delete: operations['IntegrationsController_disconnect_v1'];
+    options?: never;
+    head?: never;
+    /** Rename an HTTP connection or change its base URL / allowed hosts (ADMIN) */
+    patch: operations['IntegrationsController_updateHttp_v1'];
+    trace?: never;
+  };
+  '/api/v1/workspaces/{workspaceId}/integrations/{connectionId}/credentials': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** Replace the secrets of an HTTP connection (write-only) (ADMIN) */
+    put: operations['IntegrationsController_rotateHttp_v1'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/workspaces/{workspaceId}/integrations/{provider}/connect': {
     parameters: {
       query?: never;
@@ -573,6 +782,108 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/workspaces/{workspaceId}/integrations/{connectionId}/gmail/labels': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Gmail labels of the mailbox (id, name, type) */
+    get: operations['IntegrationsController_gmailLabels_v1'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/workspaces/{workspaceId}/integrations/{connectionId}/jira/sites': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Jira sites the connection can use */
+    get: operations['IntegrationsController_jiraSites_v1'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/workspaces/{workspaceId}/integrations/{connectionId}/jira/projects': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Jira projects on a site (id, key, name) */
+    get: operations['IntegrationsController_jiraProjects_v1'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/workspaces/{workspaceId}/integrations/{connectionId}/jira/issue-types': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Issue types of a Jira project */
+    get: operations['IntegrationsController_jiraIssueTypes_v1'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/workspaces/{workspaceId}/integrations/{connectionId}/jira/statuses': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Statuses used in a Jira project */
+    get: operations['IntegrationsController_jiraStatuses_v1'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/workspaces/{workspaceId}/integrations/{connectionId}/jira/users': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Assignable users of a Jira project (account id, display name) */
+    get: operations['IntegrationsController_jiraUsers_v1'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/workspaces/{workspaceId}/integrations/{connectionId}/microsoft/todo-lists': {
     parameters: {
       query?: never;
@@ -585,23 +896,6 @@ export interface paths {
     put?: never;
     post?: never;
     delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/v1/workspaces/{workspaceId}/integrations/{connectionId}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post?: never;
-    /** Disconnect an integration (revokes provider tokens where supported) (ADMIN) */
-    delete: operations['IntegrationsController_disconnect_v1'];
     options?: never;
     head?: never;
     patch?: never;
@@ -798,6 +1092,16 @@ export interface components {
       /** @description The draftRevision that was reviewed; publishing fails if the draft changed since */
       expectedRevision: number;
     };
+    RotateHookSecretDto: {
+      /** @description The sender's own secret (e.g. one a provider generated). Omitted: FlowForge generates one and returns it once. */
+      secret?: string;
+      /** @description Hours the previous secret stays valid (default 24, 0 = none) */
+      graceHours?: number;
+    };
+    RotateHookUrlDto: {
+      /** @description Hours the previous URL keeps working (default 24, 0 = none) */
+      graceHours?: number;
+    };
     RetryRunDto: {
       /**
        * @description Reuse the stored outputs of steps that succeeded, so completed side effects are not repeated
@@ -813,6 +1117,64 @@ export interface components {
     ManualRunDto: {
       /** @description Becomes the trigger output (available as `trigger.*`). Max 64 KB. */
       input?: {
+        [key: string]: unknown;
+      };
+    };
+    CreateHttpConnectionDto: {
+      /** @example Billing API */
+      name: string;
+      /**
+       * @description Write-only secrets, by authType: bearer {token}; basic {username, password}; apiKeyHeader {headerName, value}; apiKeyQuery {paramName, value}; customHeaders {headers: {name: value}} (1–10). Never returned.
+       * @example {
+       *       "authType": "bearer",
+       *       "token": "<secret>"
+       *     }
+       */
+      credentials: {
+        [key: string]: unknown;
+      };
+      /**
+       * @description Relative URLs in http.request steps resolve against it
+       * @example https://api.example.com/v1
+       */
+      baseUrl?: string;
+      /**
+       * @description Credentials are only ever sent to these hosts
+       * @example [
+       *       "api.example.com"
+       *     ]
+       */
+      allowedHosts?: string[];
+    };
+    TestHttpConnectionDto: {
+      /**
+       * @description Absolute, or relative to the base URL
+       * @example https://api.example.com/v1/me
+       */
+      url: string;
+      /**
+       * @default GET
+       * @enum {string}
+       */
+      method: 'GET' | 'HEAD';
+    };
+    UpdateHttpConnectionDto: {
+      /** @example Billing API (EU) */
+      name?: string;
+      /** @description null removes the base URL */
+      baseUrl?: string | null;
+      /** @description null removes the restriction */
+      allowedHosts?: string[] | null;
+    };
+    RotateHttpCredentialsDto: {
+      /**
+       * @description Write-only secrets, by authType: bearer {token}; basic {username, password}; apiKeyHeader {headerName, value}; apiKeyQuery {paramName, value}; customHeaders {headers: {name: value}} (1–10). Never returned.
+       * @example {
+       *       "authType": "bearer",
+       *       "token": "<secret>"
+       *     }
+       */
+      credentials: {
         [key: string]: unknown;
       };
     };
@@ -2136,6 +2498,68 @@ export interface operations {
       };
     };
   };
+  WorkflowsController_pollState_v1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Invalid input (validation errors listed in `message`) */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Missing, invalid or expired bearer token */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Workspace or workflow not found (or not a member) */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Rate limit exceeded; see the Retry-After header (seconds) */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Unexpected error (details only in server logs, correlated by requestId) */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+    };
+  };
   WorkflowsController_saveDraft_v1: {
     parameters: {
       query?: never;
@@ -2720,12 +3144,694 @@ export interface operations {
       };
     };
   };
+  HooksController_get_v1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        hookId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Invalid input (validation errors listed in `message`) */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Not found — also returned when the caller is not a member of the workspace */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Rate limit exceeded; see the Retry-After header (seconds) */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Unexpected error (details only in server logs, correlated by requestId) */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+    };
+  };
+  HooksController_put_v1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        hookId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Invalid input (validation errors listed in `message`) */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Not found — also returned when the caller is not a member of the workspace */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Rate limit exceeded; see the Retry-After header (seconds) */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Unexpected error (details only in server logs, correlated by requestId) */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+    };
+  };
+  HooksController_post_v1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        hookId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Invalid input (validation errors listed in `message`) */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Not found — also returned when the caller is not a member of the workspace */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Rate limit exceeded; see the Retry-After header (seconds) */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Unexpected error (details only in server logs, correlated by requestId) */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+    };
+  };
+  HooksController_patch_v1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        hookId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Invalid input (validation errors listed in `message`) */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Not found — also returned when the caller is not a member of the workspace */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Rate limit exceeded; see the Retry-After header (seconds) */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Unexpected error (details only in server logs, correlated by requestId) */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+    };
+  };
+  WorkflowWebhookController_details_v1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        workflowId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': Record<string, never>;
+        };
+      };
+      /** @description Invalid input (validation errors listed in `message`) */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Missing, invalid or expired bearer token */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Not found — also returned when the caller is not a member of the workspace */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Rate limit exceeded; see the Retry-After header (seconds) */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Unexpected error (details only in server logs, correlated by requestId) */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+    };
+  };
+  WorkflowWebhookController_rotateSecret_v1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        workflowId: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RotateHookSecretDto'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Invalid input (validation errors listed in `message`) */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Missing, invalid or expired bearer token */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Not found — also returned when the caller is not a member of the workspace */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Rate limit exceeded; see the Retry-After header (seconds) */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Unexpected error (details only in server logs, correlated by requestId) */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+    };
+  };
+  WorkflowWebhookController_rotateUrl_v1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        workflowId: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RotateHookUrlDto'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Invalid input (validation errors listed in `message`) */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Missing, invalid or expired bearer token */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Not found — also returned when the caller is not a member of the workspace */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Rate limit exceeded; see the Retry-After header (seconds) */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Unexpected error (details only in server logs, correlated by requestId) */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+    };
+  };
+  WorkflowWebhookController_deliveries_v1: {
+    parameters: {
+      query?: {
+        limit?: number;
+        cursor?: string;
+      };
+      header?: never;
+      path: {
+        workflowId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Invalid input (validation errors listed in `message`) */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Missing, invalid or expired bearer token */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Not found — also returned when the caller is not a member of the workspace */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Rate limit exceeded; see the Retry-After header (seconds) */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Unexpected error (details only in server logs, correlated by requestId) */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+    };
+  };
+  WorkflowWebhookController_replay_v1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        workflowId: string;
+        deliveryId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      202: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Invalid input (validation errors listed in `message`) */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Missing, invalid or expired bearer token */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Not found — also returned when the caller is not a member of the workspace */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Rate limit exceeded; see the Retry-After header (seconds) */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Unexpected error (details only in server logs, correlated by requestId) */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+    };
+  };
+  WorkflowWebhookController_captured_v1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        workflowId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Invalid input (validation errors listed in `message`) */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Missing, invalid or expired bearer token */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Not found — also returned when the caller is not a member of the workspace */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Rate limit exceeded; see the Retry-After header (seconds) */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Unexpected error (details only in server logs, correlated by requestId) */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+    };
+  };
+  WorkflowWebhookController_listen_v1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        workflowId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Invalid input (validation errors listed in `message`) */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Missing, invalid or expired bearer token */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Not found — also returned when the caller is not a member of the workspace */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Rate limit exceeded; see the Retry-After header (seconds) */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Unexpected error (details only in server logs, correlated by requestId) */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+    };
+  };
   RunsController_list_v1: {
     parameters: {
       query?: {
         workflowId?: string;
         status?: 'CANCELLED' | 'QUEUED' | 'RUNNING' | 'SUCCEEDED' | 'FAILED';
-        triggerSource?: 'WEBHOOK' | 'MANUAL' | 'RETRY';
+        triggerSource?: 'WEBHOOK' | 'MANUAL' | 'RETRY' | 'SCHEDULE' | 'POLL';
         /** @description Created at or after (ISO 8601). */
         from?: string;
         /** @description Created before (ISO 8601). */
@@ -3186,12 +4292,355 @@ export interface operations {
       };
     };
   };
+  IntegrationsController_createHttp_v1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CreateHttpConnectionDto'];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Invalid input (validation errors listed in `message`) */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Missing, invalid or expired bearer token */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Not found — also returned when the caller is not a member of the workspace */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Rate limit exceeded; see the Retry-After header (seconds) */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Unexpected error (details only in server logs, correlated by requestId) */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description HTTP connections or encryption not configured */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  IntegrationsController_testHttp_v1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        connectionId: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['TestHttpConnectionDto'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': Record<string, never>;
+        };
+      };
+      /** @description Invalid input (validation errors listed in `message`) */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Missing, invalid or expired bearer token */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Not found — also returned when the caller is not a member of the workspace */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Rate limit exceeded; see the Retry-After header (seconds) */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Unexpected error (details only in server logs, correlated by requestId) */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+    };
+  };
+  IntegrationsController_disconnect_v1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        connectionId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Invalid input (validation errors listed in `message`) */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Missing, invalid or expired bearer token */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Not found — also returned when the caller is not a member of the workspace */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Rate limit exceeded; see the Retry-After header (seconds) */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Unexpected error (details only in server logs, correlated by requestId) */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+    };
+  };
+  IntegrationsController_updateHttp_v1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        connectionId: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['UpdateHttpConnectionDto'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Invalid input (validation errors listed in `message`) */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Missing, invalid or expired bearer token */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Not found — also returned when the caller is not a member of the workspace */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Rate limit exceeded; see the Retry-After header (seconds) */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Unexpected error (details only in server logs, correlated by requestId) */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+    };
+  };
+  IntegrationsController_rotateHttp_v1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        connectionId: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RotateHttpCredentialsDto'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Invalid input (validation errors listed in `message`) */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Missing, invalid or expired bearer token */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Not found — also returned when the caller is not a member of the workspace */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Rate limit exceeded; see the Retry-After header (seconds) */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Unexpected error (details only in server logs, correlated by requestId) */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+    };
+  };
   IntegrationsController_connect_v1: {
     parameters: {
       query?: never;
       header?: never;
       path: {
-        provider: 'GITHUB' | 'MICROSOFT' | 'SLACK' | 'TEST';
+        provider: 'WEBHOOK' | 'GITHUB' | 'MICROSOFT' | 'SLACK' | 'TEST' | 'HTTP' | 'JIRA' | 'GMAIL';
       };
       cookie?: never;
     };
@@ -3390,6 +4839,418 @@ export interface operations {
       };
     };
   };
+  IntegrationsController_gmailLabels_v1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        connectionId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Invalid input (validation errors listed in `message`) */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Missing, invalid or expired bearer token */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Not found — also returned when the caller is not a member of the workspace */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Rate limit exceeded; see the Retry-After header (seconds) */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Unexpected error (details only in server logs, correlated by requestId) */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+    };
+  };
+  IntegrationsController_jiraSites_v1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        connectionId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': Record<string, never>[];
+        };
+      };
+      /** @description Invalid input (validation errors listed in `message`) */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Missing, invalid or expired bearer token */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Not found — also returned when the caller is not a member of the workspace */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Rate limit exceeded; see the Retry-After header (seconds) */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Unexpected error (details only in server logs, correlated by requestId) */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+    };
+  };
+  IntegrationsController_jiraProjects_v1: {
+    parameters: {
+      query: {
+        /** @description Jira site (cloud id) from /jira/sites */
+        siteId: string;
+        /** @description Search text */
+        query?: string;
+      };
+      header?: never;
+      path: {
+        connectionId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Invalid input (validation errors listed in `message`) */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Missing, invalid or expired bearer token */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Not found — also returned when the caller is not a member of the workspace */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Rate limit exceeded; see the Retry-After header (seconds) */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Unexpected error (details only in server logs, correlated by requestId) */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+    };
+  };
+  IntegrationsController_jiraIssueTypes_v1: {
+    parameters: {
+      query: {
+        /** @description Jira site (cloud id) from /jira/sites */
+        siteId: string;
+        /** @description Search text */
+        query?: string;
+        /** @description Project key or id */
+        project: string;
+      };
+      header?: never;
+      path: {
+        connectionId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Invalid input (validation errors listed in `message`) */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Missing, invalid or expired bearer token */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Not found — also returned when the caller is not a member of the workspace */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Rate limit exceeded; see the Retry-After header (seconds) */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Unexpected error (details only in server logs, correlated by requestId) */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+    };
+  };
+  IntegrationsController_jiraStatuses_v1: {
+    parameters: {
+      query: {
+        /** @description Jira site (cloud id) from /jira/sites */
+        siteId: string;
+        /** @description Search text */
+        query?: string;
+        /** @description Project key or id */
+        project: string;
+      };
+      header?: never;
+      path: {
+        connectionId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Invalid input (validation errors listed in `message`) */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Missing, invalid or expired bearer token */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Not found — also returned when the caller is not a member of the workspace */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Rate limit exceeded; see the Retry-After header (seconds) */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Unexpected error (details only in server logs, correlated by requestId) */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+    };
+  };
+  IntegrationsController_jiraUsers_v1: {
+    parameters: {
+      query: {
+        /** @description Jira site (cloud id) from /jira/sites */
+        siteId: string;
+        /** @description Search text */
+        query?: string;
+        /** @description Project key or id */
+        project: string;
+      };
+      header?: never;
+      path: {
+        connectionId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Invalid input (validation errors listed in `message`) */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Missing, invalid or expired bearer token */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Not found — also returned when the caller is not a member of the workspace */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Rate limit exceeded; see the Retry-After header (seconds) */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+      /** @description Unexpected error (details only in server logs, correlated by requestId) */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorResponse'];
+        };
+      };
+    };
+  };
   IntegrationsController_todoLists_v1: {
     parameters: {
       query?: never;
@@ -3456,70 +5317,6 @@ export interface operations {
       };
     };
   };
-  IntegrationsController_disconnect_v1: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        connectionId: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Invalid input (validation errors listed in `message`) */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ErrorResponse'];
-        };
-      };
-      /** @description Missing, invalid or expired bearer token */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ErrorResponse'];
-        };
-      };
-      /** @description Not found — also returned when the caller is not a member of the workspace */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ErrorResponse'];
-        };
-      };
-      /** @description Rate limit exceeded; see the Retry-After header (seconds) */
-      429: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ErrorResponse'];
-        };
-      };
-      /** @description Unexpected error (details only in server logs, correlated by requestId) */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ErrorResponse'];
-        };
-      };
-    };
-  };
   IntegrationProvidersController_providers_v1: {
     parameters: {
       query?: never;
@@ -3533,7 +5330,9 @@ export interface operations {
         headers: {
           [name: string]: unknown;
         };
-        content?: never;
+        content: {
+          'application/json': Record<string, never>[];
+        };
       };
       /** @description Missing, invalid or expired bearer token */
       401: {

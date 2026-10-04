@@ -1,6 +1,7 @@
 import {
   Ban,
   Bug,
+  CalendarClock,
   CircleHelp,
   CircleSlash,
   FileWarning,
@@ -8,6 +9,7 @@ import {
   Hand,
   KeyRound,
   Lock,
+  Radar,
   RotateCcw,
   ServerCrash,
   Timer,
@@ -87,15 +89,17 @@ export const ERROR_CATEGORIES: Record<ErrorCategory, CategoryInfo> = {
 
 /** The integration a node type uses (for "Reconnect <provider>"), if any. */
 export function providerOfNodeType(type: string): IntegrationProviderKey | undefined {
-  const prefix = type.split('.', 1)[0];
-  return prefix === 'github'
-    ? 'GITHUB'
-    : prefix === 'slack'
-      ? 'SLACK'
-      : prefix === 'microsoft'
-        ? 'MICROSOFT'
-        : undefined;
+  if (type === 'http.request' || type === 'http.poll') return 'HTTP';
+  return NODE_PREFIX_PROVIDER[type.split('.', 1)[0]];
 }
+
+const NODE_PREFIX_PROVIDER: Record<string, IntegrationProviderKey> = {
+  github: 'GITHUB',
+  slack: 'SLACK',
+  microsoft: 'MICROSOFT',
+  jira: 'JIRA',
+  gmail: 'GMAIL',
+};
 
 /** 409/429 bodies of the run endpoints (`details.code`, `details.nodeKeys`). */
 export function errorDetails(error: unknown): {
@@ -152,8 +156,20 @@ export const jsonBytes = (value: unknown) => new TextEncoder().encode(JSON.strin
 
 export const MAX_MANUAL_INPUT_BYTES = 64 * 1024;
 
-export const TRIGGER_SOURCES: Record<TriggerSource, { label: string; icon: LucideIcon }> = {
+export interface TriggerSourceInfo {
+  label: string;
+  icon: LucideIcon;
+}
+
+export const TRIGGER_SOURCES: Record<TriggerSource, TriggerSourceInfo> = {
   MANUAL: { label: 'Manual', icon: Hand },
   WEBHOOK: { label: 'Webhook', icon: Webhook },
   RETRY: { label: 'Retry', icon: RotateCcw },
+  SCHEDULE: { label: 'Schedule', icon: CalendarClock },
+  POLL: { label: 'Poll', icon: Radar },
 };
+
+/** Label and icon for a run's trigger source; a value this app does not know yet stays visible. */
+export function triggerSourceInfo(source: string): TriggerSourceInfo {
+  return TRIGGER_SOURCES[source as TriggerSource] ?? { label: source, icon: CircleHelp };
+}

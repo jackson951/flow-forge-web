@@ -1,3 +1,4 @@
+import { Globe, Webhook } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import type { IntegrationProviderKey } from '@/types/api';
 
@@ -48,6 +49,50 @@ export function MicrosoftIcon({ className }: IconProps) {
   );
 }
 
+/** Jira mark (Atlassian blue). */
+export function JiraIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden className={cn('size-5', className)} fill="#0052CC">
+      <path d="M11.571 11.513H0a5.218 5.218 0 0 0 5.232 5.215h2.13v2.057A5.215 5.215 0 0 0 12.575 24V12.518a1.005 1.005 0 0 0-1.005-1.005Zm5.723-5.756H5.736a5.215 5.215 0 0 0 5.215 5.214h2.129v2.058a5.218 5.218 0 0 0 5.215 5.214V6.758a1.001 1.001 0 0 0-1.001-1.001ZM23.013 0H11.455a5.215 5.215 0 0 0 5.215 5.215h2.129v2.057A5.215 5.215 0 0 0 24 12.483V1.005A1.001 1.001 0 0 0 23.013 0Z" />
+    </svg>
+  );
+}
+
+/** Gmail "M" mark in its brand colours. */
+export function GmailIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden className={cn('size-5', className)}>
+      <path
+        fill="#4285F4"
+        d="M1.636 21.002h3.819v-9.273L0 7.638v11.728c0 .904.732 1.636 1.636 1.636Z"
+      />
+      <path
+        fill="#34A853"
+        d="M18.545 21.002h3.819c.904 0 1.636-.732 1.636-1.636V7.638l-5.455 4.091Z"
+      />
+      <path
+        fill="#FBBC04"
+        d="M18.545 4.638v7.091L24 7.638V5.457c0-2.023-2.309-3.178-3.927-1.964Z"
+      />
+      <path fill="#EA4335" d="M5.455 11.729V4.638L12 9.548l6.545-4.91v7.091L12 16.639Z" />
+      <path
+        fill="#C5221F"
+        d="M0 5.457v2.181l5.455 4.091V4.638L3.927 3.493C2.309 2.279 0 3.434 0 5.457Z"
+      />
+    </svg>
+  );
+}
+
+/** Generic HTTP connections and requests (no brand). */
+export function HttpIcon({ className }: IconProps) {
+  return <Globe aria-hidden className={cn('size-5 text-sky-600', className)} />;
+}
+
+/** Generic inbound webhooks (no brand). */
+export function WebhookIcon({ className }: IconProps) {
+  return <Webhook aria-hidden className={cn('size-5 text-violet-600', className)} />;
+}
+
 /** Anthropic "A" mark (AI steps run on Claude). Uses currentColor. */
 export function AnthropicIcon({ className }: IconProps) {
   return (
@@ -61,6 +106,10 @@ const PROVIDER_ICONS: Record<IntegrationProviderKey, (p: IconProps) => React.JSX
   GITHUB: GitHubIcon,
   SLACK: SlackIcon,
   MICROSOFT: MicrosoftIcon,
+  JIRA: JiraIcon,
+  GMAIL: GmailIcon,
+  HTTP: HttpIcon,
+  WEBHOOK: WebhookIcon,
 };
 
 /** The provider's logo; decorative — pair it with the provider name in text. */

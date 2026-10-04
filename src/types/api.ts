@@ -38,10 +38,30 @@ export type ManualRunRequest = Schemas['ManualRunDto'];
 export type WorkflowStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
 export type RunStatus = 'QUEUED' | 'RUNNING' | 'SUCCEEDED' | 'FAILED' | 'CANCELLED';
 export type StepStatus = 'PENDING' | 'RUNNING' | 'RETRYING' | 'SUCCEEDED' | 'FAILED' | 'SKIPPED';
-export type TriggerSource = 'WEBHOOK' | 'MANUAL' | 'RETRY';
+/** WEBHOOK covers GitHub, Jira, Gmail and generic hooks; POLL is one run per new http.poll item. */
+export type TriggerSource = 'WEBHOOK' | 'MANUAL' | 'RETRY' | 'SCHEDULE' | 'POLL';
 export type ConnectionStatus = 'CONNECTED' | 'NEEDS_ATTENTION' | 'DISCONNECTED';
 /** `TEST` exists on the backend for tests only and is never offered in the UI. */
-export type IntegrationProviderKey = 'GITHUB' | 'SLACK' | 'MICROSOFT';
+export type IntegrationProviderKey =
+  | 'GITHUB'
+  | 'SLACK'
+  | 'MICROSOFT'
+  | 'JIRA'
+  | 'GMAIL'
+  /** Credential-based connections for http.request / http.poll (backend Part 24). */
+  | 'HTTP'
+  /** Generic inbound webhooks: no connection, used for labels and icons only. */
+  | 'WEBHOOK';
+/** Why a connection needs attention (backend Part 24 onwards). */
+export type ConnectionStatusReason =
+  | 'TOKEN_REVOKED'
+  | 'TOKEN_EXPIRED'
+  | 'APP_UNINSTALLED'
+  | 'PERMISSION_CHANGED'
+  | 'WATCH_RENEWAL_FAILED'
+  | 'AUTHENTICATION_FAILED';
+/** How a provider is connected: OAuth redirect, or a credentials form (HTTP). */
+export type ConnectionType = 'OAUTH' | 'CREDENTIALS';
 export type ErrorCategory =
   | 'VALIDATION'
   | 'AUTHORIZATION'
@@ -74,6 +94,17 @@ export interface WorkflowSummary {
   createdAt: string;
   updatedAt: string;
   activeVersion: { id: string; version: number; publishedAt: string } | null;
+  /** The active version's schedule trigger (backend Part 23); null without one. */
+  schedule: WorkflowSchedule | null;
+}
+
+export interface WorkflowSchedule {
+  active: boolean;
+  timezone: string;
+  description: string;
+  nextRunAt: string | null;
+  lastOccurrenceAt: string | null;
+  lastRunId: string | null;
 }
 
 /** graph-validator.ts `IssueCode`. */
@@ -147,6 +178,8 @@ export interface NodeTypeInfo {
   type: string;
   kind: NodeKind;
   displayName: string;
+  /** False when `unavailableReason` is set. */
+  available?: boolean;
   /** Set when the server cannot run this type (e.g. no AI provider configured). */
   unavailableReason?: string;
 }
@@ -260,6 +293,7 @@ export interface IntegrationProvider {
   key: IntegrationProviderKey;
   /** False when this server has no credentials for the provider. */
   configured: boolean;
+  connectionType: ConnectionType;
 }
 
 /** Metadata only; secrets never leave the backend. */
@@ -267,6 +301,8 @@ export interface Connection {
   id: string;
   provider: IntegrationProviderKey;
   status: ConnectionStatus;
+  /** Set with NEEDS_ATTENTION; null otherwise. */
+  statusReason: ConnectionStatusReason | null;
   externalAccountId: string;
   accountLabel: string | null;
   scopes: string[];

@@ -1,4 +1,5 @@
 import type { WorkflowDefinition } from '../types/workflow-definition';
+import { outputFields, triggerFields } from './reference-catalog';
 
 /**
  * Data references (`trigger.issue.title`, `steps.classify.output.label`) — the backend grammar
@@ -17,65 +18,6 @@ export interface ReferenceSuggestion {
 export interface ReferenceProblem {
   level: 'error' | 'warning';
   message: string;
-}
-
-type Field = { path: string; description: string };
-
-/** Trigger output = the run's trigger input (normalised event or manual input). */
-const TRIGGER_FIELDS: Record<string, Field[]> = {
-  'github.issue.created': [
-    { path: 'issue.number', description: 'Issue number' },
-    { path: 'issue.title', description: 'Issue title' },
-    { path: 'issue.body', description: 'Issue text' },
-    { path: 'issue.url', description: 'Link to the issue' },
-    { path: 'issue.state', description: 'open / closed' },
-    { path: 'issue.createdAt', description: 'When it was opened (ISO 8601)' },
-    { path: 'issue.labels', description: 'Label names (list)' },
-    { path: 'issue.author.login', description: 'Who opened it' },
-    { path: 'repository.fullName', description: 'owner/name' },
-    { path: 'repository.private', description: 'true for private repositories' },
-    { path: 'sender.login', description: 'Who triggered the event' },
-  ],
-  // Manual runs: whatever JSON the run is started with — no fixed fields.
-  'manual.trigger': [],
-};
-
-/** Known outputs per action/condition type; ai.extract's depend on its configured fields. */
-function outputFields(type: string, config: Record<string, unknown>): Field[] | null {
-  switch (type) {
-    case 'util.log':
-      return [{ path: 'message', description: 'The logged message' }];
-    case 'condition':
-      return [{ path: 'result', description: 'true or false' }];
-    case 'slack.sendMessage':
-      return [
-        { path: 'ts', description: 'Message timestamp (its id in Slack)' },
-        { path: 'channelId', description: 'Channel it was posted to' },
-      ];
-    case 'microsoft.todo.createTask':
-      return [
-        { path: 'taskId', description: 'Id of the new task' },
-        { path: 'listId', description: 'List it was added to' },
-      ];
-    case 'ai.summarize':
-      return [{ path: 'summary', description: 'The summary' }];
-    case 'ai.classify':
-      return [
-        { path: 'label', description: 'The chosen label' },
-        { path: 'confidence', description: 'Model confidence 0–1, when given' },
-      ];
-    case 'ai.extract': {
-      const fields = Array.isArray(config.fields) ? config.fields : [];
-      return fields
-        .filter(
-          (f): f is { name: string; description?: string } =>
-            typeof f?.name === 'string' && !!f.name,
-        )
-        .map((f) => ({ path: f.name, description: f.description || 'Extracted field' }));
-    }
-    default:
-      return null; // unknown shape: any path is accepted without a warning
-  }
 }
 
 /** Keys of the steps that run before `key` (its ancestors), trigger first. */
@@ -103,7 +45,7 @@ export function availableReferences(
     if (!node) continue;
     const source = `${labelFor(node.type)} (${node.key})`;
     if (node.kind === 'TRIGGER') {
-      for (const f of TRIGGER_FIELDS[node.type] ?? []) {
+      for (const f of triggerFields(node.type)) {
         result.push({ ref: `trigger.${f.path}`, source, description: f.description });
       }
       continue;

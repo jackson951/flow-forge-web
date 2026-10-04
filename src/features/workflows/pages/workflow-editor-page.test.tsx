@@ -71,6 +71,37 @@ describe('Workflow editor canvas (Part 05)', () => {
     expect(within(nav).queryByRole('button', { name: /Log a message/ })).not.toBeInTheDocument();
   });
 
+  it('groups every server node type by provider and explains unavailable ones (Part 16, FR-16.7)', async () => {
+    server.use(
+      http.get(`${API}/node-types`, () =>
+        HttpResponse.json([
+          { type: 'manual.trigger', kind: 'TRIGGER', displayName: 'Manual trigger' },
+          { type: 'schedule.trigger', kind: 'TRIGGER', displayName: 'Schedule' },
+          { type: 'http.request', kind: 'ACTION', displayName: 'HTTP request' },
+          { type: 'jira.createIssue', kind: 'ACTION', displayName: 'Jira: create issue' },
+          {
+            type: 'gmail.email.received',
+            kind: 'TRIGGER',
+            displayName: 'Gmail: new email',
+            unavailableReason: 'Gmail triggers need GMAIL_PUBSUB_TOPIC',
+          },
+          { type: 'gmail.sendEmail', kind: 'ACTION', displayName: 'Gmail: send email' },
+        ]),
+      ),
+    );
+    await openEditor();
+    const nav = palette();
+    await within(nav).findByRole('button', { name: /Jira: create issue/ });
+    const groups = within(nav)
+      .getAllByRole('region')
+      .map((r) => r.getAttribute('aria-label'));
+    expect(groups).toEqual(['Core', 'Schedule', 'HTTP & webhooks', 'Gmail', 'Jira']);
+    const gmail = within(nav).getByRole('region', { name: 'Gmail' });
+    expect(within(gmail).getByRole('button', { name: /Gmail: new email/ })).toBeDisabled();
+    expect(within(gmail).getByText(/need GMAIL_PUBSUB_TOPIC/)).toBeInTheDocument();
+    expect(within(gmail).getByRole('button', { name: /Gmail: send email/ })).toBeEnabled();
+  });
+
   it('adds a step after the selected one, connected, and saves the definition (AC-05.1)', async () => {
     const saves = recordSaves();
     await openEditor();

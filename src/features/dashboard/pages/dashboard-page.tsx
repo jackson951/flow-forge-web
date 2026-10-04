@@ -21,6 +21,7 @@ import {
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 import { ProviderIcon } from '@/components/brand/provider-icons';
+import { statusReasonMessage } from '@/features/integrations/status-reasons';
 import { PROVIDER_NAMES } from '@/components/brand/providers';
 import { EmptyState } from '@/components/feedback/empty-state';
 import { ErrorState } from '@/components/feedback/error-state';
@@ -135,7 +136,7 @@ export function DashboardPage() {
                 <ProviderIcon provider={c.provider} className="size-4" />
                 <span className="font-medium">{c.accountLabel ?? c.externalAccountId}</span>
                 <span className="text-muted">
-                  ({PROVIDER_NAMES[c.provider]}) — steps using it fail until it is reconnected.
+                  ({PROVIDER_NAMES[c.provider]}) — {statusReasonMessage(c)}
                 </span>
                 <Link
                   to={paths.integrations(workspace.id)}

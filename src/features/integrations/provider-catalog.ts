@@ -49,6 +49,44 @@ export const PROVIDER_CATALOG: ProviderInfo[] = [
     ],
     connectLabel: 'Connect Microsoft',
   },
+  {
+    key: 'JIRA',
+    name: 'Jira',
+    summary: 'Start workflows from Jira issues and create, update or move issues.',
+    trigger: 'Issue created, updated or moved',
+    actions: [
+      'Create issue',
+      'Update issue',
+      'Comment',
+      'Transition',
+      'Assign',
+      'Get issue',
+      'Search',
+    ],
+    notes: [
+      'Connect with an Atlassian account that can see the projects you want to use. FlowForge registers and renews the Jira webhooks for your triggers itself.',
+    ],
+    connectLabel: 'Connect Jira',
+  },
+  {
+    key: 'GMAIL',
+    name: 'Gmail',
+    summary: 'Start workflows from incoming email and send, reply to or organise mail.',
+    trigger: 'New email, email gets a label',
+    actions: ['Send', 'Reply', 'Get email', 'Add / remove label', 'Mark read / unread'],
+    notes: [
+      'FlowForge asks to read and modify mail (labels, read state) and to send mail. Only the fields your workflows need are kept in run data; attachment contents are never fetched.',
+    ],
+    connectLabel: 'Connect Gmail',
+  },
+  {
+    key: 'HTTP',
+    name: 'HTTP connections',
+    summary: 'Save an API’s credentials once and use them in HTTP request and poll steps.',
+    actions: ['HTTP request'],
+    notes: ['Credentials are encrypted, never shown again, and only sent to the hosts you allow.'],
+    connectLabel: 'New HTTP connection',
+  },
 ];
 
 export const providerInfo = (key: string) => PROVIDER_CATALOG.find((p) => p.key === key);

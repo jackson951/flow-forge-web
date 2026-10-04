@@ -1,6 +1,6 @@
 # 16 — Expanded-Platform Foundations
 
-**Status:** NOT STARTED — awaiting product-owner approval of this spec. See [00-FRONTEND-ROADMAP.md](00-FRONTEND-ROADMAP.md)
+**Status:** IN PROGRESS — implemented 2026-10-04, local gate green; awaiting product-owner QA. See [00-FRONTEND-ROADMAP.md](00-FRONTEND-ROADMAP.md)
 
 ## Objective
 
@@ -69,3 +69,38 @@ Frontend Parts 01–10; backend Parts 23–27 (merged).
 
 - Jira and Gmail logo usage: use the official marks at small size, as done for GitHub/Slack/Microsoft; confirm with the product owner.
 - Palette grouping order — proposed: Core, Schedule, HTTP, then providers alphabetically, AI last.
+
+## As implemented
+
+| Area | Implementation |
+| --- | --- |
+| Types | `npm run api:types` regenerated `src/types/openapi.ts` from the running backend (HTTP connection DTOs etc.). `src/types/api.ts`: `TriggerSource` + `SCHEDULE`/`POLL`; providers + `JIRA`/`GMAIL`/`HTTP`/`WEBHOOK`; `ConnectionStatusReason`; `ConnectionType`; `Connection.statusReason`; `IntegrationProvider.connectionType`; `WorkflowSummary.schedule` (`WorkflowSchedule`); `NodeTypeInfo.available` |
+| Icons | `provider-icons.tsx`: Jira mark, Gmail mark (brand colours), HTTP (globe) and Webhook icons; `providers.ts` names. `node-type-visual.ts`: Jira/Gmail logos, Schedule (clock), HTTP request (globe), HTTP poll (radar), Webhook (webhook) |
+| Trigger sources | `run-helpers.ts`: label + distinct icon for all five sources and `triggerSourceInfo()` that keeps an unknown value visible; the runs list/detail use it; the existing trigger-source filter now offers Schedule and Poll. `providerOfNodeType()` knows Jira, Gmail and HTTP |
+| Status reasons | `integrations/status-reasons.ts`: a message and next step per reason, generic fallback; used on connection rows and the dashboard's "needs attention" box |
+| Providers | `provider-catalog.ts`: Jira, Gmail, HTTP connections (summary, trigger/actions, notes); callback slugs `jira`/`gmail`. Cards pick the action from `connectionType`: OAuth → existing connect flow; CREDENTIALS → no OAuth button, a note that HTTP connections arrive with the HTTP request step (Part 18). Reconnect is offered only for OAuth providers. HTTP connection rows show auth type, secret hint and base URL |
+| Palette | `types/node-categories.ts`: Core, Schedule, HTTP & webhooks, GitHub, Gmail, Jira, Microsoft, Slack, AI (unknown families → Other); triggers, then logic, then actions inside a group; each item shows its kind; unavailable types disabled with the server's reason (unchanged). `node-catalog.ts`: labels/descriptions for all 23 new types |
+| Pending forms | `config/upcoming-forms.ts` + `PendingForm`: schedule → Part 17, HTTP request → 18, webhook → 19, poll → 20, Jira → 21, Gmail → 22; never edits the config (saved unchanged) |
+| Reference catalogue | `config/reference-catalog.ts`: `registerOutputs(type, { trigger, output(config) })`, `triggerFields`, `outputFields`; the Parts 01–15 outputs moved there unchanged; `references.ts` reads from it |
+
+## Implementation Evidence
+
+Implemented 2026-10-04 on branch `feat/part-16-expanded-foundations`. Browser criteria are left for the product owner's QA.
+
+| ID | Result | Evidence |
+| --- | --- | --- |
+| AC-16.1 | PASS | Types regenerated from `http://localhost:3000/api/docs-json`; `npm run typecheck` clean, no `any` |
+| AC-16.2 | PASS (component) / QA | `trigger-sources.test.ts`: label and distinct icon for every source, unknown values kept; the runs filter offers all five (existing URL round trip). The dashboard API has no trigger source per item, so no badge there (spec wording corrected) |
+| AC-16.3 | PASS (component) / QA | `icons.test.tsx`: Jira/Gmail logos on their node types, own icons for schedule/HTTP/poll/webhook, every provider renders a decorative icon and has a name |
+| AC-16.4 | PASS | `status-reasons.test.ts` (all six + fallback); `integrations.test.tsx` "explains why a connection needs attention, per reason" |
+| AC-16.5 | PASS (component) / QA | `node-categories.test.ts`; `workflow-editor-page.test.tsx` "groups every server node type by provider and explains unavailable ones" |
+| AC-16.6 | PASS | `pending-form.test.tsx`: each new type names its part, never calls set/setMany/replace |
+
+Deviations, recorded rather than hidden:
+
+- **FR-16.10 (trigger summary slots)** moved to the parts that build each panel (schedule summary → 17, webhook panel → 19, poll status → 20): an empty slot now would be dead code. The data they need (`WorkflowSummary.schedule`) is typed here.
+- **FR-16.2** names the dashboard; the dashboard response has no per-run trigger source, so badges appear on the runs list and run detail only.
+
+Tests added: `node-categories.test.ts` (4), `status-reasons.test.ts` (7), `trigger-sources.test.ts` (13), `pending-form.test.tsx` (8), icons +5, integrations +2, editor palette +1.
+
+Gate: `format:check` ✔, `lint` ✔, `typecheck` ✔, `test:cov` 35 files / **444 tests** ✔ (coverage thresholds met), `build` ✔.

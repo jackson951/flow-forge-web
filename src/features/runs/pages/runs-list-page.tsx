@@ -27,7 +27,12 @@ import { formatDateTime, formatRelative } from '@/lib/format';
 import { paths } from '@/lib/routes';
 import type { RunFilters, RunStatus, TriggerSource } from '@/types/api';
 import { isActive, useRunList } from '../api/runs.api';
-import { ERROR_CATEGORIES, formatDuration, TRIGGER_SOURCES } from '../run-helpers';
+import {
+  ERROR_CATEGORIES,
+  formatDuration,
+  TRIGGER_SOURCES,
+  triggerSourceInfo,
+} from '../run-helpers';
 
 const STATUSES: { label: string; icon: LucideIcon; status?: RunStatus }[] = [
   { label: 'All', icon: List },
@@ -242,7 +247,7 @@ export function RunsListPage() {
               </thead>
               <tbody className="divide-line divide-y">
                 {items.map((r) => {
-                  const Source = TRIGGER_SOURCES[r.triggerSource];
+                  const Source = triggerSourceInfo(r.triggerSource);
                   const ErrorIcon = r.error ? ERROR_CATEGORIES[r.error.category].icon : null;
                   return (
                     <tr key={r.id} className="hover:bg-canvas/60">
