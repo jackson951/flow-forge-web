@@ -14,7 +14,6 @@ const props = {
 
 describe('node types whose form comes later (Part 16, FR-16.8)', () => {
   it.each([
-    ['schedule.trigger', 17],
     ['http.request', 18],
     ['webhook.received', 19],
     ['http.poll', 20],

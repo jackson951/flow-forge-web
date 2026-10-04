@@ -1,6 +1,6 @@
 # 17 — Schedule Trigger
 
-**Status:** NOT STARTED — awaiting product-owner approval of this spec. See [00-FRONTEND-ROADMAP.md](00-FRONTEND-ROADMAP.md)
+**Status:** IN PROGRESS — implemented 2026-10-04, local gate green; awaiting product-owner QA. See [00-FRONTEND-ROADMAP.md](00-FRONTEND-ROADMAP.md)
 
 ## Objective
 
@@ -55,3 +55,33 @@ Part 16; Parts 06–08.
 
 - Client-side preview could disagree with the server in edge cases; the preview is labelled "preview" and the saved workflow's `nextRunAt` is the truth after publishing.
 - Bundle size of a timezone list: use `Intl.supportedValuesOf('timeZone')` (no data file).
+
+## As implemented
+
+| Area | Implementation |
+| --- | --- |
+| Model | `config/schedule-model.ts`: the seven kinds, `compileCron` and `describeSpec` mirroring the backend's `compileSchedule` / `describeSchedule`, `nextOccurrences` with the same cron library (`croner` 10.0.1, pinned to the backend's version), a daylight-saving flag on the first occurrence after a clock change (`shifted` forward / `repeated-hour` back), client checks that only gate the preview (`specProblem`), timezones from `Intl.supportedValuesOf` with the UTC offset label |
+| Picker | `components/schedule-picker.tsx`: Runs (kind) → Interval (the 19 aligned values) / Minute past the hour / Days (toggle buttons) / Day of the month (1–31 or Last day, with the "months without day N are skipped" note for 29–31) / Time (24-hour) / Cron expression (advanced, monospace); Timezone with a searchable list (`datalist`) and the offset as hint; preview section with the summary and the next 5 runs in the schedule's zone and the viewer's, DST badges and wording. Server issues map to fields (`schedule.<field>`); whole-schedule issues ("never runs", minimum gap) to Runs. Reusable for `http.poll` (Part 20) |
+| Trigger form | `components/schedule-trigger-form.tsx`: an empty trigger offers **Set up the schedule** (weekdays 09:00 in the browser's zone); lifecycle note (publish starts, new version replaces, archive stops, unarchive resumes without catch-up, Run now is extra) |
+| Workflow page | `components/schedule-summary.tsx` under the editor header: Scheduled / Schedule stopped, description, next run (relative + absolute), last scheduled run with a link to its run; "publish to start the schedule" for a draft-only schedule; archived explains resuming without catch-up |
+| Run now | Enabled for workflows whose active trigger is a schedule (backend FR-23.9 allows it); still blocked for event triggers |
+| Run detail | `runs/components/scheduled-run-info.tsx`: "Scheduled for Mon 5 Oct, 07:00 (Africa/Johannesburg) · started 22 s after its scheduled time"; the `SCHEDULE` badge comes from Part 16 |
+| References | `schedule.trigger` registered: `trigger.scheduledFor`, `triggeredAt`, `timezone`, `scheduleId`, `triggerType` |
+
+## Implementation Evidence
+
+Implemented 2026-10-04 on branch `feat/part-17-schedule-trigger`. Browser criteria are left for the product owner's QA.
+
+| ID | Result | Evidence |
+| --- | --- | --- |
+| AC-17.1 | PASS (component) / QA | `node-settings.test.tsx` "schedule trigger form": set up from empty; weekly days, monthly 31 and last, interval, hourly round-trip to the backend config shape, keeping timezone and time |
+| AC-17.2 | PASS | `schedule-model.test.ts`: occurrences in Africa/Johannesburg; spring-forward and fall-back flags in America/New_York; day 31 and last day; form test shows 5 previewed runs |
+| AC-17.3 | PASS | Form test: server issues on Cron expression and Timezone via `aria-describedby` |
+| AC-17.4 | PASS (component) / QA | `runs.test.tsx` "shows the next run and links the last scheduled run"; real scheduled run left for QA with the backend and worker |
+| AC-17.5 | PASS (component) / QA | `schedule-summary.test.tsx` (draft-only, active, archived, no further runs); Run now enabled for scheduled workflows (`runs.test.tsx`) |
+
+Deviation recorded: **FR-17.1** asked to hide intervals below the server minimum. The backend does not expose `SCHEDULE_MIN_INTERVAL_MINUTES`, so all aligned intervals are offered, the hint says the server may set a minimum, and the server's issue ("Schedules on this server run at most every N minutes") appears on the field. Exposing the minimum (e.g. on `/node-types`) would let the picker hide them.
+
+Tests added: `schedule-model.test.ts` (18), `schedule-summary.test.tsx` (5), settings form +5, runs +3.
+
+Gate: `format:check` ✔, `lint` ✔, `typecheck` ✔, `test:cov` 37 files / **474 tests** ✔ (coverage thresholds met), `build` ✔, `check:bundle` ✔ (main chunk 190.9 KB gzip of the 200 KB budget — headroom is shrinking; later parts should keep heavy code in lazy chunks).

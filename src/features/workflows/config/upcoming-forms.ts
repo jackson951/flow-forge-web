@@ -1,6 +1,5 @@
 /** Expanded-platform node types whose forms arrive in a later part (Part 16, FR-16.8). */
 export function upcomingFormPart(type: string): number | null {
-  if (type === 'schedule.trigger') return 17;
   if (type === 'http.request') return 18;
   if (type === 'webhook.received') return 19;
   if (type === 'http.poll') return 20;

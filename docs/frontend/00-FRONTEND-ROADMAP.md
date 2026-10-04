@@ -24,7 +24,7 @@ Legend: **NOT STARTED** · **IN PROGRESS** · **COMPLETE** (meets the Definition
 | 14 | [Build, Docker and CI](14-BUILD-DOCKER-AND-CI.md) | IN PROGRESS | Implemented; local gate green (400 tests). Container, CI and browser criteria await QA and the PR CI run |
 | 15 | [Frontend Release Readiness](15-FRONTEND-RELEASE-READINESS.md) | NOT STARTED | — |
 | 16 | [Expanded-Platform Foundations](16-EXPANDED-PLATFORM-FOUNDATIONS.md) | IN PROGRESS | Implemented 2026-10-04 (444 tests, gate green): regenerated types, Jira/Gmail logos, trigger sources, status reasons, provider-grouped palette, pending-form panels, reference catalogue. Awaiting product-owner QA |
-| 17 | [Schedule Trigger](17-SCHEDULE-TRIGGER.md) | NOT STARTED (spec approved) | Friendly schedule picker, timezone, next-run preview, schedule summary (backend Part 23) |
+| 17 | [Schedule Trigger](17-SCHEDULE-TRIGGER.md) | IN PROGRESS | Implemented 2026-10-04 (474 tests, gate green): schedule picker for all 7 kinds, timezone, next-run preview with DST notes, schedule summary, Run now for scheduled workflows, scheduled-run details. Awaiting product-owner QA |
 | 18 | [HTTP Connections and Request](18-HTTP-CONNECTIONS-AND-REQUEST.md) | NOT STARTED (spec approved) | Credential connections (6 auth types, test, rotate), `http.request` form, response in mappings (backend Part 24) |
 | 19 | [Generic Webhook Trigger](19-GENERIC-WEBHOOK-TRIGGER.md) | NOT STARTED (spec approved) | Verification modes and presets, URL + secret once, rotation, Listen test capture, delivery log + replay (backend Part 24) |
 | 20 | [HTTP Poll Trigger](20-HTTP-POLL-TRIGGER.md) | NOT STARTED (spec awaiting approval) | Poll form (items, identity, cursor, first poll), sample-response check, poll status panel (backend Part 24) |
@@ -122,3 +122,4 @@ The scaffold was written before the backend existed. Known mismatches: base URL 
 | 2026-10-03 | Part 12 COMPLETE (bundle fixed: run detail lazy, 188.8 KB). Part 13 implemented except the E2E run (harness + journeys ready). |
 | 2026-10-04 | Backend complete (Parts 23–27: schedule, generic HTTP, Jira, Gmail, performance). Frontend Parts 16–22 specified for the expanded platform, awaiting product-owner approval part by part; Part 15 moves after them. Stale "backend Part 23 BYOK" references fixed (BYOK parked). |
 | 2026-10-04 | Parts 16–22 specs approved by the product owner. Part 16 implemented; awaiting QA. |
+| 2026-10-04 | Part 16 merged. Part 17 implemented; awaiting QA. |
