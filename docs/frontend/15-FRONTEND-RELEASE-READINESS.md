@@ -45,4 +45,4 @@ This document completed with audit table, checklist with evidence, known limitat
 
 ## Dependencies
 
-All previous parts.
+All previous parts, including the expanded-platform Parts 16–22 (release readiness covers the whole app; its checklist and E2E journeys include schedules, HTTP, webhooks, polls, Jira and Gmail).

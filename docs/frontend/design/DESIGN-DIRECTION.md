@@ -9,11 +9,11 @@ The mock (`ui-mock.png`, 2026-10-03) sets the **visual style**: dark navy sideba
 | Mock screen | Build it? | What it becomes (part) |
 | --- | --- | --- |
 | 1. Dashboard | Yes, with real data only | Stat cards from `GET …/dashboard` (runs 24 h / 7 d, success rate) and connections needing attention; recent failures; quick actions limited to *create workflow* and *connect an integration* (Part 09). No "total executions 1,842"-style numbers the API does not provide; no week-over-week deltas |
-| 2. Workflow builder | Yes | Palette from `GET /node-types` (real types only: manual trigger, GitHub issue opened, condition, log, Slack message, Microsoft To Do task, AI summarize/classify/extract), canvas with true/false branches, config panel per node, Save / Publish (Parts 05–07). No HTTP Request, Schedule, Delay, Loop, Teams or OpenAI nodes; no "Test step" (the backend has no single-step test — a manual run of the published workflow is the test) |
+| 2. Workflow builder | Yes | Palette from `GET /node-types` (real types only: manual trigger, GitHub issue opened, condition, log, Slack message, Microsoft To Do task, AI summarize/classify/extract), canvas with true/false branches, config panel per node, Save / Publish (Parts 05–07). Schedule, HTTP request, generic webhook, HTTP poll, Jira and Gmail nodes are added by Parts 17–22 (backend Parts 23–26). Still no Delay, Loop, Teams or OpenAI nodes; no "Test step" (the backend has no single-step test — a manual run of the published workflow is the test) |
 | 3. Workflow list | Yes | Status `Draft / Published / Archived` (not "Active/Paused"), search by name only if the API supports it, no tags (Part 04) |
 | 4. Execution history | Yes ("Runs") | Filters: status, workflow, trigger source, dates (Part 08) |
 | 5. Execution details | Yes | Overview + steps timeline with per-step input/output; "Logs" tab omitted (step data and error descriptions cover it) (Part 08) |
-| 6. Integrations | Partly | GitHub, Slack, Microsoft only, from `GET /integrations/providers`. No marketplace, OpenAI card, Google Drive, Notion, Airtable or custom HTTP API (Part 10) |
+| 6. Integrations | Partly | GitHub, Slack, Microsoft (Part 10); Jira, Gmail and HTTP connections (Parts 18, 21, 22), from `GET /integrations/providers`. No marketplace, OpenAI card, Google Drive, Notion or Airtable |
 | 7. Credentials | **No** | Credentials are part of a connection and never shown; the Integrations page covers it |
 | 8. Settings | Partly | Workspace name, members, account, danger zone (Part 11). No billing, usage, API keys, logo, timezone settings |
 | 9. Mobile / responsive | Yes | Responsive lists and navigation (Part 12); the editor is desktop/tablet first |
