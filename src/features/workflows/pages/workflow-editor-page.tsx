@@ -54,6 +54,7 @@ import { IssuesPanel } from '../components/issues-panel';
 import { NodeConfigPanel } from '../components/node-config-panel';
 import { NodePalette } from '../components/node-palette';
 import { VersionsPanel } from '../components/versions-panel';
+import { ScheduleSummary } from '../components/schedule-summary';
 import { WorkflowStatusBadge } from '../components/workflow-status-badge';
 import { sameDefinition } from '../editor/canonical';
 import { conflictRevisionOf, type SaveSnapshot } from '../editor/draft-saver';
@@ -69,6 +70,9 @@ import { DEFINITION_LIMITS, type WorkflowDefinition } from '../types/workflow-de
 export interface RestoreState {
   restoreVersion?: number;
 }
+
+/** Triggers whose workflows can also be started with Run now. */
+const MANUALLY_RUNNABLE = new Set(['manual.trigger', 'schedule.trigger']);
 
 export function WorkflowEditorPage() {
   const workspace = useWorkspace();
@@ -339,13 +343,14 @@ function Editor({ workflow }: { workflow: WorkflowDetail }) {
       },
     });
 
-  // Run now (Part 08): the active version runs; webhook-triggered workflows run on events.
+  // Run now (Part 08): the active version runs; event-triggered workflows run on events. A
+  // scheduled workflow can also be run by hand (Part 17): that run does not affect the schedule.
   const activeTrigger = active.data?.definition.nodes.find((n) => n.kind === 'TRIGGER');
   const runBlocked = readOnly
     ? 'Archived workflows cannot be run.'
     : activeNumber === undefined
       ? 'Publish the workflow before running it.'
-      : activeTrigger && activeTrigger.type !== 'manual.trigger'
+      : activeTrigger && !MANUALLY_RUNNABLE.has(activeTrigger.type)
         ? `Runs automatically when its trigger fires (${labelFor(activeTrigger.type)}).`
         : null;
 
@@ -484,6 +489,12 @@ function Editor({ workflow }: { workflow: WorkflowDetail }) {
         The editor works best on a larger screen. Step settings and the step list appear from tablet
         width.
       </p>
+      <ScheduleSummary
+        workspaceId={workspace.id}
+        schedule={workflow.schedule ?? null}
+        draftScheduled={def.nodes.some((n) => n.type === 'schedule.trigger')}
+        archived={readOnly}
+      />
       {readOnly && (
         <div className="flex items-center gap-2 border-b border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-900">
           <Archive className="size-4" aria-hidden />

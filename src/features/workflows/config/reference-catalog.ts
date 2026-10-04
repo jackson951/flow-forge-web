@@ -34,6 +34,18 @@ export function outputFields(type: string, config: Record<string, unknown>): Out
   return output ? output(config) : null;
 }
 
+// ── Part 17: schedule trigger (system-built trigger data, never user input) ─────
+
+registerOutputs('schedule.trigger', {
+  trigger: [
+    { path: 'scheduledFor', description: 'The occurrence this run is for (ISO 8601)' },
+    { path: 'triggeredAt', description: 'When the scheduler started it (ISO 8601)' },
+    { path: 'timezone', description: 'The schedule’s timezone' },
+    { path: 'scheduleId', description: 'Id of the schedule' },
+    { path: 'triggerType', description: '"SCHEDULE"' },
+  ],
+});
+
 // ── Node types of Parts 01–15 ────────────────────────────────────────────────
 
 registerOutputs('github.issue.created', {

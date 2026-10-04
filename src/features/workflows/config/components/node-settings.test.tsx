@@ -487,3 +487,97 @@ describe('condition builder (Part 06, FR-06.5)', () => {
     await waitFor(() => expect(screen.getByText('Bad right side')).toBeInTheDocument());
   });
 });
+
+describe('schedule trigger form (Part 17)', () => {
+  const schedule = (config: Record<string, unknown>, issues: ValidationIssue[] = []) =>
+    setup({ kind: 'TRIGGER', type: 'schedule.trigger', config }, { issues });
+
+  it('starts empty and sets up a weekday schedule in the browser timezone (FR-17.1/17.2)', async () => {
+    const { last } = schedule({});
+    await userEvent.click(screen.getByRole('button', { name: 'Set up the schedule' }));
+    expect(last()).toEqual({
+      schedule: {
+        kind: 'weekdays',
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        time: '09:00',
+      },
+    });
+    expect(screen.getByLabelText('Runs')).toHaveValue('weekdays');
+  });
+
+  it('every kind round-trips without cron, keeping timezone and time (AC-17.1)', async () => {
+    const { last } = schedule({
+      schedule: { kind: 'daily', timezone: 'Africa/Johannesburg', time: '07:00' },
+    });
+    await userEvent.selectOptions(screen.getByLabelText('Runs'), 'weekly');
+    await userEvent.click(screen.getByRole('button', { name: 'Fri' }));
+    expect(last()).toEqual({
+      schedule: {
+        kind: 'weekly',
+        timezone: 'Africa/Johannesburg',
+        time: '07:00',
+        daysOfWeek: [1, 5],
+      },
+    });
+    await userEvent.selectOptions(screen.getByLabelText('Runs'), 'monthly');
+    await userEvent.selectOptions(screen.getByLabelText('Day of the month'), '31');
+    expect(screen.getByText(/Months without day 31 are skipped/)).toBeInTheDocument();
+    await userEvent.selectOptions(screen.getByLabelText('Day of the month'), 'last');
+    expect(last()).toMatchObject({ schedule: { kind: 'monthly', dayOfMonth: 'last' } });
+    await userEvent.selectOptions(screen.getByLabelText('Runs'), 'interval');
+    await userEvent.selectOptions(screen.getByLabelText('Interval'), '30');
+    expect(last()).toEqual({
+      schedule: { kind: 'interval', timezone: 'Africa/Johannesburg', everyMinutes: 30 },
+    });
+    await userEvent.selectOptions(screen.getByLabelText('Runs'), 'hourly');
+    fireEvent.change(screen.getByLabelText('Minute past the hour'), { target: { value: '45' } });
+    expect(last()).toEqual({
+      schedule: { kind: 'hourly', timezone: 'Africa/Johannesburg', minute: 45 },
+    });
+  });
+
+  it('previews the next runs with a plain-language summary (FR-17.3)', () => {
+    schedule({ schedule: { kind: 'weekdays', timezone: 'UTC', time: '07:00' } });
+    const preview = screen.getByRole('region', { name: 'Schedule preview' });
+    expect(within(preview).getByText('Weekdays at 07:00 (UTC)')).toBeInTheDocument();
+    expect(
+      within(within(preview).getByRole('list', { name: 'Next runs' })).getAllByRole('listitem'),
+    ).toHaveLength(5);
+  });
+
+  it('shows the server issue on the right field, and whole-schedule issues on Runs (AC-17.3)', () => {
+    schedule({ schedule: { kind: 'cron', timezone: 'UTC', expression: '* * * * *' } }, [
+      {
+        code: 'INVALID_NODE_CONFIG',
+        severity: 'error',
+        nodeKey: 'target',
+        path: 'schedule.expression',
+        message: 'Schedules on this server run at most every 5 minutes',
+      },
+      {
+        code: 'INVALID_NODE_CONFIG',
+        severity: 'error',
+        nodeKey: 'target',
+        path: 'schedule.timezone',
+        message: 'Use an IANA timezone',
+      },
+    ]);
+    const messageOf = (label: string) =>
+      document.getElementById(screen.getByLabelText(label).getAttribute('aria-describedby')!)!;
+    expect(messageOf('Cron expression')).toHaveTextContent('at most every 5 minutes');
+    expect(messageOf('Timezone')).toHaveTextContent('Use an IANA timezone');
+  });
+
+  it('offers data for later steps (FR-17.10)', async () => {
+    setup({ kind: 'ACTION', type: 'util.log', config: {} });
+    // The harness trigger is GitHub; the catalogue entry is checked directly.
+    const { triggerFields } = await import('../reference-catalog');
+    expect(triggerFields('schedule.trigger').map((f) => f.path)).toEqual([
+      'scheduledFor',
+      'triggeredAt',
+      'timezone',
+      'scheduleId',
+      'triggerType',
+    ]);
+  });
+});

@@ -29,6 +29,7 @@ import { ConditionBuilder } from './condition-builder';
 import { ConnectionSelect } from './connection-select';
 import { ReferenceInput } from './reference-input';
 import { ResourcePicker } from './resource-picker';
+import { ScheduleTriggerForm } from './schedule-trigger-form';
 import { TemplateInput } from './template-input';
 
 export interface FormProps {
@@ -56,6 +57,8 @@ export function NodeForm({ type, ...props }: FormProps & { type: string }) {
   switch (type) {
     case 'manual.trigger':
       return <ManualTriggerForm />;
+    case 'schedule.trigger':
+      return <ScheduleTriggerForm {...props} />;
     case 'github.issue.created':
       return <GitHubTriggerForm {...props} />;
     case 'condition':

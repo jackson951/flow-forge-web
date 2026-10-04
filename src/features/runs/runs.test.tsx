@@ -493,3 +493,80 @@ describe('toasts for finished actions (Part 12, FR-12.3)', () => {
     expect(await within(notifications).findByText('Cancellation requested')).toBeInTheDocument();
   });
 });
+
+describe('scheduled workflows and runs (Part 17)', () => {
+  const NEXT = new Date(Date.now() + 3 * 3_600_000).toISOString();
+  const scheduledVersion = () =>
+    server.use(
+      http.get(`${WF}/versions/:version`, () =>
+        HttpResponse.json({
+          ...versionFixture,
+          definition: {
+            ...workflowDetail.draftDefinition,
+            nodes: [
+              {
+                key: 'trigger',
+                kind: 'TRIGGER',
+                type: 'schedule.trigger',
+                config: { schedule: { kind: 'daily', timezone: 'UTC', time: '07:00' } },
+              },
+              ...workflowDetail.draftDefinition.nodes.slice(1),
+            ],
+          },
+        }),
+      ),
+      http.get(WF, () =>
+        HttpResponse.json({
+          ...workflowDetail,
+          schedule: {
+            active: true,
+            timezone: 'UTC',
+            description: 'Daily at 07:00 (UTC)',
+            nextRunAt: NEXT,
+            lastOccurrenceAt: new Date(Date.now() - 3_600_000).toISOString(),
+            lastRunId: RUN_ID,
+          },
+        }),
+      ),
+    );
+
+  it('shows the next run and links the last scheduled run (FR-17.7, AC-17.4)', async () => {
+    scheduledVersion();
+    renderRoute(`/w/${WS_ID}/workflows/${WORKFLOW_ID}`);
+    const strip = await screen.findByRole('region', { name: 'Schedule' }, { timeout: 30_000 });
+    expect(within(strip).getByText('Scheduled')).toBeInTheDocument();
+    expect(within(strip).getByText('Daily at 07:00 (UTC)')).toBeInTheDocument();
+    expect(within(strip).getByText(/Next run in 3 hours/)).toBeInTheDocument();
+    expect(within(strip).getByRole('link', { name: 'open run' })).toHaveAttribute(
+      'href',
+      `/w/${WS_ID}/runs/${RUN_ID}`,
+    );
+  });
+
+  it('a scheduled workflow can still be run by hand (FR-17.8)', async () => {
+    scheduledVersion();
+    renderRoute(`/w/${WS_ID}/workflows/${WORKFLOW_ID}`);
+    const button = await screen.findByRole('button', { name: 'Run now' }, { timeout: 30_000 });
+    await waitFor(() => expect(button).toBeEnabled());
+    expect(document.getElementById('run-blocked')).toBeNull();
+  });
+
+  it('run detail shows the occurrence in its timezone and the start lag (FR-17.9)', async () => {
+    serveRun({
+      triggerSource: 'SCHEDULE',
+      queuedAt: '2026-10-05T05:00:22.000Z',
+      triggerInput: {
+        triggerType: 'SCHEDULE',
+        scheduledFor: '2026-10-05T05:00:00.000Z',
+        triggeredAt: '2026-10-05T05:00:21.000Z',
+        timezone: 'Africa/Johannesburg',
+        scheduleId: 's1',
+      },
+    });
+    renderRoute(`/w/${WS_ID}/runs/${RUN_ID}`);
+    const info = await screen.findByRole('region', { name: 'Schedule' }, { timeout: 30_000 });
+    expect(info).toHaveTextContent('Scheduled for Mon 5 Oct, 07:00 (Africa/Johannesburg)');
+    expect(info).toHaveTextContent('started 22 s after its scheduled time');
+    expect(screen.getAllByText('Schedule').length).toBeGreaterThan(0); // trigger-source badge
+  });
+});
