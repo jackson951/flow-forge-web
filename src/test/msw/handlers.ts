@@ -201,6 +201,39 @@ export const handlers = [
     `${WS}/integrations/:connectionId/microsoft/todo-lists`,
     scoped(() => [{ id: 'AQMkADAwATM0MDAAMS1', displayName: 'Tasks', isDefault: true }]),
   ),
+  // Generic webhook of a workflow (Part 19).
+  http.get(
+    `${WF}/webhook`,
+    scoped(() => ({ provisioned: false })),
+  ),
+  http.post(
+    `${WF}/webhook/rotate-secret`,
+    scoped(() => ({ secretHint: '…abcd', previousSecretExpiresAt: null })),
+  ),
+  http.post(
+    `${WF}/webhook/rotate-url`,
+    scoped(() => ({ url: 'https://example.test/h', path: '/h', previousUrlExpiresAt: null })),
+  ),
+  http.get(
+    `${WF}/webhook/deliveries`,
+    scoped(() => ({ items: [], nextCursor: null })),
+  ),
+  http.post(
+    `${WF}/webhook/deliveries/:deliveryId/replay`,
+    scoped(() => ({ runId: f.RUN_ID, status: 'QUEUED' }), 202),
+  ),
+  http.post(
+    `${WF}/webhook/listen`,
+    scoped(() => ({
+      url: 'https://example.test/h',
+      path: '/h',
+      expiresAt: new Date(Date.now() + 600_000).toISOString(),
+    })),
+  ),
+  http.get(
+    `${WF}/webhook/listen`,
+    scoped(() => ({ listening: true, event: null })),
+  ),
   // HTTP connections (Part 18): echo a connection; the test endpoint answers OK.
   http.post(
     `${WS}/integrations/http`,

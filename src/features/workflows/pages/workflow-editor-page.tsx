@@ -55,6 +55,9 @@ import { NodeConfigPanel } from '../components/node-config-panel';
 import { NodePalette } from '../components/node-palette';
 import { VersionsPanel } from '../components/versions-panel';
 import { ScheduleSummary } from '../components/schedule-summary';
+import { WebhookBar } from '../components/webhook-bar';
+import { useCapture } from '../api/webhook.api';
+import { samplePaths } from '../config/webhook-model';
 import { WorkflowStatusBadge } from '../components/workflow-status-badge';
 import { sameDefinition } from '../editor/canonical';
 import { conflictRevisionOf, type SaveSnapshot } from '../editor/draft-saver';
@@ -343,6 +346,19 @@ function Editor({ workflow }: { workflow: WorkflowDetail }) {
       },
     });
 
+  // A captured webhook test delivery (Part 19) feeds `trigger.<path>` suggestions. Read from the
+  // cache only: the Webhook bar's Listen dialog is what fetches it.
+  const capture = useCapture(workspace.id, workflow.id, false);
+  const sampleTriggerFields = useMemo(() => {
+    const event = capture.data?.event;
+    if (!event) return undefined;
+    return [
+      ...samplePaths(event.body, 'body'),
+      ...samplePaths(event.headers, 'headers', 1),
+      ...samplePaths(event.query, 'query', 1),
+    ];
+  }, [capture.data]);
+
   // Run now (Part 08): the active version runs; event-triggered workflows run on events. A
   // scheduled workflow can also be run by hand (Part 17): that run does not affect the schedule.
   const activeTrigger = active.data?.definition.nodes.find((n) => n.kind === 'TRIGGER');
@@ -489,6 +505,9 @@ function Editor({ workflow }: { workflow: WorkflowDetail }) {
         The editor works best on a larger screen. Step settings and the step list appear from tablet
         width.
       </p>
+      {def.nodes.some((n) => n.type === 'webhook.received') && (
+        <WebhookBar workflowId={workflow.id} />
+      )}
       <ScheduleSummary
         workspaceId={workspace.id}
         schedule={workflow.schedule ?? null}
@@ -678,6 +697,7 @@ function Editor({ workflow }: { workflow: WorkflowDetail }) {
                     readOnly={readOnly}
                     definition={def}
                     labelFor={labelFor}
+                    sampleTriggerFields={sampleTriggerFields}
                   />
                 )}
               </div>

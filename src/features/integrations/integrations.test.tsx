@@ -35,6 +35,9 @@ const withConnections = (list: Connection[]) =>
   server.use(http.get(`${WS}/integrations`, () => HttpResponse.json(list)));
 const card = (name: string) => screen.findByRole('region', { name });
 
+// The Integrations route is lazy (Part 19); load it once so the first test does not time out.
+beforeAll(() => import('./pages/integrations-page'), 60_000);
+
 afterEach(() => sessionStorage.clear());
 
 describe('integrations page (Part 10)', () => {

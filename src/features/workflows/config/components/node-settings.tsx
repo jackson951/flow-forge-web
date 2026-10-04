@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import type { ValidationIssue } from '@/types/api';
 import type { NodeDefinition, WorkflowDefinition } from '../../types/workflow-definition';
 import { ConfigScopeContext, type ConfigScope } from '../config-scope';
-import { availableReferences, referenceProblem } from '../references';
+import { availableReferences, referenceProblem, type ReferenceSuggestion } from '../references';
 import { configErrors, SECRET_HINT } from '../schemas';
 import { NodeForm } from './node-forms';
 
@@ -15,6 +15,22 @@ interface NodeSettingsProps {
   issues: ValidationIssue[];
   readOnly: boolean;
   onChange: (config: Record<string, unknown>, field: string) => void;
+  /** Extra `trigger.<path>` suggestions, e.g. from a captured test delivery (Part 19). */
+  sampleTriggerFields?: string[];
+}
+
+/** Adds captured-sample paths not already offered (source: the test delivery). */
+function withSamples(base: ReferenceSuggestion[], paths: string[]): ReferenceSuggestion[] {
+  const known = new Set(base.map((s) => s.ref));
+  const extra = paths
+    .map((p) => `trigger.${p}`)
+    .filter((ref) => !known.has(ref))
+    .map((ref) => ({
+      ref,
+      source: 'Test delivery',
+      description: 'Seen in the captured test delivery',
+    }));
+  return [...base, ...extra];
 }
 
 /** Message for `path`: exact match, or (unless `exact`) the first below it ("labels.1"). */
@@ -34,18 +50,22 @@ export function NodeSettings({
   issues,
   readOnly,
   onChange,
+  sampleTriggerFields,
 }: NodeSettingsProps) {
   const [touched, setTouched] = useState<Set<string>>(() => new Set());
   const config = node.config;
 
   const scope = useMemo<ConfigScope>(
     () => ({
-      suggestions: availableReferences(definition, node.key, labelFor),
+      suggestions: withSamples(
+        availableReferences(definition, node.key, labelFor),
+        node.kind === 'TRIGGER' ? [] : (sampleTriggerFields ?? []),
+      ),
       problem: (ref) => referenceProblem(definition, node.key, ref),
       readOnly,
       nodeKey: node.key,
     }),
-    [definition, node.key, labelFor, readOnly],
+    [definition, node.key, node.kind, labelFor, readOnly, sampleTriggerFields],
   );
 
   const client = useMemo(() => configErrors(node.type, config), [node.type, config]);

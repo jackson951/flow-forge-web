@@ -655,3 +655,67 @@ describe('HTTP request form (Part 18)', () => {
     ).toEqual(['status', 'body']);
   });
 });
+
+describe('webhook trigger form (Part 19)', () => {
+  const hook = (config: Record<string, unknown>, issues: ValidationIssue[] = []) =>
+    setup({ kind: 'TRIGGER', type: 'webhook.received', config }, { issues });
+
+  it('defaults to a shared secret; HMAC presets fill the backend fields (FR-19.1)', async () => {
+    const { last } = hook({});
+    expect(screen.getByLabelText('Verification')).toHaveValue('token');
+    await userEvent.selectOptions(screen.getByLabelText('Verification'), 'hmac');
+    await userEvent.click(screen.getByRole('button', { name: 'Slack-style' }));
+    expect(last()).toEqual({
+      verification: {
+        mode: 'hmac',
+        algorithm: 'sha256',
+        headerName: 'X-Slack-Signature',
+        encoding: 'hex',
+        prefix: 'v0=',
+        timestamp: {
+          headerName: 'X-Slack-Request-Timestamp',
+          toleranceSeconds: 300,
+          format: 'v0:{timestamp}:{body}',
+        },
+      },
+    });
+    expect(screen.queryByRole('button', { name: /Stripe/ })).not.toBeInTheDocument();
+  });
+
+  it('"None" requires the explicit acknowledgement (FR-19.1)', async () => {
+    const { last } = hook({});
+    await userEvent.selectOptions(screen.getByLabelText('Verification'), 'none');
+    expect(last()).toEqual({ verification: { mode: 'none' } });
+    await userEvent.click(screen.getByLabelText('Anyone with the URL can start this workflow'));
+    expect(last()).toEqual({ verification: { mode: 'none', acknowledgeUnverified: true } });
+  });
+
+  it('methods, deduplication, filter and response round-trip (FR-19.2)', async () => {
+    const { last } = hook({});
+    await userEvent.click(screen.getByLabelText('GET'));
+    expect(last()).toMatchObject({ methods: ['POST', 'GET'] });
+    await userEvent.selectOptions(screen.getByLabelText('Duplicate detection'), 'body');
+    fireEvent.change(screen.getByLabelText('Body field (dot path)'), {
+      target: { value: 'event.id' },
+    });
+    expect(last()).toMatchObject({ deduplication: { source: 'body', path: 'event.id' } });
+    await userEvent.selectOptions(screen.getByLabelText('Response status'), '200');
+    expect(last()).toMatchObject({ response: { status: 200 } });
+    await userEvent.click(screen.getByLabelText(/Start a run only for some deliveries/));
+    expect(last()).toHaveProperty('filter');
+    expect(screen.getByText(/stored as “Ignored”/)).toBeInTheDocument();
+  });
+
+  it('shows server issues on the field', () => {
+    hook({ verification: { mode: 'basic', username: 'a:b' } }, [
+      {
+        code: 'INVALID_NODE_CONFIG',
+        severity: 'error',
+        nodeKey: 'target',
+        path: 'verification.username',
+        message: 'must not contain ":"',
+      },
+    ]);
+    expect(screen.getByText('must not contain ":"')).toBeInTheDocument();
+  });
+});

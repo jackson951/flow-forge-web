@@ -60,6 +60,19 @@ registerOutputs('http.request', {
   ],
 });
 
+// ── Part 19: generic webhook (the body's shape is the sender's) ──────────────────
+
+registerOutputs('webhook.received', {
+  trigger: [
+    { path: 'body', description: 'Request body (JSON, form or text); use body.<field>' },
+    { path: 'method', description: 'HTTP method, e.g. POST' },
+    { path: 'headers', description: 'Kept headers (no credentials); use headers.<name>' },
+    { path: 'query', description: 'Query string values; use query.<name>' },
+    { path: 'contentType', description: 'Content-Type of the request' },
+    { path: 'receivedAt', description: 'When it arrived (ISO 8601)' },
+  ],
+});
+
 // ── Node types of Parts 01–15 ────────────────────────────────────────────────
 
 registerOutputs('github.issue.created', {
