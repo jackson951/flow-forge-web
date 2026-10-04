@@ -8,7 +8,7 @@ export function NodeTypeIcon({
   className,
 }: {
   type: string;
-  size?: 'sm' | 'md';
+  size?: 'xs' | 'sm' | 'md';
   className?: string;
 }) {
   const { Icon, tile } = nodeTypeVisual(type);
@@ -17,12 +17,12 @@ export function NodeTypeIcon({
       aria-hidden
       className={cn(
         'flex shrink-0 items-center justify-center rounded-lg',
-        size === 'sm' ? 'size-7' : 'size-9',
+        size === 'xs' ? 'size-5 rounded-md' : size === 'sm' ? 'size-7' : 'size-9',
         tile,
         className,
       )}
     >
-      <Icon className={size === 'sm' ? 'size-4' : 'size-5'} />
+      <Icon className={size === 'xs' ? 'size-3' : size === 'sm' ? 'size-4' : 'size-5'} />
     </span>
   );
 }

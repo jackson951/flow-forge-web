@@ -58,6 +58,7 @@ export const workflowSummary: WorkflowSummary = {
   createdAt: T,
   updatedAt: T,
   activeVersion: { id: '11111111-2222-4333-8444-555555555555', version: 2, publishedAt: T },
+  schedule: null,
 };
 
 export const workflowDetail: WorkflowDetail = {
@@ -202,9 +203,9 @@ export const dashboard: Dashboard = {
 };
 
 export const providers: IntegrationProvider[] = [
-  { key: 'GITHUB', configured: true },
-  { key: 'SLACK', configured: true },
-  { key: 'MICROSOFT', configured: false },
+  { key: 'GITHUB', configured: true, connectionType: 'OAUTH' },
+  { key: 'SLACK', configured: true, connectionType: 'OAUTH' },
+  { key: 'MICROSOFT', configured: false, connectionType: 'OAUTH' },
 ];
 
 export const connections: Connection[] = [
@@ -212,6 +213,7 @@ export const connections: Connection[] = [
     id: CONNECTION_ID,
     provider: 'SLACK',
     status: 'CONNECTED',
+    statusReason: null,
     externalAccountId: 'T0123456789',
     accountLabel: 'Acme Slack',
     scopes: ['chat:write', 'channels:read'],

@@ -1,18 +1,19 @@
-import { Search, Split, Zap, type LucideIcon } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { useMemo, useState, type DragEvent } from 'react';
 import { NodeTypeIcon } from '@/components/brand/node-type-icon';
 import { Skeleton } from '@/components/ui';
 import { cn } from '@/lib/cn';
 import type { NodeKind, NodeTypeInfo } from '@/types/api';
+import { groupNodeTypes } from '../types/node-categories';
 import { useNodeTypes } from '../api/workflows.api';
 import { NODE_CATALOG } from '../types/node-catalog';
 import { PALETTE_MIME } from './canvas/workflow-canvas';
 
-const GROUPS: { kind: NodeKind; title: string; icon: LucideIcon }[] = [
-  { kind: 'TRIGGER', title: 'Triggers', icon: Zap },
-  { kind: 'CONDITION', title: 'Logic', icon: Split },
-  { kind: 'ACTION', title: 'Actions', icon: Zap },
-];
+const KIND_LABEL: Record<NodeKind, string> = {
+  TRIGGER: 'Trigger',
+  CONDITION: 'Logic',
+  ACTION: 'Action',
+};
 
 const describe = (type: string) => NODE_CATALOG.find((n) => n.type === type)?.description;
 
@@ -82,13 +83,11 @@ export function NodePalette({ hasTrigger, onAdd, disabled = false }: NodePalette
             Could not load the available steps. {nodeTypes.error.message}
           </p>
         )}
-        {GROUPS.map(({ kind, title, icon: GroupIcon }) => {
-          const items = filtered.filter((t) => t.kind === kind);
-          if (!items.length) return null;
+        {groupNodeTypes(filtered).map(({ category, title, items }) => {
           return (
-            <section key={kind}>
+            <section key={category} aria-label={title}>
               <h2 className="text-muted flex items-center gap-1.5 text-xs font-semibold tracking-wide uppercase">
-                <GroupIcon className="size-3.5" aria-hidden />
+                <NodeTypeIcon type={items[0].type} size="xs" />
                 {title}
               </h2>
               <ul className="mt-2 space-y-1">
@@ -112,6 +111,7 @@ export function NodePalette({ hasTrigger, onAdd, disabled = false }: NodePalette
                         <NodeTypeIcon type={t.type} size="sm" />
                         <span className="min-w-0">
                           <span className="block truncate">{t.displayName}</span>
+                          <span className="text-muted block text-[11px]">{KIND_LABEL[t.kind]}</span>
                           {reason && (
                             <span
                               id={`${t.type}-reason`}

@@ -48,6 +48,7 @@ export function IntegrationsPage() {
 
   const loadError = providers.error ?? connections.error;
   const configured = new Map((providers.data ?? []).map((p) => [p.key, p.configured]));
+  const connectionTypes = new Map((providers.data ?? []).map((p) => [p.key, p.connectionType]));
   const known = PROVIDER_CATALOG.filter((p) => configured.has(p.key));
 
   return (
@@ -97,6 +98,7 @@ export function IntegrationsPage() {
               key={info.key}
               info={info}
               configured={configured.get(info.key) ?? false}
+              connectionType={connectionTypes.get(info.key) ?? 'OAUTH'}
               connections={connections.data.filter((c) => c.provider === info.key)}
               canManage={canManage}
               connecting={connectingKey === info.key && !start.isError}

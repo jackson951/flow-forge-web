@@ -67,6 +67,8 @@ const SLUGS: Record<string, IntegrationProviderKey> = {
   github: 'GITHUB',
   slack: 'SLACK',
   microsoft: 'MICROSOFT',
+  jira: 'JIRA',
+  gmail: 'GMAIL',
 };
 
 /** The callback's query string, or null when this is not a callback. */

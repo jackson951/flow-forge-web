@@ -277,3 +277,66 @@ describe('connect-flow helpers', () => {
     expect(isSafeProviderUrl('/relative')).toBe(false);
   });
 });
+
+describe('expanded providers (Part 16)', () => {
+  const withProviders = () =>
+    server.use(
+      http.get(`${API}/integrations/providers`, () =>
+        HttpResponse.json([
+          { key: 'GITHUB', configured: true, connectionType: 'OAUTH' },
+          { key: 'JIRA', configured: true, connectionType: 'OAUTH' },
+          { key: 'GMAIL', configured: false, connectionType: 'OAUTH' },
+          { key: 'HTTP', configured: true, connectionType: 'CREDENTIALS' },
+          { key: 'TEST', configured: true, connectionType: 'OAUTH' },
+        ]),
+      ),
+    );
+
+  it('shows Jira, Gmail and HTTP cards from the provider list; TEST is never shown (FR-16.4/16.6)', async () => {
+    withProviders();
+    withConnections([]);
+    renderRoute(URL_);
+    const jira = await card('Jira');
+    expect(within(jira).getByRole('button', { name: 'Connect Jira' })).toBeInTheDocument();
+    const gmail = screen.getByRole('region', { name: 'Gmail' });
+    expect(within(gmail).getByText('Not available on this server')).toBeInTheDocument();
+    // Credentials providers never start an OAuth redirect.
+    const httpCard = screen.getByRole('region', { name: 'HTTP connections' });
+    expect(within(httpCard).queryByRole('button')).not.toBeInTheDocument();
+    expect(within(httpCard).getByText(/arrives with the HTTP request step/)).toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: /test/i })).not.toBeInTheDocument();
+  });
+
+  it('explains why a connection needs attention, per reason (FR-16.5)', async () => {
+    withProviders();
+    withConnections([
+      {
+        ...slack,
+        id: 'c1',
+        provider: 'GMAIL',
+        accountLabel: 'ops@example.com',
+        status: 'NEEDS_ATTENTION',
+        statusReason: 'WATCH_RENEWAL_FAILED',
+      },
+      {
+        ...slack,
+        id: 'c2',
+        provider: 'HTTP',
+        accountLabel: 'Billing API',
+        status: 'NEEDS_ATTENTION',
+        statusReason: 'AUTHENTICATION_FAILED',
+        metadata: { authType: 'bearer', secretHint: '…a1b2', baseUrl: 'https://api.example.com' },
+      },
+    ]);
+    renderRoute(URL_);
+    const httpCard = await card('HTTP connections');
+    expect(within(httpCard).getByText(/credentials were rejected/)).toBeInTheDocument();
+    expect(
+      within(httpCard).getByText('Bearer token · …a1b2 · https://api.example.com'),
+    ).toBeInTheDocument();
+    // No OAuth reconnect for credentials.
+    expect(within(httpCard).queryByRole('button', { name: /Reconnect/ })).not.toBeInTheDocument();
+    const gmail = screen.getByRole('region', { name: 'Gmail' });
+    expect(within(gmail).getByText(/stopped sending notifications/)).toBeInTheDocument();
+  });
+});

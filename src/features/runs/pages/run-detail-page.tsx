@@ -35,7 +35,7 @@ import { ErrorExplanation } from '../components/error-explanation';
 import { JsonView } from '../components/json-view';
 import { RetryDialog } from '../components/retry-dialog';
 import { StepTimeline } from '../components/step-timeline';
-import { formatDuration, skipReasons, TRIGGER_SOURCES } from '../run-helpers';
+import { formatDuration, skipReasons, triggerSourceInfo } from '../run-helpers';
 
 const noop = () => undefined;
 const noIssues = () => 0;
@@ -96,7 +96,7 @@ function RunView({ run }: { run: RunDetail }) {
     [stepList],
   );
   const statusFor = useCallback((key: string) => statusByKey.get(key), [statusByKey]);
-  const Source = TRIGGER_SOURCES[run.triggerSource];
+  const Source = triggerSourceInfo(run.triggerSource);
 
   return (
     <div className="mt-3 space-y-6">
