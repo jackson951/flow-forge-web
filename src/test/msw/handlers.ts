@@ -201,6 +201,11 @@ export const handlers = [
     `${WS}/integrations/:connectionId/microsoft/todo-lists`,
     scoped(() => [{ id: 'AQMkADAwATM0MDAAMS1', displayName: 'Tasks', isDefault: true }]),
   ),
+  // HTTP poll state of a workflow (Part 20).
+  http.get(
+    `${WF}/poll`,
+    scoped(() => ({ schedule: null, state: null })),
+  ),
   // Generic webhook of a workflow (Part 19).
   http.get(
     `${WF}/webhook`,

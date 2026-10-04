@@ -2,6 +2,7 @@ import { authApi } from '@/features/auth/api/auth.api';
 import { dashboardApi } from '@/features/dashboard/api/dashboard.api';
 import { integrationsApi } from '@/features/integrations/api/integrations.api';
 import { webhookApi } from '@/features/workflows/api/webhook.api';
+import { pollApi } from '@/features/workflows/api/poll.api';
 import { runsApi } from '@/features/runs/api/runs.api';
 import { workflowsApi } from '@/features/workflows/api/workflows.api';
 import { EMPTY_DEFINITION } from '@/features/workflows/types/workflow-definition';
@@ -61,6 +62,9 @@ const calls: Record<string, Record<string, () => Promise<unknown>>> = {
   dashboardApi: {
     summary: () => dashboardApi.summary(WS_ID),
   },
+  pollApi: {
+    status: () => pollApi.status(WS_ID, WORKFLOW_ID),
+  },
   webhookApi: {
     details: () => webhookApi.details(WS_ID, WORKFLOW_ID),
     rotateSecret: () => webhookApi.rotateSecret(WS_ID, WORKFLOW_ID),
@@ -98,6 +102,7 @@ const modules = {
   dashboardApi,
   integrationsApi,
   webhookApi,
+  pollApi,
 };
 
 describe('MSW serves every API function (Part 01, AC-01.5)', () => {

@@ -35,7 +35,7 @@ import { ErrorExplanation } from '../components/error-explanation';
 import { JsonView } from '../components/json-view';
 import { RetryDialog } from '../components/retry-dialog';
 import { StepTimeline } from '../components/step-timeline';
-import { ScheduledRunInfo } from '../components/scheduled-run-info';
+import { PollRunInfo, ScheduledRunInfo } from '../components/scheduled-run-info';
 import { formatDuration, skipReasons, triggerSourceInfo } from '../run-helpers';
 
 const noop = () => undefined;
@@ -207,6 +207,7 @@ function RunView({ run }: { run: RunDetail }) {
       </section>
 
       <ScheduledRunInfo run={run} />
+      <PollRunInfo run={run} />
 
       <section aria-label="Trigger input" className="space-y-2">
         <JsonView label="Trigger input" value={run.triggerInput} empty="no input" />

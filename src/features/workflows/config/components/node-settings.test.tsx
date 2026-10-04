@@ -719,3 +719,92 @@ describe('webhook trigger form (Part 19)', () => {
     expect(screen.getByText('must not contain ":"')).toBeInTheDocument();
   });
 });
+
+describe('HTTP poll form (Part 20)', () => {
+  const poll = (config: Record<string, unknown>, issues: ValidationIssue[] = []) =>
+    setup({ kind: 'TRIGGER', type: 'http.poll', config }, { issues });
+
+  it('request, schedule, items, identity, cursor and first-poll options round-trip (AC-20.1)', async () => {
+    const { last } = poll({ request: { url: 'https://api.example.com/orders' } });
+    await userEvent.click(await screen.findByRole('button', { name: 'Set up the schedule' }));
+    expect(last()).toMatchObject({ schedule: { kind: 'interval', everyMinutes: 15 } });
+    fireEvent.change(screen.getByLabelText('Where the items are (dot path, optional)'), {
+      target: { value: 'data.items' },
+    });
+    fireEvent.change(screen.getByLabelText('Item id (dot path, optional)'), {
+      target: { value: 'id' },
+    });
+    fireEvent.change(screen.getByLabelText('Cursor in the response (optional)'), {
+      target: { value: 'meta.next' },
+    });
+    fireEvent.change(screen.getByLabelText('Sent next time as'), { target: { value: 'since' } });
+    await userEvent.click(screen.getByLabelText(/First poll records existing items/));
+    fireEvent.change(screen.getByLabelText('Max new items per poll'), { target: { value: '20' } });
+    expect(last()).toMatchObject({
+      request: { url: 'https://api.example.com/orders' },
+      items: { path: 'data.items' },
+      identity: { path: 'id' },
+      cursor: { responsePath: 'meta.next', queryParam: 'since' },
+      seedOnFirstPoll: false,
+      maxItemsPerPoll: 20,
+    });
+  });
+
+  it('refuses templates in the URL with an explanation (AC-20.3)', async () => {
+    poll({ request: { url: 'https://api.example.com/{{ trigger.id }}' } });
+    expect(await screen.findByText(/Templates are not available here/)).toBeInTheDocument();
+  });
+
+  it('checks the paths against a pasted sample, locally (FR-20.6)', async () => {
+    poll({
+      request: { url: 'https://a.example' },
+      items: { path: 'data' },
+      identity: { path: 'id' },
+    });
+    await userEvent.click(await screen.findByRole('button', { name: /Check the paths/ }));
+    fireEvent.change(screen.getByLabelText('Sample response (JSON)'), {
+      target: { value: '{"data":[{"id":1,"title":"x"},{"title":"y"}]}' },
+    });
+    const result = screen.getByRole('status');
+    expect(result).toHaveTextContent('2 items found');
+    expect(result).toHaveTextContent('Ids: 1');
+    expect(result).toHaveTextContent('1 item has no usable id at “id”');
+    expect(result).toHaveTextContent('trigger.item.id, trigger.item.title');
+    await userEvent.click(screen.getByRole('button', { name: 'Close and clear' }));
+    expect(screen.queryByLabelText('Sample response (JSON)')).not.toBeInTheDocument();
+  });
+
+  it('shows server issues on request and schedule fields (FR-20.7)', async () => {
+    poll(
+      {
+        request: { url: 'https://10.0.0.1/x' },
+        schedule: { kind: 'interval', timezone: 'UTC', everyMinutes: 1 },
+      },
+      [
+        {
+          code: 'INVALID_NODE_CONFIG',
+          severity: 'error',
+          nodeKey: 'target',
+          path: 'request.url',
+          message: 'destination is blocked',
+        },
+        {
+          code: 'INVALID_NODE_CONFIG',
+          severity: 'error',
+          nodeKey: 'target',
+          path: 'schedule.everyMinutes',
+          message: 'Schedules on this server run at most every 5 minutes',
+        },
+      ],
+    );
+    expect(await screen.findByText('destination is blocked')).toBeInTheDocument();
+    expect(
+      screen.getByText('Schedules on this server run at most every 5 minutes'),
+    ).toBeInTheDocument();
+  });
+
+  it('registers item fields for later steps (AC-20.4)', async () => {
+    const { triggerFields } = await import('../reference-catalog');
+    expect(triggerFields('http.poll').map((f) => f.path)).toContain('item');
+  });
+});
