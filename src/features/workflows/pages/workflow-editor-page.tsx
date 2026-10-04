@@ -56,6 +56,7 @@ import { NodePalette } from '../components/node-palette';
 import { VersionsPanel } from '../components/versions-panel';
 import { ScheduleSummary } from '../components/schedule-summary';
 import { WebhookBar } from '../components/webhook-bar';
+import { PollStatusBar } from '../components/poll-status-bar';
 import { useCapture } from '../api/webhook.api';
 import { samplePaths } from '../config/webhook-model';
 import { WorkflowStatusBadge } from '../components/workflow-status-badge';
@@ -377,7 +378,9 @@ function Editor({ workflow }: { workflow: WorkflowDetail }) {
         ? (publish.error as { details?: { code?: string } }).details?.code === 'NO_CHANGES'
           ? 'Nothing to publish: the draft matches the active version.'
           : 'The draft changed since you reviewed it. Reload the page to publish the latest draft.'
-        : publish.error.message
+        : (publish.error as { details?: { code?: string } }).details?.code === 'POLL_QUOTA_EXCEEDED'
+          ? `${publish.error.message}. Archive another polling workflow, or switch this one to a webhook if the API can send them.`
+          : publish.error.message
     : null;
 
   return (
@@ -508,9 +511,15 @@ function Editor({ workflow }: { workflow: WorkflowDetail }) {
       {def.nodes.some((n) => n.type === 'webhook.received') && (
         <WebhookBar workflowId={workflow.id} />
       )}
+      {def.nodes.some((n) => n.type === 'http.poll') && (
+        <PollStatusBar workflowId={workflow.id} published={activeNumber !== undefined} />
+      )}
       <ScheduleSummary
         workspaceId={workspace.id}
-        schedule={workflow.schedule ?? null}
+        // A poll's schedule is shown by the poll bar (Part 20).
+        schedule={
+          def.nodes.some((n) => n.type === 'http.poll') ? null : (workflow.schedule ?? null)
+        }
         draftScheduled={def.nodes.some((n) => n.type === 'schedule.trigger')}
         archived={readOnly}
       />

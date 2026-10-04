@@ -14,7 +14,6 @@ const props = {
 
 describe('node types whose form comes later (Part 16, FR-16.8)', () => {
   it.each([
-    ['http.poll', 20],
     ['jira.issue.created', 21],
     ['gmail.sendEmail', 22],
   ])('%s names the part that brings its form (%i)', (type, part) => {

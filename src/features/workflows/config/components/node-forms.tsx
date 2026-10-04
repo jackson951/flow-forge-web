@@ -29,6 +29,7 @@ import { ConditionBuilder } from './condition-builder';
 import { ConnectionSelect } from './connection-select';
 import { ReferenceInput } from './reference-input';
 import { HttpRequestForm } from './http-request-form';
+import { PollTriggerForm } from './poll-trigger-form';
 import { ResourcePicker } from './resource-picker';
 import { ScheduleTriggerForm } from './schedule-trigger-form';
 import { TemplateInput } from './template-input';
@@ -65,6 +66,8 @@ export function NodeForm({ type, ...props }: FormProps & { type: string }) {
       return <HttpRequestForm {...props} />;
     case 'webhook.received':
       return <WebhookTriggerForm {...props} />;
+    case 'http.poll':
+      return <PollTriggerForm {...props} />;
     case 'github.issue.created':
       return <GitHubTriggerForm {...props} />;
     case 'condition':

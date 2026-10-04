@@ -1,4 +1,5 @@
-import { CalendarClock } from 'lucide-react';
+import { CalendarClock, Radar } from 'lucide-react';
+import { formatDateTime } from '@/lib/format';
 import { formatInZone } from '@/features/workflows/config/schedule-model';
 import type { RunDetail } from '@/types/api';
 import { formatDuration } from '../run-helpers';
@@ -24,6 +25,29 @@ function scheduleTrigger(input: unknown): ScheduleTrigger | null {
  * For a scheduled run (Part 17, FR-17.9): the occurrence it is for, in the schedule's timezone,
  * and how long after that time it was queued.
  */
+/** For a poll run (Part 20, FR-20.9): which item started it, and when the poll ran. */
+export function PollRunInfo({ run }: { run: RunDetail }) {
+  const input =
+    run.triggerSource === 'POLL' ? (run.triggerInput as Record<string, unknown> | null) : null;
+  if (!input || typeof input.itemId !== 'string') return null;
+  return (
+    <section
+      aria-label="Poll item"
+      className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-xl border border-teal-100 bg-teal-50/60 px-4 py-2.5 text-sm text-teal-950"
+    >
+      <Radar className="size-4 shrink-0 text-teal-600" aria-hidden />
+      <span>
+        New item <code className="font-mono text-xs">{input.itemId}</code>
+      </span>
+      {typeof input.polledAt === 'string' && (
+        <span className="text-teal-900/80">
+          found by the poll at {formatDateTime(input.polledAt)}
+        </span>
+      )}
+    </section>
+  );
+}
+
 export function ScheduledRunInfo({ run }: { run: RunDetail }) {
   const t = run.triggerSource === 'SCHEDULE' ? scheduleTrigger(run.triggerInput) : null;
   if (!t) return null;

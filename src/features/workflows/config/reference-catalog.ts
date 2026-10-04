@@ -73,6 +73,18 @@ registerOutputs('webhook.received', {
   ],
 });
 
+// ── Part 20: HTTP poll (one run per new item; the item's shape is the API's) ───
+
+registerOutputs('http.poll', {
+  trigger: [
+    { path: 'item', description: 'The new item from the response; use item.<field>' },
+    { path: 'itemId', description: 'Its id (or content hash)' },
+    { path: 'polledAt', description: 'When the poll ran (ISO 8601)' },
+    { path: 'scheduleId', description: 'Id of the poll schedule' },
+    { path: 'triggerType', description: '"POLL"' },
+  ],
+});
+
 // ── Node types of Parts 01–15 ────────────────────────────────────────────────
 
 registerOutputs('github.issue.created', {

@@ -418,3 +418,20 @@ export interface WebhookCapture {
     body?: unknown;
   } | null;
 }
+
+// ── HTTP poll state (backend Part 24: workflows.service.ts pollState) ─────────
+
+/** `GET …/workflows/:id/poll`. Seen item ids and cursors stay internal. */
+export interface PollStatus {
+  schedule: { active: boolean; description: string; nextRunAt: string | null } | null;
+  state: {
+    status: 'OK' | 'FAILING';
+    seeded: boolean;
+    lastPolledAt: string | null;
+    lastSuccessAt: string | null;
+    lastError: string | null;
+    consecutiveFailures: number;
+    nextAttemptAt: string | null;
+    itemsFired: number;
+  } | null;
+}

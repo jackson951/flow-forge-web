@@ -1,6 +1,6 @@
 # 20 — HTTP Poll Trigger
 
-**Status:** NOT STARTED — awaiting product-owner approval of this spec. See [00-FRONTEND-ROADMAP.md](00-FRONTEND-ROADMAP.md)
+**Status:** IN PROGRESS — implemented 2026-10-04, local gate green; awaiting product-owner QA. See [00-FRONTEND-ROADMAP.md](00-FRONTEND-ROADMAP.md)
 
 ## Objective
 
@@ -53,3 +53,31 @@ Parts 16, 17, 18.
 ## Risks / Design Questions
 
 - A server-side "dry run poll" endpoint would beat the local sample check (FR-20.6); not in the backend today — propose as a backend enhancement if wanted.
+
+## As implemented
+
+| Area | Implementation |
+| --- | --- |
+| Form | `config/components/poll-trigger-form.tsx`: Request — optional HTTP connection (created in place, Part 18), GET/POST, URL (no templates: a templated URL is flagged on the field), query and headers (plain values, shared `key-value-editor.tsx`), JSON body for POST; Schedule — the Part 17 picker (empty → "Set up the schedule", every 15 minutes); Items — items path, identity path (content-hash note), cursor response path + query parameter, "first poll records existing items" (default on), max new items per poll 1–100 (default 50). Server issues on `request.*`, `schedule.*` and the other fields |
+| Sample check | `config/poll-model.ts` mirrors the backend's `extractItems` / `itemIdentity` / `cursorFrom`; "Check the paths against a sample response" shows the item count, first ids, items without a usable id (the poll would fail), the cursor and `trigger.item.<field>` names. The pasted JSON stays in component state and is cleared on close |
+| Poll bar | `components/poll-status-bar.tsx` under the editor header when the draft's trigger is `http.poll`, from `GET …/poll` (refreshed every minute): Publish to start polling / Waiting for the first poll / Existing items recorded / Polling / Failing (N in a row) with the last error and "next attempt … (backing off)"; schedule description and next poll; last polled, last success, items fired. The Schedule strip (Part 17) is hidden for poll workflows (same schedule) |
+| Quota | Publishing past the limit shows the backend's message plus "Archive another polling workflow, or switch this one to a webhook if the API can send them" (`details.code = POLL_QUOTA_EXCEEDED`) |
+| Run detail | "New item `<itemId>` found by the poll at …" for `POLL` runs; the `POLL` badge comes from Part 16 |
+| References | `http.poll` registered: `trigger.item` (free-form below), `itemId`, `polledAt`, `scheduleId`, `triggerType` |
+
+## Implementation Evidence
+
+Implemented 2026-10-04 on branch `feat/part-20-http-poll-trigger`. Browser criteria are left for the product owner's QA.
+
+| ID | Result | Evidence |
+| --- | --- | --- |
+| AC-20.1 | PASS (component) / QA | `node-settings.test.tsx` "HTTP poll form": request, schedule, items, identity, cursor, first poll and max round-trip; sample check; a real poll against a test API needs the backend and worker |
+| AC-20.2 | PASS (component) / QA | `poll-status-bar.test.tsx`: waiting, seeded, failing with back-off and items fired |
+| AC-20.3 | PASS | Templated URL flagged with the explanation |
+| AC-20.4 | PASS | `trigger.item` (and below) offered via the catalogue; the sample check lists `trigger.item.<field>` names |
+
+Deviation recorded: **FR-20.6** — there is no server-side dry-run poll, so paths are checked against a pasted sample locally (as the spec's design question anticipated).
+
+Tests added: `poll-model.test.ts` (4), `poll-status-bar.test.tsx` (3), poll form +5; MSW handler and contract for `GET …/poll`.
+
+Gate: `format:check` ✔, `lint` ✔, `typecheck` ✔, `test:cov` 44 files / **539 tests** ✔ (coverage thresholds met), `build` ✔, `check:bundle` ✔ (main chunk 188.6 KB gzip of 200 KB).
