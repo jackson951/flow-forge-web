@@ -1,6 +1,6 @@
 # 18 — HTTP Connections and the HTTP Request Action
 
-**Status:** NOT STARTED — awaiting product-owner approval of this spec. See [00-FRONTEND-ROADMAP.md](00-FRONTEND-ROADMAP.md)
+**Status:** IN PROGRESS — implemented 2026-10-04, local gate green; awaiting product-owner QA. See [00-FRONTEND-ROADMAP.md](00-FRONTEND-ROADMAP.md)
 
 ## Objective
 
@@ -64,3 +64,37 @@ Parts 16, 06, 08, 10.
 
 - JSON body editor: a light textarea with validation + template highlighting (no heavy editor dependency) — confirm.
 - The allowed-hosts default (base URL host) must be stated in the dialog so users understand why another host gets no credentials.
+
+## As implemented
+
+| Area | Implementation |
+| --- | --- |
+| API | `integrations.api.ts`: `createHttp` / `testHttp` / `updateHttp` / `rotateHttp` and hooks; mutations that carry secrets use `gcTime: 0` and are `reset()` on success, so neither the mutation cache nor the component keeps the plaintext |
+| Integrations page | HTTP card (`connectionType: CREDENTIALS`): **New HTTP connection** opens the form; each connection row shows auth type, secret hint and base URL with **Test**, **Edit**, **Replace credentials** (secondary when the connection needs attention) and Disconnect (Part 10 warning). Members see the rows without actions |
+| Create dialog | `components/http-connection-dialogs.tsx`, wide two-column layout (product-owner feedback: the first version was too tall): left — name, base URL, allowed hosts (prefilled with the base URL's host until edited); right — authentication. Five auth types as the backend defines them: bearer, basic, API key header, API key query, custom headers (1–10, unique names). Secrets are password inputs; server 422 `details` map to fields; a warning when allowed hosts are empty |
+| Edit / replace / test | Edit: name, base URL, allowed hosts (`PATCH`, empty → `null`). Replace: write-only, shows only the current hint, keeps the auth type and header/param names. Test: GET/HEAD to an absolute or relative URL; shows only OK + status + duration or the failure category/message |
+| `http.request` form | `components/http-request-form.tsx`: optional connection (the picker offers "No connection"; with none in the workspace, **New HTTP connection** opens the same dialog in place and selects the result), method, URL (template input, quick egress checks), query and headers (name → template value, up to 50, credential-header warning), body None/JSON (validated, templates inside strings, invalid JSON kept locally and not saved)/Text/Form — disabled for GET/HEAD and dropped when switching to them, timeout 1–30 s; Advanced: follow redirects, response type, fail on 4xx, idempotent (POST/PATCH only, dropped otherwise), large responses |
+| References | `http.request` registered: `status`, `body` (free-form below), `statusText`, `headers`, `bodyTruncated`, `durationMs`, `finalUrl` |
+| Run detail | `runs/components/http-step-result.tsx` above an HTTP step's input/output: status with icon and text, method + final URL with secret-looking query values masked (the backend's redaction list), duration, truncated badge, response headers (collapsible); the body stays in the Output view; errors keep the Part 08 category explanation |
+
+## Implementation Evidence
+
+Implemented 2026-10-04 on branch `feat/part-18-http-connections-and-request`. Browser criteria are left for the product owner's QA.
+
+| ID | Result | Evidence |
+| --- | --- | --- |
+| AC-18.1 | PASS (component) / QA | `integrations.test.tsx` "HTTP connections": create (hosts follow base URL, exact POST body), server field errors, test outcome, edit (`allowedHosts: null`), replace (`PUT { credentials }`), member read-only; `http-credentials.test.ts` covers all five auth types and their validation |
+| AC-18.2 | QA | Needs the real backend: build `http.request` → condition on `status` → action, publish, run |
+| AC-18.3 | PASS | `node-settings.test.tsx` "registers its output for later steps"; catalogue entries |
+| AC-18.4 | PASS (component) / QA | Create test: the secret is absent from localStorage, sessionStorage, the URL and the DOM after saving; mutations use `gcTime: 0` + `reset()`. Browser storage/network inspection left for QA |
+| AC-18.5 | PASS (component) / QA | `http-step-result.test.tsx`: status/URL masking/duration/headers/truncation; 4xx stated in text |
+
+Deviations, recorded:
+
+- **Five auth types, not six:** the backend has no "none" type — an API without authentication needs no connection (the step's connection is optional).
+- **Allowed hosts do not default on the backend:** with none, credentials go to any host. The spec assumed a default; the form prefills the base URL's host and warns when the list is empty.
+- **FR-18.7 "Create connection that returns to the node":** implemented as the same dialog opened inside the step's settings (no page change), which also selects the new connection.
+
+Tests added: `http-credentials.test.ts` (3), `http-request-model.test.ts` (16), `http-step-result.test.tsx` (3), integrations +4, HTTP request form +5; Part 16 HTTP-card test updated.
+
+Gate: `format:check` ✔, `lint` ✔, `typecheck` ✔, `test:cov` 40 files / **508 tests** ✔ (coverage thresholds met), `build` ✔, `check:bundle` ✔ — main chunk **194.4 KB** gzip of the 200 KB budget. Before Part 19 adds more, the Integrations page and dialogs should move to a lazy route chunk.

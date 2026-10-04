@@ -340,3 +340,39 @@ export interface IntegrationCallbackParams {
   connectionId?: string;
   reason?: string;
 }
+
+// ── HTTP connections (backend Part 24: http-connections.service.ts, http-auth.ts) ─
+
+export type HttpAuthType = 'bearer' | 'basic' | 'apiKeyHeader' | 'apiKeyQuery' | 'customHeaders';
+
+/** Write-only secrets, sent once in a request body; never returned. */
+export type HttpCredentials =
+  | { authType: 'bearer'; token: string }
+  | { authType: 'basic'; username: string; password: string }
+  | { authType: 'apiKeyHeader'; headerName: string; value: string }
+  | { authType: 'apiKeyQuery'; paramName: string; value: string }
+  | { authType: 'customHeaders'; headers: Record<string, string> };
+
+export interface CreateHttpConnectionRequest {
+  name: string;
+  credentials: HttpCredentials;
+  baseUrl?: string;
+  allowedHosts?: string[];
+}
+
+export interface UpdateHttpConnectionRequest {
+  name?: string;
+  /** null removes it. */
+  baseUrl?: string | null;
+  /** null removes the restriction (credentials may then go to any host). */
+  allowedHosts?: string[] | null;
+}
+
+/** Outcome only: never the response body or headers. */
+export interface ConnectionTestResult {
+  ok: boolean;
+  status?: number;
+  category?: ErrorCategory;
+  message?: string;
+  durationMs?: number;
+}

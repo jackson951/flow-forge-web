@@ -201,4 +201,21 @@ export const handlers = [
     `${WS}/integrations/:connectionId/microsoft/todo-lists`,
     scoped(() => [{ id: 'AQMkADAwATM0MDAAMS1', displayName: 'Tasks', isDefault: true }]),
   ),
+  // HTTP connections (Part 18): echo a connection; the test endpoint answers OK.
+  http.post(
+    `${WS}/integrations/http`,
+    scoped(() => ({ ...f.connections[0], provider: 'HTTP' }), 201),
+  ),
+  http.post(
+    `${WS}/integrations/:connectionId/test`,
+    scoped(() => ({ ok: true, status: 200, durationMs: 42 })),
+  ),
+  http.patch(
+    `${WS}/integrations/:connectionId`,
+    scoped(() => ({ ...f.connections[0], provider: 'HTTP' })),
+  ),
+  http.put(
+    `${WS}/integrations/:connectionId/credentials`,
+    scoped(() => ({ ...f.connections[0], provider: 'HTTP' })),
+  ),
 ];

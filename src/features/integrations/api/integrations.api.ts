@@ -4,7 +4,11 @@ import { api } from '@/lib/api-client';
 import { queryKeys } from '@/lib/query-keys';
 import type {
   Connection,
+  ConnectionTestResult,
   ConnectStart,
+  CreateHttpConnectionRequest,
+  HttpCredentials,
+  UpdateHttpConnectionRequest,
   GitHubRepository,
   IntegrationProvider,
   IntegrationProviderKey,
@@ -31,6 +35,14 @@ export const integrationsApi = {
     }),
   todoLists: (ws: string, connectionId: string) =>
     api.get<TodoList[]>(`${base(ws)}/${connectionId}/microsoft/todo-lists`),
+  createHttp: (ws: string, body: CreateHttpConnectionRequest) =>
+    api.post<Connection>(`${base(ws)}/http`, body),
+  testHttp: (ws: string, connectionId: string, body: { url: string; method?: 'GET' | 'HEAD' }) =>
+    api.post<ConnectionTestResult>(`${base(ws)}/${connectionId}/test`, body),
+  updateHttp: (ws: string, connectionId: string, body: UpdateHttpConnectionRequest) =>
+    api.patch<Connection>(`${base(ws)}/${connectionId}`, body),
+  rotateHttp: (ws: string, connectionId: string, credentials: HttpCredentials) =>
+    api.put<Connection>(`${base(ws)}/${connectionId}/credentials`, { credentials }),
 };
 
 export function useProviders() {
@@ -121,5 +133,47 @@ export function useConnectionUsage(ws: string, connectionId: string | null) {
         partial: page.nextCursor !== null,
       };
     },
+  });
+}
+
+/**
+ * HTTP connection mutations (Part 18). Those carrying secrets keep nothing afterwards:
+ * `gcTime: 0` drops the finished mutation (and its variables) from the mutation cache at once.
+ */
+export function useCreateHttpConnection(ws: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: CreateHttpConnectionRequest) => integrationsApi.createHttp(ws, body),
+    gcTime: 0,
+    meta: { success: 'HTTP connection created' },
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.integrations.connections(ws) }),
+  });
+}
+
+export function useRotateHttpCredentials(ws: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, credentials }: { id: string; credentials: HttpCredentials }) =>
+      integrationsApi.rotateHttp(ws, id, credentials),
+    gcTime: 0,
+    meta: { success: 'Credentials replaced' },
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.integrations.connections(ws) }),
+  });
+}
+
+export function useUpdateHttpConnection(ws: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, body }: { id: string; body: UpdateHttpConnectionRequest }) =>
+      integrationsApi.updateHttp(ws, id, body),
+    meta: { success: 'Connection updated' },
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.integrations.connections(ws) }),
+  });
+}
+
+export function useTestHttpConnection(ws: string) {
+  return useMutation({
+    mutationFn: ({ id, url, method }: { id: string; url: string; method?: 'GET' | 'HEAD' }) =>
+      integrationsApi.testHttp(ws, id, { url, method }),
   });
 }

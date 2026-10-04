@@ -300,10 +300,11 @@ describe('expanded providers (Part 16)', () => {
     expect(within(jira).getByRole('button', { name: 'Connect Jira' })).toBeInTheDocument();
     const gmail = screen.getByRole('region', { name: 'Gmail' });
     expect(within(gmail).getByText('Not available on this server')).toBeInTheDocument();
-    // Credentials providers never start an OAuth redirect.
+    // Credentials providers open a form instead of an OAuth redirect (Part 18).
     const httpCard = screen.getByRole('region', { name: 'HTTP connections' });
-    expect(within(httpCard).queryByRole('button')).not.toBeInTheDocument();
-    expect(within(httpCard).getByText(/arrives with the HTTP request step/)).toBeInTheDocument();
+    expect(
+      within(httpCard).getByRole('button', { name: 'New HTTP connection' }),
+    ).toBeInTheDocument();
     expect(screen.queryByRole('region', { name: /test/i })).not.toBeInTheDocument();
   });
 
@@ -338,5 +339,172 @@ describe('expanded providers (Part 16)', () => {
     expect(within(httpCard).queryByRole('button', { name: /Reconnect/ })).not.toBeInTheDocument();
     const gmail = screen.getByRole('region', { name: 'Gmail' });
     expect(within(gmail).getByText(/stopped sending notifications/)).toBeInTheDocument();
+  });
+});
+
+describe('HTTP connections (Part 18)', () => {
+  const SECRET = ['live', 'token', 'not', 'real', '42'].join('-');
+  const httpProviders = () =>
+    server.use(
+      http.get(`${API}/integrations/providers`, () =>
+        HttpResponse.json([{ key: 'HTTP', configured: true, connectionType: 'CREDENTIALS' }]),
+      ),
+    );
+  const billing: Connection = {
+    ...slack,
+    id: 'h1',
+    provider: 'HTTP',
+    accountLabel: 'Billing API',
+    externalAccountId: 'h1',
+    scopes: [],
+    metadata: {
+      authType: 'bearer',
+      secretHint: '…r-42',
+      baseUrl: 'https://api.example.com/v1',
+      allowedHosts: ['api.example.com'],
+    },
+  };
+
+  it('creates a connection: hosts follow the base URL, the secret goes only in the body (AC-18.1, AC-18.4)', async () => {
+    httpProviders();
+    withConnections([]);
+    let body: unknown;
+    server.use(
+      http.post(`${WS}/integrations/http`, async ({ request }) => {
+        body = await request.json();
+        return HttpResponse.json({ ...billing }, { status: 201 });
+      }),
+    );
+    renderRoute(URL_);
+    const card_ = await card('HTTP connections');
+    await userEvent.click(within(card_).getByRole('button', { name: 'New HTTP connection' }));
+    const dialog = screen.getByRole('dialog', { name: 'New HTTP connection' });
+    await userEvent.type(within(dialog).getByLabelText('Name'), 'Billing API');
+    await userEvent.type(
+      within(dialog).getByLabelText('Base URL (optional)'),
+      'https://api.example.com/v1',
+    );
+    expect(within(dialog).getByLabelText('Allowed hosts')).toHaveValue('api.example.com');
+    const token = within(dialog).getByLabelText('Token');
+    expect(token).toHaveAttribute('type', 'password');
+    await userEvent.type(token, SECRET);
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Save connection' }));
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'New HTTP connection' })).not.toBeInTheDocument(),
+    );
+    expect(body).toEqual({
+      name: 'Billing API',
+      credentials: { authType: 'bearer', token: SECRET },
+      baseUrl: 'https://api.example.com/v1',
+      allowedHosts: ['api.example.com'],
+    });
+    // Nothing kept client-side.
+    expect(JSON.stringify({ ...localStorage })).not.toContain(SECRET);
+    expect(JSON.stringify({ ...sessionStorage })).not.toContain(SECRET);
+    expect(window.location.href).not.toContain(SECRET);
+    expect(document.body.innerHTML).not.toContain(SECRET);
+  });
+
+  it('warns when no allowed hosts are set, and shows server field errors', async () => {
+    httpProviders();
+    withConnections([]);
+    server.use(
+      http.post(`${WS}/integrations/http`, () =>
+        HttpResponse.json(
+          {
+            statusCode: 422,
+            error: 'Unprocessable Entity',
+            message: 'Invalid base URL',
+            details: [{ path: 'baseUrl', message: 'blocked destination' }],
+            requestId: 'r',
+            path: '/x',
+            timestamp: '',
+          },
+          { status: 422 },
+        ),
+      ),
+    );
+    renderRoute(URL_);
+    await userEvent.click(
+      within(await card('HTTP connections')).getByRole('button', { name: 'New HTTP connection' }),
+    );
+    const dialog = screen.getByRole('dialog', { name: 'New HTTP connection' });
+    expect(within(dialog).getByText(/sent to any host a step calls/)).toBeInTheDocument();
+    await userEvent.type(within(dialog).getByLabelText('Name'), 'Internal');
+    await userEvent.type(within(dialog).getByLabelText('Base URL (optional)'), 'https://10.0.0.1');
+    await userEvent.type(within(dialog).getByLabelText('Token'), SECRET);
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Save connection' }));
+    expect(await within(dialog).findByText('blocked destination')).toBeInTheDocument();
+  });
+
+  it('tests, edits and replaces credentials of a connection; the secret only appears as its hint', async () => {
+    httpProviders();
+    withConnections([billing]);
+    const calls: { method: string; url: string; body: unknown }[] = [];
+    const record = async ({ request }: { request: Request }) => {
+      calls.push({ method: request.method, url: request.url, body: await request.json() });
+    };
+    server.use(
+      http.post(`${WS}/integrations/h1/test`, async (info) => {
+        await record(info);
+        return HttpResponse.json({
+          ok: false,
+          status: 401,
+          category: 'PROVIDER_AUTH',
+          message: 'HTTP 401 Unauthorized',
+        });
+      }),
+      http.patch(`${WS}/integrations/h1`, async (info) => {
+        await record(info);
+        return HttpResponse.json(billing);
+      }),
+      http.put(`${WS}/integrations/h1/credentials`, async (info) => {
+        await record(info);
+        return HttpResponse.json(billing);
+      }),
+    );
+    renderRoute(URL_);
+    const card_ = await card('HTTP connections');
+    expect(
+      within(card_).getByText(/Bearer token · …r-42 · https:\/\/api.example.com\/v1/),
+    ).toBeInTheDocument();
+
+    await userEvent.click(within(card_).getByRole('button', { name: 'Test' }));
+    let dialog = screen.getByRole('dialog', { name: 'Test connection' });
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Send test request' }));
+    expect(
+      await within(dialog).findByText(/Failed — HTTP 401: HTTP 401 Unauthorized/),
+    ).toBeInTheDocument();
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Done' }));
+
+    await userEvent.click(within(card_).getByRole('button', { name: 'Edit' }));
+    dialog = screen.getByRole('dialog', { name: 'Edit HTTP connection' });
+    await userEvent.clear(within(dialog).getByLabelText('Allowed hosts'));
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Save' }));
+    await waitFor(() => expect(calls.some((c) => c.method === 'PATCH')).toBe(true));
+
+    await userEvent.click(within(card_).getByRole('button', { name: 'Replace credentials' }));
+    dialog = screen.getByRole('dialog', { name: 'Replace credentials' });
+    expect(within(dialog).getByText(/…r-42/)).toBeInTheDocument();
+    await userEvent.type(within(dialog).getByLabelText('Token'), SECRET);
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Replace' }));
+    await waitFor(() => expect(calls.some((c) => c.method === 'PUT')).toBe(true));
+
+    expect(calls.map((c) => [c.method, c.body])).toEqual([
+      ['POST', { url: 'https://api.example.com/v1', method: 'GET' }],
+      ['PATCH', { name: 'Billing API', baseUrl: 'https://api.example.com/v1', allowedHosts: null }],
+      ['PUT', { credentials: { authType: 'bearer', token: SECRET } }],
+    ]);
+    await waitFor(() => expect(document.body.innerHTML).not.toContain(SECRET));
+  });
+
+  it('members see HTTP connections but cannot create, test or change them', async () => {
+    asRole('MEMBER');
+    httpProviders();
+    withConnections([billing]);
+    renderRoute(URL_);
+    const card_ = await card('HTTP connections');
+    expect(within(card_).getByText('Billing API')).toBeInTheDocument();
+    expect(within(card_).queryByRole('button')).not.toBeInTheDocument();
   });
 });

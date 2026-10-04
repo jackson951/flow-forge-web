@@ -5,6 +5,7 @@ import { cn } from '@/lib/cn';
 import type { StepRun } from '@/types/api';
 import { formatDuration } from '../run-helpers';
 import { ErrorExplanation } from './error-explanation';
+import { HttpStepResult } from './http-step-result';
 import { JsonView } from './json-view';
 
 interface StepTimelineProps {
@@ -68,6 +69,11 @@ export function StepTimeline({ steps, labelFor, skipReasons, payloadsTrimmed }: 
                 <ExternalLink className="size-3.5" aria-hidden />
                 Provider reference <span className="font-mono">{step.externalRef}</span>
               </p>
+            )}
+            {!skipped && step.nodeType === 'http.request' && (
+              <div className="pl-9">
+                <HttpStepResult input={step.input} output={step.output} />
+              </div>
             )}
             {!skipped && (
               <div className="grid gap-2 pl-9 md:grid-cols-2">

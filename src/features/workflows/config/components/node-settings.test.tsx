@@ -581,3 +581,77 @@ describe('schedule trigger form (Part 17)', () => {
     ]);
   });
 });
+
+describe('HTTP request form (Part 18)', () => {
+  const request = (config: Record<string, unknown>, issues: ValidationIssue[] = []) =>
+    setup({ kind: 'ACTION', type: 'http.request', config }, { issues });
+
+  it('connection is optional and created in place; GET has no body (FR-18.7)', async () => {
+    request({ url: 'https://api.example.com/items' });
+    expect(await screen.findByText(/No HTTP connection in this workspace yet/)).toBeInTheDocument();
+    expect(screen.getByText(/without stored credentials/)).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'New HTTP connection' }));
+    expect(screen.getByRole('dialog', { name: 'New HTTP connection' })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(screen.getByLabelText('Body')).toBeDisabled();
+    expect(screen.getByText('GET requests have no body.')).toBeInTheDocument();
+  });
+
+  it('POST with a JSON body and templates; idempotency only for POST/PATCH (FR-18.7/18.8)', async () => {
+    const { last } = request({ url: 'https://api.example.com/items' });
+    await userEvent.selectOptions(await screen.findByLabelText('Method'), 'POST');
+    await userEvent.selectOptions(screen.getByLabelText('Body'), 'json');
+    const json = screen.getByLabelText('JSON body');
+    fireEvent.change(json, { target: { value: '{"title": "{{ trigger.issue.title }}"' } });
+    expect(screen.getByText(/Not valid JSON yet/)).toBeInTheDocument();
+    fireEvent.change(json, { target: { value: '{"title": "{{ trigger.issue.title }}"}' } });
+    expect(last()).toMatchObject({
+      method: 'POST',
+      body: { type: 'json', value: { title: '{{ trigger.issue.title }}' } },
+    });
+    await userEvent.click(screen.getByRole('button', { name: 'Advanced' }));
+    await userEvent.click(screen.getByLabelText('The API de-duplicates retries'));
+    expect(last()).toMatchObject({ idempotent: true });
+    await userEvent.click(screen.getByLabelText('Fail the step on 4xx responses'));
+    expect(last()).toMatchObject({ failOn4xx: false });
+    // Back to GET: body and idempotency are dropped.
+    await userEvent.selectOptions(screen.getByLabelText('Method'), 'GET');
+    expect(last()).not.toHaveProperty('body');
+    expect(last()).not.toHaveProperty('idempotent');
+    expect(screen.queryByLabelText('The API de-duplicates retries')).not.toBeInTheDocument();
+  });
+
+  it('warns about hand-typed credential headers and risky URLs (FR-18.9/18.10)', async () => {
+    const { last } = request({ url: 'http://api.example.com' });
+    expect(await screen.findByText('Only https:// URLs are allowed.')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Add header' }));
+    await userEvent.type(screen.getByLabelText('Headers 1 name'), 'Authorization');
+    expect(screen.getByText(/looks like a credential/)).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Headers 1 value'), { target: { value: 'x' } });
+    expect(last()).toMatchObject({ headers: { Authorization: 'x' } });
+  });
+
+  it('shows the server issue on the URL field', async () => {
+    request({ url: 'https://internal.example' }, [
+      {
+        code: 'INVALID_NODE_CONFIG',
+        severity: 'error',
+        nodeKey: 'target',
+        path: 'url',
+        message: 'destination is not allowed by the egress policy',
+      },
+    ]);
+    expect(
+      await screen.findByText('destination is not allowed by the egress policy'),
+    ).toBeInTheDocument();
+  });
+
+  it('registers its output for later steps (FR-18.11)', async () => {
+    const { outputFields } = await import('../reference-catalog');
+    expect(
+      outputFields('http.request', {})
+        ?.slice(0, 2)
+        .map((f) => f.path),
+    ).toEqual(['status', 'body']);
+  });
+});

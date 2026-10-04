@@ -3,7 +3,10 @@ import {
   CircleCheckBig,
   CircleDashed,
   Clock,
+  FlaskConical,
   Info,
+  KeyRound,
+  Pencil,
   Plug,
   Plus,
   RefreshCw,
@@ -42,6 +45,10 @@ interface ProviderCardProps {
   onDisconnect: (connection: Connection) => void;
   /** The connection just added by the callback, highlighted. */
   highlightId?: string;
+  /** Credential connections (HTTP): test, edit and replace-credentials actions. */
+  onTest?: (connection: Connection) => void;
+  onEdit?: (connection: Connection) => void;
+  onReplaceCredentials?: (connection: Connection) => void;
 }
 
 /** One provider with all of its connections in this workspace (Part 10, FR-10.1/10.2/10.5). */
@@ -55,6 +62,9 @@ export function ProviderCard({
   onConnect,
   onDisconnect,
   highlightId,
+  onTest,
+  onEdit,
+  onReplaceCredentials,
 }: ProviderCardProps) {
   return (
     <section aria-label={info.name} className="border-line bg-surface rounded-xl border">
@@ -83,14 +93,7 @@ export function ProviderCard({
             ))}
           </p>
         </div>
-        {configured && connectionType === 'CREDENTIALS' ? (
-          canManage && (
-            <span className="text-muted inline-flex items-center gap-1.5 text-sm">
-              <Info className="size-4" aria-hidden />
-              Creating HTTP connections arrives with the HTTP request step
-            </span>
-          )
-        ) : configured ? (
+        {configured ? (
           canManage && (
             <Button
               variant={connections.length ? 'secondary' : 'primary'}
@@ -143,6 +146,15 @@ export function ProviderCard({
               onReconnect={onConnect}
               onDisconnect={() => onDisconnect(c)}
               connecting={connecting}
+              credentialActions={
+                connectionType === 'CREDENTIALS'
+                  ? {
+                      test: () => onTest?.(c),
+                      edit: () => onEdit?.(c),
+                      replace: () => onReplaceCredentials?.(c),
+                    }
+                  : undefined
+              }
             />
           ))}
         </ul>
@@ -170,7 +182,9 @@ function ConnectionItem({
   onReconnect,
   onDisconnect,
   connecting,
+  credentialActions,
 }: {
+  credentialActions?: { test: () => void; edit: () => void; replace: () => void };
   connection: Connection;
   canManage: boolean;
   canReconnect: boolean;
@@ -202,6 +216,26 @@ function ConnectionItem({
         </span>
         {canManage && (
           <span className="flex gap-1.5">
+            {credentialActions && (
+              <>
+                <Button size="sm" variant="ghost" onClick={credentialActions.test}>
+                  <FlaskConical className="size-4" aria-hidden />
+                  Test
+                </Button>
+                <Button size="sm" variant="ghost" onClick={credentialActions.edit}>
+                  <Pencil className="size-4" aria-hidden />
+                  Edit
+                </Button>
+                <Button
+                  size="sm"
+                  variant={c.status === 'CONNECTED' ? 'ghost' : 'secondary'}
+                  onClick={credentialActions.replace}
+                >
+                  <KeyRound className="size-4" aria-hidden />
+                  Replace credentials
+                </Button>
+              </>
+            )}
             {c.status !== 'CONNECTED' && canReconnect && (
               <Button size="sm" variant="secondary" onClick={onReconnect} disabled={connecting}>
                 <RefreshCw className="size-4" aria-hidden />
