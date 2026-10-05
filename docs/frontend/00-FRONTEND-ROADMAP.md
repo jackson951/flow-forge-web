@@ -29,7 +29,7 @@ Legend: **NOT STARTED** · **IN PROGRESS** · **COMPLETE** (meets the Definition
 | 19 | [Generic Webhook Trigger](19-GENERIC-WEBHOOK-TRIGGER.md) | IN PROGRESS | Implemented 2026-10-04 (527 tests, gate green): verification modes + GitHub/Slack presets, filter, dedup, webhook bar (URL, secret once, rotation with grace, Listen capture feeding suggestions, delivery log + replay). Integrations route lazy (bundle 188.6 KB). Awaiting product-owner QA |
 | 20 | [HTTP Poll Trigger](20-HTTP-POLL-TRIGGER.md) | IN PROGRESS | Implemented 2026-10-04 (539 tests, gate green): poll form (request, schedule, items, identity, cursor, first poll, max), local sample-response check, poll status bar with back-off, quota hint, poll-item run details. Awaiting product-owner QA |
 | 21 | [Jira Integration](21-JIRA-INTEGRATION.md) | COMPLETE | Implemented 2026-10-04: connect + sites, cascading pickers, 3 triggers, 7 actions, references and run links; typecheck/lint + 72 focused tests green |
-| 22 | [Gmail Integration](22-GMAIL-INTEGRATION.md) | NOT STARTED (spec awaiting approval) | Connect with access note, label picker, 2 triggers, 7 actions, privacy-conscious email display (backend Part 26) |
+| 22 | [Gmail Integration](22-GMAIL-INTEGRATION.md) | COMPLETE | Implemented 2026-10-05: access/watch lifecycle UI, label picker, 2 triggers, 7 actions, minimized references and privacy-safe email run detail; 550 tests + build/bundle green |
 
 ## Product Purpose
 

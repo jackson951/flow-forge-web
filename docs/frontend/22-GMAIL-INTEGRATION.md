@@ -1,6 +1,6 @@
 # 22 — Gmail Integration
 
-**Status:** NOT STARTED — awaiting product-owner approval of this spec. See [00-FRONTEND-ROADMAP.md](00-FRONTEND-ROADMAP.md)
+**Status:** COMPLETE — implemented and verified 2026-10-05. See [00-FRONTEND-ROADMAP.md](00-FRONTEND-ROADMAP.md)
 
 ## Objective
 
@@ -27,7 +27,7 @@ Gmail on the Integrations page (connect, scopes explained, watch health, disconn
 | --- | --- |
 | FR-22.5 | **New email** (`gmail.email.received`, INBOX) and **Email gets a label** (`gmail.email.labelReceived`, label picker from `…/gmail/labels`, system and user labels with icons). Both: connection, *include emails sent by this mailbox* (default off — explained: avoids loops when a workflow sends mail), filters *from* and *subject contains*. |
 | FR-22.6 | After publishing, the panel explains that FlowForge watches the mailbox through Google push notifications and renews the watch automatically. |
-| FR-22.7 | Reference catalogue (minimised email): `trigger.event`, `trigger.messageId`, `trigger.threadId`, `trigger.labelIds`, `trigger.from`, `trigger.to`, `trigger.cc`, `trigger.replyTo`, `trigger.subject`, `trigger.snippet`, `trigger.date`, `trigger.text` (plain text, capped), `trigger.textTruncated`, `trigger.attachments` (names only), `trigger.mailbox`. |
+| FR-22.7 | Reference catalogue (minimised email): `trigger.event`, `trigger.messageId`, `trigger.threadId`, `trigger.labelIds`, `trigger.from`, `trigger.to`, `trigger.cc`, `trigger.replyTo`, `trigger.subject`, `trigger.snippet`, `trigger.date`, `trigger.textBody` (plain text, capped), `trigger.textTruncated`, `trigger.hasAttachments`, `trigger.attachmentNames` (names only), `trigger.mailbox`. |
 
 ### Actions
 
@@ -51,6 +51,8 @@ No Google tokens in the browser. Email bodies are displayed as text only (no HTM
 ## Testing Requirements
 
 Component (MSW): connect callback, access note, status reasons incl. watch failure, triggers disabled when unavailable, label picker states, each trigger and action form ↔ config, reply defaults, run detail body collapsed and HTML shown as text. QA: real mailbox (as backend Part 26) — email in → run; send/reply/label/read actions on the product owner's own address only.
+
+Implementation verification (2026-10-05): client schemas and forms for both triggers and all seven actions, Gmail label API/picker, minimized references, access/watch/disconnect messaging, and privacy-safe run rendering are implemented. Typecheck and lint pass for the changed files; 550 frontend tests pass; the production build and bundle budget pass. The repository-wide format check still reports 12 pre-existing Part 20 files outside this part.
 
 ## Acceptance Criteria
 

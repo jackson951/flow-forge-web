@@ -311,6 +311,20 @@ describe('expanded providers (Part 16)', () => {
     expect(screen.queryByRole('region', { name: /test/i })).not.toBeInTheDocument();
   });
 
+  it('explains Gmail access and retention before connecting (Part 22, FR-22.2)', async () => {
+    server.use(
+      http.get(`${API}/integrations/providers`, () =>
+        HttpResponse.json([{ key: 'GMAIL', configured: true, connectionType: 'OAUTH' }]),
+      ),
+    );
+    withConnections([]);
+    renderRoute(URL_);
+    const gmail = await card('Gmail');
+    expect(within(gmail).getByText(/run data is trimmed by retention/)).toBeInTheDocument();
+    expect(within(gmail).getByText(/unverified app/)).toBeInTheDocument();
+    expect(within(gmail).getByRole('button', { name: 'Connect Gmail' })).toBeInTheDocument();
+  });
+
   it('explains why a connection needs attention, per reason (FR-16.5)', async () => {
     withProviders();
     withConnections([

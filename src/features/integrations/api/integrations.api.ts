@@ -20,6 +20,7 @@ import type {
   JiraIssueType,
   JiraStatus,
   JiraUser,
+  GmailLabel,
 } from '@/types/api';
 import { browser, isSafeProviderUrl, rememberReturn, type ConnectReturn } from '../connect-flow';
 
@@ -58,6 +59,8 @@ export const integrationsApi = {
     api.get<JiraUser[]>(`${base(ws)}/${connectionId}/jira/users`, {
       query: { siteId, project, query },
     }),
+  gmailLabels: (ws: string, connectionId: string) =>
+    api.get<GmailLabel[]>(`${base(ws)}/${connectionId}/gmail/labels`),
   createHttp: (ws: string, body: CreateHttpConnectionRequest) =>
     api.post<Connection>(`${base(ws)}/http`, body),
   testHttp: (ws: string, connectionId: string, body: { url: string; method?: 'GET' | 'HEAD' }) =>
@@ -169,6 +172,14 @@ export function useJiraUsers(
     queryFn: () =>
       integrationsApi.jiraUsers(ws, connectionId!, siteId!, project!, query || undefined),
     enabled: !!connectionId && !!siteId && !!project,
+  });
+}
+
+export function useGmailLabels(ws: string, connectionId?: string) {
+  return useQuery({
+    queryKey: queryKeys.integrations.gmailLabels(ws, connectionId ?? ''),
+    queryFn: () => integrationsApi.gmailLabels(ws, connectionId!),
+    enabled: !!connectionId,
   });
 }
 

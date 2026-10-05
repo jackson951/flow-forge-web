@@ -32,6 +32,8 @@ import { paths } from '@/lib/routes';
 import type { RunDetail } from '@/types/api';
 import { isActive, useCancelRun, useRun, useRunSteps } from '../api/runs.api';
 import { ErrorExplanation } from '../components/error-explanation';
+import { isGmailMessage } from '../components/gmail-message';
+import { GmailMessageResult } from '../components/gmail-message-result';
 import { JsonView } from '../components/json-view';
 import { RetryDialog } from '../components/retry-dialog';
 import { StepTimeline } from '../components/step-timeline';
@@ -210,7 +212,11 @@ function RunView({ run }: { run: RunDetail }) {
       <PollRunInfo run={run} />
 
       <section aria-label="Trigger input" className="space-y-2">
-        <JsonView label="Trigger input" value={run.triggerInput} empty="no input" />
+        {isGmailMessage(run.triggerInput) ? (
+          <GmailMessageResult value={run.triggerInput} label="Trigger email" />
+        ) : (
+          <JsonView label="Trigger input" value={run.triggerInput} empty="no input" />
+        )}
       </section>
 
       <section className="space-y-2">

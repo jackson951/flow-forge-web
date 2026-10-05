@@ -15,6 +15,7 @@ import { measureCondition, type ConditionGroup } from '../schemas';
 import { NodeSettings } from './node-settings';
 
 const GITHUB_ID = '7c1e2d3f-4a5b-4c6d-8e7f-9a0b1c2d3e4f';
+const GMAIL_ID = '8d2e3f4a-5b6c-4d7e-8f9a-0b1c2d3e4f5a';
 const SLACK_ID = connectionFixtures[0].id;
 const INTEGRATIONS = `${API}/workspaces/${WS_ID}/integrations`;
 
@@ -24,6 +25,13 @@ const githubConnection: Connection = {
   provider: 'GITHUB',
   externalAccountId: '12345',
   accountLabel: 'acme (GitHub App)',
+};
+const gmailConnection: Connection = {
+  ...connectionFixtures[0],
+  id: GMAIL_ID,
+  provider: 'GMAIL',
+  externalAccountId: 'me@example.com',
+  accountLabel: 'me@example.com',
 };
 
 /** trigger (GitHub issue) → classify → target; `target` is the node under test. */
@@ -296,6 +304,52 @@ describe('node settings forms (Part 06)', () => {
       title: 'Follow up',
       dueDate: '2026-12-31',
     });
+  });
+
+  it('Gmail label trigger loads labels and writes its filters and loop opt-in', async () => {
+    withConnections([gmailConnection]);
+    server.use(
+      http.get(`${INTEGRATIONS}/:id/gmail/labels`, () =>
+        HttpResponse.json([
+          { id: 'INBOX', name: 'Inbox', type: 'system' },
+          { id: 'Label_1', name: 'Customers', type: 'user' },
+        ]),
+      ),
+    );
+    const { last } = setup({
+      kind: 'TRIGGER',
+      type: 'gmail.email.labelReceived',
+      config: { connectionId: GMAIL_ID },
+    });
+    await userEvent.click(await screen.findByRole('option', { name: /Customers/ }));
+    await userEvent.click(screen.getByLabelText('Include email sent by this mailbox'));
+    fireEvent.change(screen.getByLabelText('From contains (optional)'), {
+      target: { value: 'customer@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText('Subject contains (optional)'), {
+      target: { value: 'Support' },
+    });
+    expect(last()).toEqual({
+      connectionId: GMAIL_ID,
+      labelId: 'Label_1',
+      includeSentByMe: true,
+      filter: { from: 'customer@example.com', subjectContains: 'Support' },
+    });
+    expect(screen.getByText(/prevent loops/)).toBeInTheDocument();
+    expect(screen.getByText(/renews the watch automatically/)).toBeInTheDocument();
+  });
+
+  it('Gmail reply supplies the trigger message id default and thread guidance', async () => {
+    withConnections([gmailConnection]);
+    const { last } = setup({
+      kind: 'ACTION',
+      type: 'gmail.replyToEmail',
+      config: { connectionId: GMAIL_ID },
+    });
+    await waitFor(() =>
+      expect(last()).toEqual({ connectionId: GMAIL_ID, messageId: '{{ trigger.messageId }}' }),
+    );
+    expect(screen.getByText(/reply stays in the same thread/)).toBeInTheDocument();
   });
 
   it('AI classify: labels as chips, uniqueness checked, optional subject', async () => {

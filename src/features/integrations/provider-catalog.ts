@@ -75,7 +75,8 @@ export const PROVIDER_CATALOG: ProviderInfo[] = [
     trigger: 'New email, email gets a label',
     actions: ['Send', 'Reply', 'Get email', 'Add / remove label', 'Mark read / unread'],
     notes: [
-      'FlowForge asks to read and modify mail (labels, read state) and to send mail. Only the fields your workflows need are kept in run data; attachment contents are never fetched.',
+      'FlowForge asks to read and modify mail (labels, read state) and to send mail. Only the fields your workflows need are kept in run data; attachment contents are never fetched, and run data is trimmed by retention.',
+      'On a self-hosted server whose Google OAuth app is still in testing, Google may show an “unverified app” screen.',
     ],
     connectLabel: 'Connect Gmail',
   },

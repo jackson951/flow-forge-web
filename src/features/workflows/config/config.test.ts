@@ -84,6 +84,54 @@ describe('config schemas mirror the backend (Part 06, FR-06.6)', () => {
     expect(ok('jira.searchIssues', { ...base, jql: 'project = ENG', maxResults: 101 })).toBe(false);
   });
 
+  it('Gmail triggers and all seven actions mirror the backend contract (Part 22)', () => {
+    const base = { connectionId: UUID };
+    expect(ok('gmail.email.received', base)).toBe(true);
+    expect(
+      ok('gmail.email.received', {
+        ...base,
+        includeSentByMe: true,
+        filter: { from: 'customer@example.com', subjectContains: 'Help' },
+      }),
+    ).toBe(true);
+    expect(ok('gmail.email.labelReceived', { ...base, labelId: 'Label_123' })).toBe(true);
+    expect(ok('gmail.email.labelReceived', base)).toBe(false);
+    expect(ok('gmail.email.received', { ...base, filter: { from: '' } })).toBe(false);
+
+    expect(
+      ok('gmail.sendEmail', {
+        ...base,
+        to: 'person@example.com',
+        subject: 'Hello',
+        text: 'Plain text',
+        html: '<p>Plain text</p>',
+      }),
+    ).toBe(true);
+    expect(
+      ok('gmail.sendEmail', {
+        ...base,
+        to: 'person@example.com',
+        subject: 'x'.repeat(999),
+        text: 'Body',
+      }),
+    ).toBe(false);
+    expect(
+      ok('gmail.replyToEmail', {
+        ...base,
+        messageId: '{{ trigger.messageId }}',
+        text: 'Thanks',
+        replyAll: true,
+      }),
+    ).toBe(true);
+    for (const type of ['gmail.getEmail', 'gmail.markAsRead', 'gmail.markAsUnread']) {
+      expect(ok(type, { ...base, messageId: 'msg-1' })).toBe(true);
+    }
+    for (const type of ['gmail.addLabel', 'gmail.removeLabel']) {
+      expect(ok(type, { ...base, messageId: 'msg-1', labelId: 'STARRED' })).toBe(true);
+      expect(ok(type, { ...base, messageId: 'msg-1', labelId: 'not valid!' })).toBe(false);
+    }
+  });
+
   it('slack.sendMessage checks channel id, text length and rejects unknown keys', () => {
     const base = { connectionId: UUID, channelId: 'C0123456789', text: 'Hello' };
     expect(ok('slack.sendMessage', base)).toBe(true);
@@ -241,6 +289,25 @@ describe('reference suggestions (Part 06, AC-06.3)', () => {
       'trigger.issue.title',
       'steps.a.output.b',
     ]);
+  });
+
+  it('offers minimized Gmail trigger and action fields (Part 22)', () => {
+    const gmail: WorkflowDefinition = {
+      schemaVersion: 1,
+      nodes: [
+        { key: 'trigger', kind: 'TRIGGER', type: 'gmail.email.received', config: {} },
+        { key: 'get', kind: 'ACTION', type: 'gmail.getEmail', config: {} },
+        { key: 'after', kind: 'ACTION', type: 'util.log', config: {} },
+      ],
+      edges: [
+        { from: 'trigger', to: 'get' },
+        { from: 'get', to: 'after' },
+      ],
+    };
+    const refs = availableReferences(gmail, 'after').map((item) => item.ref);
+    expect(refs).toContain('trigger.attachmentNames');
+    expect(refs).toContain('trigger.mailbox');
+    expect(refs).toContain('steps.get.output.textBody');
   });
 });
 

@@ -22,6 +22,11 @@ const REASONS: Record<ConnectionStatusReason, string> = {
 const FALLBACK =
   'The provider rejected FlowForge’s access. Steps using this connection fail until it is reconnected.';
 
-export function statusReasonMessage(connection: Pick<Connection, 'statusReason'>): string {
+export function statusReasonMessage(
+  connection: Pick<Connection, 'statusReason'> & Partial<Pick<Connection, 'provider'>>,
+): string {
+  if (connection.provider === 'GMAIL' && connection.statusReason === 'WATCH_RENEWAL_FAILED') {
+    return 'Gmail stopped sending notifications, so triggers on this connection do not fire. Reconnect, or ask the operator to check the Google push-notification setup.';
+  }
   return (connection.statusReason && REASONS[connection.statusReason]) || FALLBACK;
 }

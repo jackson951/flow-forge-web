@@ -201,6 +201,30 @@ export const handlers = [
     `${WS}/integrations/:connectionId/microsoft/todo-lists`,
     scoped(() => [{ id: 'AQMkADAwATM0MDAAMS1', displayName: 'Tasks', isDefault: true }]),
   ),
+  http.get(
+    `${WS}/integrations/:connectionId/jira/sites`,
+    scoped(() => [{ id: 'cloud-1', name: 'Acme Jira', url: 'https://acme.atlassian.net' }]),
+  ),
+  http.get(
+    `${WS}/integrations/:connectionId/jira/projects`,
+    scoped(() => [{ id: '10000', key: 'ENG', name: 'Engineering', projectTypeKey: 'software' }]),
+  ),
+  http.get(
+    `${WS}/integrations/:connectionId/jira/issue-types`,
+    scoped(() => [{ id: '10001', name: 'Story', subtask: false }]),
+  ),
+  http.get(
+    `${WS}/integrations/:connectionId/jira/statuses`,
+    scoped(() => [{ id: '3', name: 'Done', statusCategory: 'done' }]),
+  ),
+  http.get(
+    `${WS}/integrations/:connectionId/jira/users`,
+    scoped(() => [{ accountId: 'user-1', displayName: 'Ada', active: true }]),
+  ),
+  http.get(
+    `${WS}/integrations/:connectionId/gmail/labels`,
+    scoped(() => [{ id: 'INBOX', name: 'Inbox', type: 'system' }]),
+  ),
   // HTTP poll state of a workflow (Part 20).
   http.get(
     `${WF}/poll`,

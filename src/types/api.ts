@@ -361,6 +361,12 @@ export interface JiraUser {
   displayName: string | null;
 }
 
+export interface GmailLabel {
+  id: string;
+  name: string;
+  type: 'system' | 'user' | string;
+}
+
 /** Query string the backend appends when it sends the browser back after OAuth. */
 export interface IntegrationCallbackParams {
   provider: string;
