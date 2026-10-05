@@ -74,6 +74,12 @@ export function DisconnectDialog({
             triggers in the affected workflows stop receiving events.
           </p>
         )}
+        {connection.provider === 'GMAIL' && (
+          <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-950">
+            Disconnecting stops this mailbox watch. Published Gmail triggers in the affected
+            workflows stop receiving email notifications.
+          </p>
+        )}
         <p className="text-muted text-xs">
           Checked the saved drafts of{' '}
           {usage.data?.partial ? `the ${USAGE_SCAN_LIMIT} most recent` : 'all'} workflows; published

@@ -5,6 +5,8 @@ import { cn } from '@/lib/cn';
 import type { StepRun } from '@/types/api';
 import { formatDuration } from '../run-helpers';
 import { ErrorExplanation } from './error-explanation';
+import { isGmailMessage } from './gmail-message';
+import { GmailMessageResult } from './gmail-message-result';
 import { HttpStepResult } from './http-step-result';
 import { JsonView } from './json-view';
 
@@ -28,6 +30,8 @@ export function StepTimeline({ steps, labelFor, skipReasons, payloadsTrimmed }: 
       {ordered.map((step) => {
         const skipped = step.status === 'SKIPPED';
         const jiraLink = jiraIssueLink(step);
+        const gmailOutput =
+          step.nodeType.startsWith('gmail.') && isGmailMessage(step.output) ? step.output : null;
         return (
           <li key={step.id} className={cn('space-y-2 px-4 py-3', skipped && 'bg-canvas/50')}>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -96,11 +100,15 @@ export function StepTimeline({ steps, labelFor, skipReasons, payloadsTrimmed }: 
                   defaultOpen={step.status === 'FAILED'}
                   empty={payloadsTrimmed ? 'removed by retention' : 'nothing recorded'}
                 />
-                <JsonView
-                  label="Output"
-                  value={step.output}
-                  empty={payloadsTrimmed ? 'removed by retention' : 'nothing recorded'}
-                />
+                {gmailOutput ? (
+                  <GmailMessageResult value={gmailOutput} label="Email output" />
+                ) : (
+                  <JsonView
+                    label="Output"
+                    value={step.output}
+                    empty={payloadsTrimmed ? 'removed by retention' : 'nothing recorded'}
+                  />
+                )}
               </div>
             )}
           </li>

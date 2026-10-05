@@ -157,6 +157,57 @@ registerOutputs('jira.searchIssues', {
   ],
 });
 
+// Part 22: Gmail exposes a deliberately minimized, plain-text email contract.
+const gmailMessageFields: OutputField[] = [
+  { path: 'messageId', description: 'Gmail message id' },
+  { path: 'threadId', description: 'Gmail thread id' },
+  { path: 'labelIds', description: 'Gmail label ids (list)' },
+  { path: 'from', description: 'Sender address' },
+  { path: 'to', description: 'Recipient addresses' },
+  { path: 'cc', description: 'Cc recipient addresses' },
+  { path: 'replyTo', description: 'Reply-to address' },
+  { path: 'subject', description: 'Email subject' },
+  { path: 'snippet', description: 'Short Gmail preview' },
+  { path: 'date', description: 'Message date' },
+  { path: 'textBody', description: 'Plain-text body (capped)' },
+  { path: 'textTruncated', description: 'true when the plain-text body was capped' },
+  { path: 'hasAttachments', description: 'true when the message has attachments' },
+  { path: 'attachmentNames', description: 'Attachment names only (contents are not fetched)' },
+];
+const gmailTriggerFields: OutputField[] = [
+  { path: 'event', description: 'Gmail event type' },
+  ...gmailMessageFields,
+  { path: 'mailbox', description: 'Connected mailbox address' },
+];
+for (const type of ['gmail.email.received', 'gmail.email.labelReceived'])
+  registerOutputs(type, { trigger: gmailTriggerFields });
+registerOutputs('gmail.sendEmail', {
+  output: () => [
+    { path: 'messageId', description: 'Sent Gmail message id' },
+    { path: 'threadId', description: 'Gmail thread id' },
+  ],
+});
+registerOutputs('gmail.replyToEmail', {
+  output: () => [
+    { path: 'messageId', description: 'Reply Gmail message id' },
+    { path: 'threadId', description: 'Gmail thread id' },
+    { path: 'inReplyTo', description: 'Original Gmail message id' },
+  ],
+});
+registerOutputs('gmail.getEmail', { output: () => gmailMessageFields });
+for (const type of [
+  'gmail.addLabel',
+  'gmail.removeLabel',
+  'gmail.markAsRead',
+  'gmail.markAsUnread',
+])
+  registerOutputs(type, {
+    output: () => [
+      { path: 'messageId', description: 'Updated Gmail message id' },
+      { path: 'labelIds', description: 'Gmail label ids after the update' },
+    ],
+  });
+
 registerOutputs('github.issue.created', {
   trigger: [
     { path: 'issue.number', description: 'Issue number' },

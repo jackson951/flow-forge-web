@@ -82,6 +82,12 @@ const calls: Record<string, Record<string, () => Promise<unknown>>> = {
     repositories: () => integrationsApi.repositories(WS_ID, CONNECTION_ID),
     slackChannels: () => integrationsApi.slackChannels(WS_ID, CONNECTION_ID),
     todoLists: () => integrationsApi.todoLists(WS_ID, CONNECTION_ID),
+    jiraSites: () => integrationsApi.jiraSites(WS_ID, CONNECTION_ID),
+    jiraProjects: () => integrationsApi.jiraProjects(WS_ID, CONNECTION_ID, 'cloud-1', 'eng'),
+    jiraIssueTypes: () => integrationsApi.jiraIssueTypes(WS_ID, CONNECTION_ID, 'cloud-1', 'ENG'),
+    jiraStatuses: () => integrationsApi.jiraStatuses(WS_ID, CONNECTION_ID, 'cloud-1', 'ENG'),
+    jiraUsers: () => integrationsApi.jiraUsers(WS_ID, CONNECTION_ID, 'cloud-1', 'ENG', 'Ada'),
+    gmailLabels: () => integrationsApi.gmailLabels(WS_ID, CONNECTION_ID),
     createHttp: () =>
       integrationsApi.createHttp(WS_ID, {
         name: 'API',

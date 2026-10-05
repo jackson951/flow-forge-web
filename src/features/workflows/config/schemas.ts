@@ -214,6 +214,30 @@ const jiraTrigger = (transitioned = false) =>
     })
     .strict();
 
+const gmailLabelId = z
+  .string({ required_error: 'Choose a Gmail label' })
+  .regex(/^[A-Za-z0-9_-]{1,100}$/, 'Choose a Gmail label');
+const gmailMessageId = z
+  .string({ required_error: 'Enter a message id' })
+  .min(1, 'Enter a message id')
+  .max(200);
+const gmailFilter = z
+  .object({
+    from: z.string().min(1).max(200).optional(),
+    subjectContains: z.string().min(1).max(200).optional(),
+  })
+  .strict()
+  .optional();
+const gmailTrigger = (withLabel = false) =>
+  z
+    .object({
+      connectionId,
+      ...(withLabel ? { labelId: gmailLabelId } : {}),
+      includeSentByMe: z.boolean().default(false),
+      filter: gmailFilter,
+    })
+    .strict();
+
 export const CONFIG_SCHEMAS: Record<string, ZodType> = {
   'manual.trigger': z.object({}).strict(),
   condition: conditionConfigSchema,
@@ -321,6 +345,38 @@ export const CONFIG_SCHEMAS: Record<string, ZodType> = {
       fields: jiraFields,
     })
     .strict(),
+  'gmail.email.received': gmailTrigger(),
+  'gmail.email.labelReceived': gmailTrigger(true),
+  'gmail.sendEmail': z
+    .object({
+      connectionId,
+      to: z.string({ required_error: 'Enter at least one recipient' }).min(1).max(4_000),
+      cc: z.string().max(4_000).optional(),
+      bcc: z.string().max(4_000).optional(),
+      replyTo: z.string().max(1_000).optional(),
+      subject: z.string({ required_error: 'Enter a subject' }).min(1).max(998),
+      text: z.string({ required_error: 'Enter a plain-text body' }).min(1).max(100_000),
+      html: z.string().max(200_000).optional(),
+    })
+    .strict(),
+  'gmail.replyToEmail': z
+    .object({
+      connectionId,
+      messageId: gmailMessageId,
+      text: z.string({ required_error: 'Enter a plain-text reply' }).min(1).max(100_000),
+      html: z.string().max(200_000).optional(),
+      replyAll: z.boolean().default(false),
+    })
+    .strict(),
+  'gmail.getEmail': z.object({ connectionId, messageId: gmailMessageId }).strict(),
+  'gmail.addLabel': z
+    .object({ connectionId, messageId: gmailMessageId, labelId: gmailLabelId })
+    .strict(),
+  'gmail.removeLabel': z
+    .object({ connectionId, messageId: gmailMessageId, labelId: gmailLabelId })
+    .strict(),
+  'gmail.markAsRead': z.object({ connectionId, messageId: gmailMessageId }).strict(),
+  'gmail.markAsUnread': z.object({ connectionId, messageId: gmailMessageId }).strict(),
   'slack.sendMessage': z
     .object({
       connectionId,
