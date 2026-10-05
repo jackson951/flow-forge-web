@@ -34,6 +34,7 @@ import { ResourcePicker } from './resource-picker';
 import { ScheduleTriggerForm } from './schedule-trigger-form';
 import { TemplateInput } from './template-input';
 import { WebhookTriggerForm } from './webhook-trigger-form';
+import { JiraForm } from './jira-forms';
 
 export interface FormProps {
   config: Record<string, unknown>;
@@ -57,6 +58,7 @@ const str = (v: unknown) => (typeof v === 'string' ? v : '');
 
 /** The settings form for a node type (Part 06, FR-06.2). */
 export function NodeForm({ type, ...props }: FormProps & { type: string }) {
+  if (type.startsWith('jira.')) return <JiraForm type={type} {...props} />;
   switch (type) {
     case 'manual.trigger':
       return <ManualTriggerForm />;

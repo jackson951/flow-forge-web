@@ -171,6 +171,49 @@ const extractFieldSchema = z
     path: ['enumValues'],
   });
 
+const jiraSiteId = z
+  .string({ required_error: 'Choose a Jira site' })
+  .regex(/^[A-Za-z0-9-]{1,64}$/, 'Choose a Jira site');
+const jiraBase = { connectionId, siteId: jiraSiteId };
+const jiraProjectKey = z.string().regex(/^[A-Z][A-Z0-9_]{1,9}$/, 'Choose a Jira project');
+const jiraIssueKey = z
+  .string({ required_error: 'Enter an issue key' })
+  .min(1, 'Enter an issue key')
+  .max(200);
+const jiraLabels = z
+  .array(z.string().regex(/^[^\s]{1,255}$/, 'Labels cannot contain spaces'))
+  .max(20, 'At most 20 labels')
+  .optional();
+const jiraFields = z
+  .array(z.string().regex(/^[A-Za-z0-9_.-]{1,64}$/, 'Use Jira field names'))
+  .max(30, 'At most 30 fields')
+  .optional();
+const jiraCustomFields = z
+  .record(
+    z.string().regex(/^customfield_\d{1,10}$/, 'Use ids such as customfield_10010'),
+    z.union([z.string().max(2_000), z.number(), z.boolean()]),
+  )
+  .refine((fields) => Object.keys(fields).length <= 20, 'At most 20 custom fields')
+  .optional();
+const jiraTrigger = (transitioned = false) =>
+  z
+    .object({
+      ...jiraBase,
+      projectKeys: z
+        .array(jiraProjectKey)
+        .min(1, 'Choose at least one project')
+        .max(20, 'At most 20 projects')
+        .refine((keys) => new Set(keys).size === keys.length, 'Projects must not repeat'),
+      issueTypes: z.array(z.string().min(1).max(60)).max(20, 'At most 20 issue types').optional(),
+      ...(transitioned
+        ? {
+            fromStatus: z.string().min(1).max(60).optional(),
+            toStatus: z.string().min(1).max(60).optional(),
+          }
+        : {}),
+    })
+    .strict();
+
 export const CONFIG_SCHEMAS: Record<string, ZodType> = {
   'manual.trigger': z.object({}).strict(),
   condition: conditionConfigSchema,
@@ -188,6 +231,94 @@ export const CONFIG_SCHEMAS: Record<string, ZodType> = {
       repository: z
         .string({ required_error: 'Choose a repository' })
         .regex(REPOSITORY, 'Choose a repository ("owner/name")'),
+    })
+    .strict(),
+  'jira.issue.created': jiraTrigger(),
+  'jira.issue.updated': jiraTrigger(),
+  'jira.issue.transitioned': jiraTrigger(true),
+  'jira.createIssue': z
+    .object({
+      ...jiraBase,
+      projectKey: jiraProjectKey,
+      issueType: z
+        .string({ required_error: 'Choose an issue type' })
+        .min(1, 'Choose an issue type')
+        .max(60),
+      summary: z
+        .string({ required_error: 'Enter a summary' })
+        .min(1, 'Enter a summary')
+        .max(255, 'At most 255 characters'),
+      description: z.string().max(32_000).optional(),
+      priority: z.string().min(1).max(60).optional(),
+      labels: jiraLabels,
+      assigneeAccountId: z.string().max(200).optional(),
+      customFields: jiraCustomFields,
+    })
+    .strict(),
+  'jira.updateIssue': z
+    .object({
+      ...jiraBase,
+      issueKey: jiraIssueKey,
+      summary: z.string().min(1).max(255).optional(),
+      description: z.string().max(32_000).optional(),
+      priority: z.string().min(1).max(60).optional(),
+      labels: jiraLabels,
+      customFields: jiraCustomFields,
+    })
+    .strict()
+    .refine(
+      (config) =>
+        config.summary !== undefined ||
+        config.description !== undefined ||
+        config.priority !== undefined ||
+        config.labels !== undefined ||
+        config.customFields !== undefined,
+      'Set at least one field to update',
+    ),
+  'jira.getIssue': z.object({ ...jiraBase, issueKey: jiraIssueKey, fields: jiraFields }).strict(),
+  'jira.addComment': z
+    .object({
+      ...jiraBase,
+      issueKey: jiraIssueKey,
+      text: z.string({ required_error: 'Enter a comment' }).min(1, 'Enter a comment').max(32_000),
+    })
+    .strict(),
+  'jira.transitionIssue': z
+    .object({
+      ...jiraBase,
+      issueKey: jiraIssueKey,
+      toStatus: z.string().min(1).max(60).optional(),
+      transitionId: z
+        .string()
+        .regex(/^\d{1,10}$/, 'Use a numeric transition id')
+        .optional(),
+    })
+    .strict()
+    .refine(
+      (config) => Boolean(config.toStatus) !== Boolean(config.transitionId),
+      'Set exactly one of target status or transition id',
+    ),
+  'jira.assignIssue': z
+    .object({
+      ...jiraBase,
+      issueKey: jiraIssueKey,
+      assigneeAccountId: z
+        .string({ required_error: 'Choose an assignee' })
+        .min(1, 'Choose an assignee')
+        .max(200),
+    })
+    .strict(),
+  'jira.searchIssues': z
+    .object({
+      ...jiraBase,
+      jql: z.string({ required_error: 'Enter JQL' }).min(1, 'Enter JQL').max(2_000),
+      maxResults: z
+        .number()
+        .int('Use a whole number')
+        .min(1, 'At least 1')
+        .max(100, 'At most 100')
+        .default(25),
+      fields: jiraFields,
     })
     .strict(),
   'slack.sendMessage': z

@@ -299,6 +299,18 @@ function connectionDetails(c: Connection): string | null {
   if (c.provider === 'MICROSOFT' && typeof m.displayName === 'string') return m.displayName;
   if (c.provider === 'SLACK') return 'Slack workspace';
   if (c.provider === 'GMAIL') return 'Mailbox';
+  if (c.provider === 'JIRA') {
+    const sites = Array.isArray(m.sites)
+      ? m.sites.filter(
+          (site): site is { name?: string; url?: string } => !!site && typeof site === 'object',
+        )
+      : [];
+    if (!sites.length) return 'No Jira sites currently visible';
+    return `${sites.length} Jira site${sites.length === 1 ? '' : 's'}: ${sites
+      .map((site) => site.name || site.url)
+      .filter(Boolean)
+      .join(', ')}`;
+  }
   if (c.provider === 'HTTP') {
     const auth = typeof m.authType === 'string' ? (HTTP_AUTH[m.authType] ?? m.authType) : null;
     const hint = typeof m.secretHint === 'string' && m.authType !== 'none' ? m.secretHint : null;

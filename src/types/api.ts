@@ -333,6 +333,34 @@ export interface TodoList {
   isDefault: boolean;
 }
 
+export interface JiraSite {
+  cloudId: string;
+  name: string;
+  url: string;
+}
+
+export interface JiraProject {
+  id: string | null;
+  key: string | null;
+  name: string | null;
+}
+
+export interface JiraIssueType {
+  id: string | null;
+  name: string | null;
+  subtask: boolean;
+}
+
+export interface JiraStatus {
+  id: string | null;
+  name: string;
+}
+
+export interface JiraUser {
+  accountId: string;
+  displayName: string | null;
+}
+
 /** Query string the backend appends when it sends the browser back after OAuth. */
 export interface IntegrationCallbackParams {
   provider: string;

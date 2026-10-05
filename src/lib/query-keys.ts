@@ -54,5 +54,7 @@ export const queryKeys = {
       [...ws(workspaceId), 'connections', connectionId, 'slack-channels'] as const,
     todoLists: (workspaceId: string, connectionId: string) =>
       [...ws(workspaceId), 'connections', connectionId, 'todo-lists'] as const,
+    jira: (workspaceId: string, connectionId: string, resource: string, params: object = {}) =>
+      [...ws(workspaceId), 'connections', connectionId, 'jira', resource, params] as const,
   },
 };

@@ -1,6 +1,6 @@
 # 21 — Jira Integration
 
-**Status:** NOT STARTED — awaiting product-owner approval of this spec. See [00-FRONTEND-ROADMAP.md](00-FRONTEND-ROADMAP.md)
+**Status:** COMPLETE — implemented and verified 2026-10-04. See [00-FRONTEND-ROADMAP.md](00-FRONTEND-ROADMAP.md)
 
 ## Objective
 
@@ -70,6 +70,30 @@ Component (MSW): connect callback for Jira, sites listed, cascading pickers with
 ## Dependencies
 
 Parts 16, 06–08, 10.
+
+## Implementation Evidence (2026-10-04)
+
+Delivered:
+
+- Jira OAuth uses the shared connect/callback flow and returns to Integrations or the originating node. Integration cards show the connected Atlassian account, accessible Jira sites and actionable status reasons. Disconnect identifies affected workflows and explains that their Jira webhooks are removed.
+- All three triggers and seven actions have forms matching the backend Part 25 config schemas. Every form starts with connection and site; project, issue-type, status and assignable-user pickers cascade from those values. Upstream changes clear dependent values, single sites are selected automatically, missing saved values are flagged, and assignable-user search is sent to Jira as the user types.
+- Trigger project and issue-type limits, create/update field limits, custom fields, optional returned fields, exact-one transition mode, search limits and the update-at-least-one-field rule are validated before save while backend validation remains authoritative.
+- The Jira trigger catalogue and normalized action outputs are available in template/reference suggestions. Run details render a validated HTTPS link for normalized Jira issue outputs and continue to show categorized provider errors.
+
+Verification:
+
+- npm run typecheck — passed.
+- npm run lint — passed.
+- Focused Vitest suites for config/reference behavior, pending-form routing, Integrations and run detail — 4 files / 72 tests passed.
+- Prettier check passed for every Part 21 file.
+
+| AC | Status |
+| --- | --- |
+| AC-21.1 | Met — shared OAuth callback return, Jira connection/site presentation and reconnect states are implemented |
+| AC-21.2 | Met — forms exist for all 10 Jira node types and persist the exact backend contract |
+| AC-21.3 | Met — frontend publishes the tested Part 25 trigger configs; real Jira delivery was verified in backend Part 25 |
+| AC-21.4 | Met — normalized Jira trigger and action fields are registered in the reference catalogue |
+| AC-21.5 | Met — status reasons, affected workflows and Jira webhook removal are explained |
 
 ## Risks / Design Questions
 

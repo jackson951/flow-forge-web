@@ -13,18 +13,18 @@ const props = {
 };
 
 describe('node types whose form comes later (Part 16, FR-16.8)', () => {
-  it.each([
-    ['jira.issue.created', 21],
-    ['gmail.sendEmail', 22],
-  ])('%s names the part that brings its form (%i)', (type, part) => {
-    expect(upcomingFormPart(type)).toBe(part);
-    render(<NodeForm type={type} {...props} />);
-    expect(screen.getByText(new RegExp(`arrives in frontend Part ${part}`))).toBeInTheDocument();
-    expect(screen.getByText(/current settings are kept/)).toBeInTheDocument();
-  });
+  it.each([['gmail.sendEmail', 22]])(
+    '%s names the part that brings its form (%i)',
+    (type, part) => {
+      expect(upcomingFormPart(type)).toBe(part);
+      render(<NodeForm type={type} {...props} />);
+      expect(screen.getByText(new RegExp(`arrives in frontend Part ${part}`))).toBeInTheDocument();
+      expect(screen.getByText(/current settings are kept/)).toBeInTheDocument();
+    },
+  );
 
   it('never edits the existing settings', () => {
-    render(<NodeForm type="jira.createIssue" {...props} />);
+    render(<NodeForm type="gmail.sendEmail" {...props} />);
     expect(props.set).not.toHaveBeenCalled();
     expect(props.setMany).not.toHaveBeenCalled();
     expect(props.replace).not.toHaveBeenCalled();
