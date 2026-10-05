@@ -87,6 +87,76 @@ registerOutputs('http.poll', {
 
 // ── Node types of Parts 01–15 ────────────────────────────────────────────────
 
+// Part 21: Jira normalized issue and event contract.
+const jiraIssueFields: OutputField[] = [
+  { path: 'id', description: 'Jira issue id' },
+  { path: 'key', description: 'Issue key, e.g. ENG-123' },
+  { path: 'summary', description: 'Issue summary' },
+  { path: 'description', description: 'Plain-text issue description' },
+  { path: 'status', description: 'Current status name' },
+  { path: 'statusCategory', description: 'Status category' },
+  { path: 'type', description: 'Issue type' },
+  { path: 'priority', description: 'Priority name' },
+  { path: 'project.key', description: 'Project key' },
+  { path: 'project.name', description: 'Project name' },
+  { path: 'assignee.accountId', description: 'Assignee account id' },
+  { path: 'assignee.displayName', description: 'Assignee name' },
+  { path: 'reporter.accountId', description: 'Reporter account id' },
+  { path: 'reporter.displayName', description: 'Reporter name' },
+  { path: 'labels', description: 'Issue labels (list)' },
+  { path: 'url', description: 'Link to the issue on its Jira site' },
+  { path: 'created', description: 'When the issue was created' },
+  { path: 'updated', description: 'When the issue was updated' },
+];
+const jiraTriggerFields: OutputField[] = [
+  { path: 'event', description: 'Jira event type' },
+  ...jiraIssueFields.map((field) => ({ ...field, path: `issue.${field.path}` })),
+  { path: 'changes', description: 'Changed fields (list)' },
+  { path: 'changes[].field', description: 'Changed field name' },
+  { path: 'changes[].from', description: 'Value before the change' },
+  { path: 'changes[].to', description: 'Value after the change' },
+  { path: 'transition.from', description: 'Previous status' },
+  { path: 'transition.to', description: 'New status' },
+  { path: 'actor.accountId', description: 'Actor account id' },
+  { path: 'actor.displayName', description: 'Actor name' },
+  { path: 'site.cloudId', description: 'Jira site cloud id' },
+];
+for (const type of ['jira.issue.created', 'jira.issue.updated', 'jira.issue.transitioned'])
+  registerOutputs(type, { trigger: jiraTriggerFields });
+for (const type of ['jira.createIssue', 'jira.updateIssue', 'jira.getIssue'])
+  registerOutputs(type, { output: () => jiraIssueFields });
+registerOutputs('jira.addComment', {
+  output: () => [
+    { path: 'issueKey', description: 'Issue key' },
+    { path: 'commentId', description: 'Created comment id' },
+    { path: 'created', description: 'When the comment was created' },
+  ],
+});
+registerOutputs('jira.transitionIssue', {
+  output: () => [
+    { path: 'issueKey', description: 'Issue key' },
+    { path: 'transitionId', description: 'Applied transition id' },
+    { path: 'toStatus', description: 'New status' },
+  ],
+});
+registerOutputs('jira.assignIssue', {
+  output: () => [
+    { path: 'issueKey', description: 'Issue key' },
+    { path: 'assigneeAccountId', description: 'New assignee or null' },
+  ],
+});
+registerOutputs('jira.searchIssues', {
+  output: () => [
+    { path: 'issues', description: 'Matching normalized issues' },
+    { path: 'issues[].key', description: 'Issue key' },
+    { path: 'issues[].summary', description: 'Issue summary' },
+    { path: 'issues[].status', description: 'Issue status' },
+    { path: 'issues[].url', description: 'Link to the issue' },
+    { path: 'count', description: 'Number of returned issues' },
+    { path: 'hasMore', description: 'Whether Jira has more matches' },
+  ],
+});
+
 registerOutputs('github.issue.created', {
   trigger: [
     { path: 'issue.number', description: 'Issue number' },

@@ -28,6 +28,8 @@ interface ResourcePickerProps {
   /** Shown instead of the list until a connection is chosen. */
   waitingText?: string;
   invalid?: boolean;
+  /** Also send search text to a provider-backed search endpoint. */
+  onSearch?: (query: string) => void;
 }
 
 /**
@@ -89,7 +91,10 @@ export function ResourcePicker(props: ResourcePickerProps) {
           id={id}
           type="search"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            props.onSearch?.(e.target.value);
+          }}
           placeholder={`Search ${label.toLowerCase()}…`}
           aria-controls={listId}
           aria-describedby={`${id}-msg`}

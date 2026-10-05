@@ -68,6 +68,12 @@ export function DisconnectDialog({
         {usage.data && usage.data.workflows.length === 0 && (
           <p className="text-muted">No workflow draft uses this connection.</p>
         )}
+        {connection.provider === 'JIRA' && (
+          <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-950">
+            Disconnecting removes FlowForge's Jira webhooks for this connection. Published Jira
+            triggers in the affected workflows stop receiving events.
+          </p>
+        )}
         <p className="text-muted text-xs">
           Checked the saved drafts of{' '}
           {usage.data?.partial ? `the ${USAGE_SCAN_LIMIT} most recent` : 'all'} workflows; published

@@ -27,6 +27,7 @@ export function StepTimeline({ steps, labelFor, skipReasons, payloadsTrimmed }: 
     >
       {ordered.map((step) => {
         const skipped = step.status === 'SKIPPED';
+        const jiraLink = jiraIssueLink(step);
         return (
           <li key={step.id} className={cn('space-y-2 px-4 py-3', skipped && 'bg-canvas/50')}>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -67,7 +68,19 @@ export function StepTimeline({ steps, labelFor, skipReasons, payloadsTrimmed }: 
             {step.externalRef && (
               <p className="text-muted flex items-center gap-1.5 pl-9 text-xs">
                 <ExternalLink className="size-3.5" aria-hidden />
-                Provider reference <span className="font-mono">{step.externalRef}</span>
+                Provider reference{' '}
+                {jiraLink ? (
+                  <a
+                    href={jiraLink.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-primary font-mono hover:underline"
+                  >
+                    {jiraLink.key}
+                  </a>
+                ) : (
+                  <span className="font-mono">{step.externalRef}</span>
+                )}
               </p>
             )}
             {!skipped && step.nodeType === 'http.request' && (
@@ -95,4 +108,24 @@ export function StepTimeline({ steps, labelFor, skipReasons, payloadsTrimmed }: 
       })}
     </ol>
   );
+}
+
+function jiraIssueLink(step: StepRun): { key: string; url: string } | null {
+  if (!step.nodeType.startsWith('jira.') || !step.output || typeof step.output !== 'object')
+    return null;
+  const output = step.output as Record<string, unknown>;
+  const key =
+    typeof output.key === 'string'
+      ? output.key
+      : typeof output.issueKey === 'string'
+        ? output.issueKey
+        : step.externalRef;
+  if (!key || !/^[A-Z][A-Z0-9_]{1,9}-\d{1,9}$/.test(key)) return null;
+  if (typeof output.url !== 'string') return null;
+  try {
+    const url = new URL(output.url);
+    return url.protocol === 'https:' ? { key, url: url.toString() } : null;
+  } catch {
+    return null;
+  }
 }

@@ -39,6 +39,51 @@ describe('config schemas mirror the backend (Part 06, FR-06.6)', () => {
     );
   });
 
+  it('Jira triggers and actions mirror the backend contract (Part 21)', () => {
+    const base = { connectionId: UUID, siteId: 'cloud-123' };
+    expect(ok('jira.issue.created', { ...base, projectKeys: ['ENG'] })).toBe(true);
+    expect(
+      ok('jira.issue.transitioned', {
+        ...base,
+        projectKeys: ['ENG'],
+        issueTypes: ['Story'],
+        fromStatus: 'To Do',
+        toStatus: 'Done',
+      }),
+    ).toBe(true);
+    expect(ok('jira.issue.created', { ...base, projectKeys: [] })).toBe(false);
+    expect(ok('jira.issue.created', { ...base, projectKeys: ['eng'] })).toBe(false);
+
+    expect(
+      ok('jira.createIssue', {
+        ...base,
+        projectKey: 'ENG',
+        issueType: '10001',
+        summary: '{{ trigger.issue.summary }}',
+        labels: ['flowforge'],
+        customFields: { customfield_10010: true },
+      }),
+    ).toBe(true);
+    expect(ok('jira.updateIssue', { ...base, issueKey: '{{ trigger.issue.key }}' })).toBe(false);
+    expect(
+      ok('jira.updateIssue', {
+        ...base,
+        issueKey: '{{ trigger.issue.key }}',
+        summary: 'Changed',
+      }),
+    ).toBe(true);
+    expect(ok('jira.transitionIssue', { ...base, issueKey: 'ENG-1', toStatus: 'Done' })).toBe(true);
+    expect(
+      ok('jira.transitionIssue', {
+        ...base,
+        issueKey: 'ENG-1',
+        toStatus: 'Done',
+        transitionId: '31',
+      }),
+    ).toBe(false);
+    expect(ok('jira.searchIssues', { ...base, jql: 'project = ENG', maxResults: 101 })).toBe(false);
+  });
+
   it('slack.sendMessage checks channel id, text length and rejects unknown keys', () => {
     const base = { connectionId: UUID, channelId: 'C0123456789', text: 'Hello' };
     expect(ok('slack.sendMessage', base)).toBe(true);

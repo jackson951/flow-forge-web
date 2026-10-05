@@ -15,6 +15,11 @@ import type {
   Page,
   SlackChannel,
   TodoList,
+  JiraSite,
+  JiraProject,
+  JiraIssueType,
+  JiraStatus,
+  JiraUser,
 } from '@/types/api';
 import { browser, isSafeProviderUrl, rememberReturn, type ConnectReturn } from '../connect-flow';
 
@@ -35,6 +40,24 @@ export const integrationsApi = {
     }),
   todoLists: (ws: string, connectionId: string) =>
     api.get<TodoList[]>(`${base(ws)}/${connectionId}/microsoft/todo-lists`),
+  jiraSites: (ws: string, connectionId: string) =>
+    api.get<JiraSite[]>(`${base(ws)}/${connectionId}/jira/sites`),
+  jiraProjects: (ws: string, connectionId: string, siteId: string, query?: string) =>
+    api.get<JiraProject[]>(`${base(ws)}/${connectionId}/jira/projects`, {
+      query: { siteId, query },
+    }),
+  jiraIssueTypes: (ws: string, connectionId: string, siteId: string, project: string) =>
+    api.get<JiraIssueType[]>(`${base(ws)}/${connectionId}/jira/issue-types`, {
+      query: { siteId, project },
+    }),
+  jiraStatuses: (ws: string, connectionId: string, siteId: string, project: string) =>
+    api.get<JiraStatus[]>(`${base(ws)}/${connectionId}/jira/statuses`, {
+      query: { siteId, project },
+    }),
+  jiraUsers: (ws: string, connectionId: string, siteId: string, project: string, query?: string) =>
+    api.get<JiraUser[]>(`${base(ws)}/${connectionId}/jira/users`, {
+      query: { siteId, project, query },
+    }),
   createHttp: (ws: string, body: CreateHttpConnectionRequest) =>
     api.post<Connection>(`${base(ws)}/http`, body),
   testHttp: (ws: string, connectionId: string, body: { url: string; method?: 'GET' | 'HEAD' }) =>
@@ -82,6 +105,70 @@ export function useTodoLists(ws: string, connectionId: string | undefined) {
     queryKey: queryKeys.integrations.todoLists(ws, connectionId ?? ''),
     queryFn: () => integrationsApi.todoLists(ws, connectionId!),
     enabled: !!connectionId,
+  });
+}
+
+export function useJiraSites(ws: string, connectionId?: string) {
+  return useQuery({
+    queryKey: queryKeys.integrations.jira(ws, connectionId ?? '', 'sites'),
+    queryFn: () => integrationsApi.jiraSites(ws, connectionId!),
+    enabled: !!connectionId,
+  });
+}
+
+export function useJiraProjects(ws: string, connectionId?: string, siteId?: string, query = '') {
+  return useQuery({
+    queryKey: queryKeys.integrations.jira(ws, connectionId ?? '', 'projects', { siteId, query }),
+    queryFn: () => integrationsApi.jiraProjects(ws, connectionId!, siteId!, query || undefined),
+    enabled: !!connectionId && !!siteId,
+  });
+}
+
+export function useJiraIssueTypes(
+  ws: string,
+  connectionId?: string,
+  siteId?: string,
+  project?: string,
+) {
+  return useQuery({
+    queryKey: queryKeys.integrations.jira(ws, connectionId ?? '', 'issue-types', {
+      siteId,
+      project,
+    }),
+    queryFn: () => integrationsApi.jiraIssueTypes(ws, connectionId!, siteId!, project!),
+    enabled: !!connectionId && !!siteId && !!project,
+  });
+}
+
+export function useJiraStatuses(
+  ws: string,
+  connectionId?: string,
+  siteId?: string,
+  project?: string,
+) {
+  return useQuery({
+    queryKey: queryKeys.integrations.jira(ws, connectionId ?? '', 'statuses', { siteId, project }),
+    queryFn: () => integrationsApi.jiraStatuses(ws, connectionId!, siteId!, project!),
+    enabled: !!connectionId && !!siteId && !!project,
+  });
+}
+
+export function useJiraUsers(
+  ws: string,
+  connectionId?: string,
+  siteId?: string,
+  project?: string,
+  query = '',
+) {
+  return useQuery({
+    queryKey: queryKeys.integrations.jira(ws, connectionId ?? '', 'users', {
+      siteId,
+      project,
+      query,
+    }),
+    queryFn: () =>
+      integrationsApi.jiraUsers(ws, connectionId!, siteId!, project!, query || undefined),
+    enabled: !!connectionId && !!siteId && !!project,
   });
 }
 
