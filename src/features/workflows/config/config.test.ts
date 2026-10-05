@@ -14,6 +14,7 @@ import {
   templateReferences,
 } from './references';
 import { CONFIG_SCHEMAS, configErrors, measureCondition, type ConditionGroup } from './schemas';
+import { filterSuggestions } from './config-scope';
 
 const UUID = '3f2b8c1e-4d5a-4b6c-8d7e-9f0a1b2c3d4e';
 const ok = (type: string, config: unknown) => CONFIG_SCHEMAS[type].safeParse(config).success;
@@ -268,6 +269,23 @@ describe('reference suggestions (Part 06, AC-06.3)', () => {
   it('a step without a parent sees nothing', () => {
     const lonely = { ...def, edges: [] };
     expect(availableReferences(lonely, 'notify')).toEqual([]);
+  });
+
+  it('offers manual trigger payloads and clear custom field paths', () => {
+    const manual: WorkflowDefinition = {
+      schemaVersion: 1,
+      nodes: [
+        { key: 'trigger', kind: 'TRIGGER', type: 'manual.trigger', config: {} },
+        { key: 'log', kind: 'ACTION', type: 'util.log', config: {} },
+      ],
+      edges: [{ from: 'trigger', to: 'log' }],
+    };
+    const refs = availableReferences(manual, 'log');
+    expect(refs.map((item) => item.ref)).toEqual(['trigger']);
+    expect(filterSuggestions(refs, 'customer.email')[0]).toMatchObject({
+      ref: 'trigger.customer.email',
+      description: 'Custom field from this trigger payload',
+    });
   });
 
   it('flags syntax errors, unknown and non-upstream steps; warns on unknown outputs', () => {

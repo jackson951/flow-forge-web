@@ -1,6 +1,6 @@
 import type { NodePosition, WorkflowDefinition } from '../types/workflow-definition';
 
-export const LAYOUT = { columnWidth: 300, rowHeight: 140 } as const;
+export const LAYOUT = { columnWidth: 340, rowHeight: 210 } as const;
 
 /**
  * Top-to-bottom tree layout for nodes without a stored position: depth from the trigger sets

@@ -3,13 +3,15 @@ import {
   Background,
   BackgroundVariant,
   Controls,
-  MiniMap,
+  MarkerType,
+  Panel as FlowPanel,
   ReactFlow,
   useReactFlow,
   type Connection,
   type IsValidConnection,
   type NodeChange,
 } from '@xyflow/react';
+import { Focus, LayoutDashboard, MousePointer2, Workflow } from 'lucide-react';
 import { useCallback, useMemo, useState, type DragEvent } from 'react';
 import type { NodeKind, StepStatus } from '@/types/api';
 import type { EditorAction } from '../../editor/editor-reducer';
@@ -29,6 +31,10 @@ interface WorkflowCanvasProps {
   labelFor: (type: string) => string;
   issueCount: (key: string) => number;
   readOnly?: boolean;
+  /** Prevent the initial overview from shrinking a large graph below a readable scale. */
+  initialFitMinZoom?: number;
+  /** Expand legacy tight coordinates for display without changing the saved workflow. */
+  spacious?: boolean;
   /** Run view: step statuses overlaid on the nodes (Part 08). */
   statusFor?: (key: string) => StepStatus | undefined;
 }
@@ -46,12 +52,14 @@ export function WorkflowCanvas({
   labelFor,
   issueCount,
   readOnly = false,
+  initialFitMinZoom,
+  spacious = false,
   statusFor,
 }: WorkflowCanvasProps) {
-  const { screenToFlowPosition } = useReactFlow();
+  const { screenToFlowPosition, fitView } = useReactFlow();
   const flow = useMemo(
-    () => toFlow(definition, { labelFor, issueCount, readOnly, statusFor }),
-    [definition, labelFor, issueCount, readOnly, statusFor],
+    () => toFlow(definition, { labelFor, issueCount, readOnly, spacious, statusFor }),
+    [definition, labelFor, issueCount, readOnly, spacious, statusFor],
   );
   // Local copy for React Flow (live drag positions, measured sizes). Re-derived during render
   // whenever the reducer's definition or the selection changes — the definition always wins.
@@ -70,6 +78,7 @@ export function WorkflowCanvas({
   }
   const nodes = local.nodes;
   const edges = flow.edges;
+  const selected = definition.nodes.find((node) => node.key === selectedKey);
 
   const onNodesChange = useCallback(
     (changes: NodeChange<FlowNode>[]) => {
@@ -153,15 +162,80 @@ export function WorkflowCanvas({
       nodesDraggable={!readOnly}
       nodesConnectable={!readOnly}
       elementsSelectable
-      defaultEdgeOptions={{ type: 'smoothstep' }}
+      defaultEdgeOptions={{
+        type: 'smoothstep',
+        markerEnd: { type: MarkerType.ArrowClosed, width: 16, height: 16 },
+        style: { strokeWidth: 1.8 },
+        labelStyle: { fontWeight: 700, fontSize: 11 },
+        labelBgStyle: { fill: 'var(--color-surface)', fillOpacity: 0.95 },
+        labelBgPadding: [6, 3],
+        labelBgBorderRadius: 6,
+      }}
+      connectionLineStyle={{ stroke: 'var(--color-primary)', strokeWidth: 2 }}
+      minZoom={0.08}
       fitView
-      fitViewOptions={{ padding: 0.3, maxZoom: 1.1 }}
+      fitViewOptions={{ padding: 0.3, minZoom: initialFitMinZoom, maxZoom: 1.1 }}
       proOptions={{ hideAttribution: true }}
       aria-label="Workflow canvas"
     >
       <Background variant={BackgroundVariant.Dots} gap={20} size={1.2} />
+      <FlowPanel position="top-left" className="m-3!">
+        <div className="border-line bg-surface/95 flex flex-wrap items-center gap-1.5 rounded-xl border p-1.5 shadow-sm backdrop-blur">
+          <span className="text-muted flex max-w-56 items-center gap-1.5 border-r px-2 text-xs">
+            {selected ? (
+              <>
+                <MousePointer2 className="text-primary size-3.5 shrink-0" aria-hidden />
+                <span className="truncate">
+                  <strong className="text-ink">{labelFor(selected.type)}</strong> · {selected.key}
+                </span>
+              </>
+            ) : (
+              <>
+                <Workflow className="text-primary size-3.5" aria-hidden />
+                {nodes.length} node{nodes.length === 1 ? '' : 's'} · {edges.length} connection
+                {edges.length === 1 ? '' : 's'}
+              </>
+            )}
+          </span>
+          {!readOnly && (
+            <button
+              type="button"
+              disabled={!nodes.length}
+              onClick={() => {
+                dispatch({ type: 'autoLayout' });
+                setTimeout(() => void fitView({ padding: 0.25, duration: 350, maxZoom: 1.1 }), 0);
+              }}
+              className="text-muted hover:bg-canvas hover:text-ink inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs disabled:opacity-40"
+            >
+              <LayoutDashboard className="size-3.5" aria-hidden />
+              Arrange
+            </button>
+          )}
+          <button
+            type="button"
+            disabled={!nodes.length}
+            onClick={() => void fitView({ padding: 0.25, duration: 350, maxZoom: 1.1 })}
+            className="text-muted hover:bg-canvas hover:text-ink inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs disabled:opacity-40"
+          >
+            <Focus className="size-3.5" aria-hidden />
+            Fit all
+          </button>
+        </div>
+      </FlowPanel>
+      {!nodes.length && (
+        <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center p-8">
+          <div className="border-line bg-surface/95 max-w-sm rounded-2xl border p-6 text-center shadow-lg backdrop-blur">
+            <span className="bg-primary-soft text-primary mx-auto flex size-12 items-center justify-center rounded-xl">
+              <Workflow className="size-6" aria-hidden />
+            </span>
+            <p className="mt-3 font-semibold">Start with a trigger</p>
+            <p className="text-muted mt-1 text-sm">
+              Choose a trigger from the builder, then add actions and conditions to shape the flow.
+            </p>
+          </div>
+        </div>
+      )}
       <Controls showInteractive={false} />
-      <MiniMap pannable zoomable className="hidden! md:block!" />
     </ReactFlow>
   );
 }

@@ -13,6 +13,8 @@ export interface ReferenceSuggestion {
   /** Where it comes from, e.g. "Classify text (classify)". */
   source: string;
   description: string;
+  /** The payload has no fixed schema; users may type a valid child path. */
+  allowsChildren?: boolean;
 }
 
 export interface ReferenceProblem {
@@ -45,7 +47,16 @@ export function availableReferences(
     if (!node) continue;
     const source = `${labelFor(node.type)} (${node.key})`;
     if (node.kind === 'TRIGGER') {
-      for (const f of triggerFields(node.type)) {
+      const fields = triggerFields(node.type);
+      if (!fields.length) {
+        result.push({
+          ref: 'trigger',
+          source,
+          description: 'Entire trigger payload; type a field name to use part of it',
+          allowsChildren: true,
+        });
+      }
+      for (const f of fields) {
         result.push({ ref: `trigger.${f.path}`, source, description: f.description });
       }
       continue;

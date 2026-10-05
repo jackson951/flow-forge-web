@@ -1,13 +1,24 @@
-import { CircleAlert, KeyRound, MousePointerClick, Settings2, Trash2 } from 'lucide-react';
+import {
+  Braces,
+  CheckCircle2,
+  CircleAlert,
+  Eye,
+  KeyRound,
+  MousePointerClick,
+  Settings2,
+  Trash2,
+} from 'lucide-react';
 import { useState } from 'react';
 import { NodeTypeIcon } from '@/components/brand/node-type-icon';
 import { Button, Field, Input } from '@/components/ui';
+import { cn } from '@/lib/cn';
 import type { ValidationIssue } from '@/types/api';
 import type { EditorAction } from '../editor/editor-reducer';
 import { keyProblem } from '../editor/keys';
 import { NodeSettings } from '../config/components/node-settings';
 import { NextSteps } from './next-steps';
 import type { NodeDefinition, WorkflowDefinition } from '../types/workflow-definition';
+import { configDisplayEntries } from '../editor/config-display';
 
 interface NodeConfigPanelProps {
   node: NodeDefinition | null;
@@ -58,6 +69,7 @@ function SelectedNodePanel({
 }: NodeConfigPanelProps & { node: NodeDefinition }) {
   const [draftKey, setDraftKey] = useState(node.key);
   const problem = draftKey === node.key ? null : keyProblem(draftKey, otherKeys);
+  const chosenValues = configDisplayEntries(node.config);
 
   const commitKey = () => {
     if (draftKey !== node.key && !problem) {
@@ -106,6 +118,49 @@ function SelectedNodePanel({
           />
         </div>
       </Field>
+
+      <section
+        aria-labelledby="chosen-values"
+        className="border-line bg-canvas/60 overflow-hidden rounded-xl border"
+      >
+        <div className="border-line flex items-center justify-between gap-3 border-b px-3 py-2.5">
+          <h3 id="chosen-values" className="flex items-center gap-1.5 text-sm font-semibold">
+            <Eye className="text-primary size-4" aria-hidden />
+            Chosen values
+          </h3>
+          <span className="text-muted text-xs tabular-nums">{chosenValues.length} set</span>
+        </div>
+        {chosenValues.length ? (
+          <dl className="divide-line divide-y">
+            {chosenValues.map((item) => (
+              <div key={item.path} className="grid gap-1 px-3 py-2.5">
+                <dt className="text-muted flex items-center gap-1.5 text-xs font-medium">
+                  {item.template ? (
+                    <Braces className="text-primary size-3.5" aria-hidden />
+                  ) : (
+                    <CheckCircle2 className="text-status-succeeded size-3.5" aria-hidden />
+                  )}
+                  {item.label}
+                </dt>
+                <dd
+                  className={cn(
+                    'text-ink text-sm wrap-break-word whitespace-pre-wrap',
+                    item.template && 'bg-primary-soft rounded-md px-2 py-1 font-mono text-xs',
+                  )}
+                >
+                  {item.value}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        ) : (
+          <p className="text-muted px-3 py-3 text-sm">
+            {node.type === 'manual.trigger'
+              ? 'This step has no settings. Manual input is supplied when a run starts.'
+              : 'No values chosen yet. Complete the settings below.'}
+          </p>
+        )}
+      </section>
 
       <section>
         <h3 className="flex items-center gap-1.5 text-sm font-semibold">

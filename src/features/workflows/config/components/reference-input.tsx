@@ -101,7 +101,6 @@ export function ReferenceInput({
             onChange(item.ref);
             setOpen(false);
           }}
-          onDismiss={() => setOpen(false)}
           empty={
             suggestions.length
               ? 'No matching data — type a path like trigger.name'

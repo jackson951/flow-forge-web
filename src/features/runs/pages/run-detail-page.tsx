@@ -29,7 +29,7 @@ import { policy } from '@/features/workspaces/policy';
 import { isNotFound } from '@/lib/api-client';
 import { formatDateTime, formatRelative } from '@/lib/format';
 import { paths } from '@/lib/routes';
-import type { RunDetail } from '@/types/api';
+import type { RunDetail, StepRun } from '@/types/api';
 import { isActive, useCancelRun, useRun, useRunSteps } from '../api/runs.api';
 import { ErrorExplanation } from '../components/error-explanation';
 import { isGmailMessage } from '../components/gmail-message';
@@ -184,11 +184,24 @@ function RunView({ run }: { run: RunDetail }) {
       <Facts run={run} />
 
       <section aria-label="Path taken" className="space-y-2">
-        <h2 className="flex items-center gap-1.5 text-sm font-semibold">
-          <Route className="text-muted size-4" aria-hidden />
-          Path taken
-        </h2>
-        <div className="border-line bg-canvas h-80 overflow-hidden rounded-xl border">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="flex items-center gap-1.5 text-sm font-semibold">
+              <Route className="text-primary size-4" aria-hidden />
+              Path taken
+            </h2>
+            <p className="text-muted mt-1 text-xs">
+              Saved node spacing is preserved. Drag to pan, scroll to zoom, or use Fit all for an
+              overview.
+            </p>
+          </div>
+          <RunPathSummary steps={stepList} nodeCount={version.data?.definition.nodes.length} />
+        </div>
+        <div
+          role="group"
+          aria-label="Interactive run path"
+          className="border-line bg-canvas h-[34rem] min-h-[28rem] overflow-hidden rounded-2xl border shadow-sm sm:h-[40rem] xl:h-[46rem]"
+        >
           {version.data ? (
             <ReactFlowProvider>
               <WorkflowCanvas
@@ -200,6 +213,8 @@ function RunView({ run }: { run: RunDetail }) {
                 issueCount={noIssues}
                 statusFor={statusFor}
                 readOnly
+                initialFitMinZoom={0.5}
+                spacious
               />
             </ReactFlowProvider>
           ) : (
@@ -222,7 +237,7 @@ function RunView({ run }: { run: RunDetail }) {
       <section className="space-y-2">
         <h2 className="flex items-center gap-1.5 text-sm font-semibold">
           <History className="text-muted size-4" aria-hidden />
-          Steps
+          Execution timeline
         </h2>
         {steps.isPending ? (
           <Skeleton className="h-40" />
@@ -346,6 +361,43 @@ function Fact({ label, children }: { label: string; children: React.ReactNode })
     <div className="min-w-0">
       <dt className="text-muted text-xs">{label}</dt>
       <dd className="mt-0.5">{children}</dd>
+    </div>
+  );
+}
+
+function RunPathSummary({ steps, nodeCount }: { steps: StepRun[]; nodeCount?: number }) {
+  const onPath = steps.filter((step) => step.status !== 'SKIPPED').length;
+  const counts = {
+    succeeded: steps.filter((step) => step.status === 'SUCCEEDED').length,
+    active: steps.filter((step) => step.status === 'RUNNING' || step.status === 'RETRYING').length,
+    failed: steps.filter((step) => step.status === 'FAILED').length,
+    skipped: steps.filter((step) => step.status === 'SKIPPED').length,
+  };
+  const items = [
+    ...(nodeCount === undefined ? [] : [{ label: 'nodes', value: nodeCount, dot: 'bg-primary' }]),
+    { label: 'on this run', value: onPath, dot: 'bg-ink' },
+    { label: 'Succeeded', value: counts.succeeded, dot: 'bg-status-succeeded' },
+    { label: 'Active', value: counts.active, dot: 'bg-status-running' },
+    { label: 'Failed', value: counts.failed, dot: 'bg-status-failed' },
+    {
+      label: counts.skipped === 1 ? 'skipped branch' : 'skipped branches',
+      value: counts.skipped,
+      dot: 'bg-muted',
+    },
+  ].filter((item) => item.value > 0);
+
+  return (
+    <div className="border-line bg-surface flex flex-wrap items-center gap-x-3 gap-y-1 rounded-full border px-3 py-1.5 text-xs shadow-sm">
+      {items.map((item) => (
+        <span
+          key={item.label}
+          aria-label={`${item.value} ${item.label}`}
+          className="text-muted inline-flex items-center gap-1.5"
+        >
+          <span className={`size-2 rounded-full ${item.dot}`} aria-hidden />
+          <strong className="text-ink font-semibold">{item.value}</strong> {item.label}
+        </span>
+      ))}
     </div>
   );
 }

@@ -171,7 +171,6 @@ export function TemplateInput({
           active={active}
           onHover={setActive}
           onPick={pick}
-          onDismiss={() => setOpen(null)}
           empty={
             suggestions.length
               ? 'No matching data'

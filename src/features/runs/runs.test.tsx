@@ -251,10 +251,17 @@ describe('run detail (Part 08, FR-08.4–08.9)', () => {
       'href',
       `/w/${WS_ID}/workflows/${WORKFLOW_ID}/versions/2`,
     );
-    const timeline = await screen.findByRole('list', { name: 'Steps' });
+    const timeline = await screen.findByRole('list', { name: 'Execution timeline' });
     expect(within(timeline).getAllByRole('listitem')).toHaveLength(2);
     expect(within(timeline).getAllByText('Hello Ada', { exact: false }).length).toBeGreaterThan(0);
     expect(screen.getByText('Trigger input')).toBeInTheDocument();
+    expect(screen.getByLabelText('2 nodes')).toBeInTheDocument();
+    expect(screen.getByLabelText('2 on this run')).toBeInTheDocument();
+    const runPath = screen.getByRole('group', { name: 'Interactive run path' });
+    expect(runPath).toHaveClass('h-[34rem]', 'sm:h-[40rem]', 'xl:h-[46rem]');
+    expect(screen.getByText(/Saved node spacing is preserved/)).toBeInTheDocument();
+    expect(within(runPath).queryByRole('button', { name: 'Arrange' })).not.toBeInTheDocument();
+    expect(within(runPath).getByRole('button', { name: 'Fit all' })).toBeInTheDocument();
   });
 
   it('polls while running and stops once the run is finished (FR-08.5)', async () => {
@@ -437,6 +444,9 @@ describe('run detail (Part 08, FR-08.4–08.9)', () => {
     ]);
     renderRoute(`/w/${WS_ID}/runs/${RUN_ID}`);
     expect(await screen.findByText('Branch not taken: is_high was true')).toBeInTheDocument();
+    expect(screen.getByLabelText('4 nodes')).toBeInTheDocument();
+    expect(screen.getByLabelText('3 on this run')).toBeInTheDocument();
+    expect(screen.getByLabelText('1 skipped branch')).toBeInTheDocument();
     await waitFor(() =>
       expect(document.querySelector('.react-flow__node[data-id="later"]')?.textContent).toContain(
         'Skipped',

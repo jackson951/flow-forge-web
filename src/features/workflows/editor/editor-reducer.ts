@@ -7,7 +7,7 @@ import {
 import { canConnect } from './graph-rules';
 import { edgeId } from './mapping';
 import { generateKey, keyProblem } from './keys';
-import { LAYOUT } from './layout';
+import { autoLayout, LAYOUT } from './layout';
 
 /**
  * Editor state (Part 05): the definition is the single source of truth; React Flow only renders
@@ -41,6 +41,8 @@ export type EditorAction =
       after?: string;
     }
   | { type: 'moveNode'; key: string; position: NodePosition }
+  /** Reflows the complete graph as one undoable edit. */
+  | { type: 'autoLayout' }
   | { type: 'connect'; from: string; to: string; branch?: 'true' | 'false' | null }
   /** Removes the nodes with their edges, plus any other `edgeIds`, as one undoable edit. */
   | { type: 'removeNodes'; keys: string[]; edgeIds?: string[] }
@@ -175,6 +177,19 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
         ...def,
         nodes: def.nodes.map((n) => (n.key === action.key ? { ...n, position: { x, y } } : n)),
       });
+    }
+
+    case 'autoLayout': {
+      const positions = autoLayout(def);
+      if (!positions.size) return state;
+      const definition = {
+        ...def,
+        nodes: def.nodes.map((node) => ({
+          ...node,
+          position: positions.get(node.key) ?? node.position,
+        })),
+      };
+      return JSON.stringify(definition) === JSON.stringify(def) ? state : commit(state, definition);
     }
 
     case 'connect': {

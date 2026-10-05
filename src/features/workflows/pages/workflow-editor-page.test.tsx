@@ -52,10 +52,58 @@ describe('Workflow editor canvas (Part 05)', () => {
     await openEditor();
     expect(canvasNode('trigger')).toBeInTheDocument();
     expect(canvasNode('log')).toBeInTheDocument();
+    expect(document.querySelector('.react-flow__minimap')).not.toBeInTheDocument();
     expect(within(canvasNode('log')).getByText('Log a message')).toBeInTheDocument();
-    expect(screen.getByText('2/50 steps')).toBeInTheDocument();
+    expect(screen.getByText('2/50 nodes')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
     expect(within(panel()).getByText('Select a step')).toBeInTheDocument();
+  });
+
+  it('keeps chosen values visible and navigates large flows from the outline', async () => {
+    await openEditor();
+    const logNode = canvasNode('log');
+    expect(within(logNode).getByText('Message')).toBeInTheDocument();
+    expect(within(logNode).getByText('Hello {{trigger.name}}')).toBeInTheDocument();
+    expect(within(logNode).getByText('1 value set')).toBeInTheDocument();
+
+    selectNode('log');
+    const chosen = within(panel()).getByRole('region', { name: 'Chosen values' });
+    expect(within(chosen).getByText('Hello {{trigger.name}}')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('tab', { name: 'Flow outline' }));
+    const outline = screen.getByRole('navigation', { name: 'Workflow outline' });
+    expect(within(outline).getByLabelText('2 nodes')).toBeInTheDocument();
+    expect(within(outline).getByLabelText('2 maximum steps per run')).toBeInTheDocument();
+    expect(within(outline).getByText('1 value set')).toBeInTheDocument();
+    await userEvent.click(within(outline).getByRole('button', { name: 'Select step trigger' }));
+    expect(within(panel()).getByDisplayValue('trigger')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Arrange' }));
+    expect(screen.getByText('Unsaved changes')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Focus canvas' }));
+    expect(screen.getByRole('button', { name: 'Show panels' })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Show panels' }));
+    expect(screen.getByRole('button', { name: 'Focus canvas' })).toBeInTheDocument();
+  });
+
+  it('keeps data suggestions visible while the configuration panel reflows', async () => {
+    await openEditor();
+    selectNode('log');
+    const selectedPanel = panel();
+    const message = within(selectedPanel).getByLabelText('Message');
+    await userEvent.clear(message);
+    await userEvent.type(message, '{{{{');
+
+    const suggestions = screen.getByRole('listbox', { name: 'Data from earlier steps' });
+    expect(within(suggestions).getByText('Available data')).toBeInTheDocument();
+    expect(within(suggestions).getByText('trigger')).toBeInTheDocument();
+    await userEvent.type(message, 'name');
+    expect(within(suggestions).getByText('trigger.name')).toBeInTheDocument();
+
+    fireEvent.scroll(selectedPanel);
+    expect(screen.getByRole('listbox', { name: 'Data from earlier steps' })).toBeInTheDocument();
+    await userEvent.click(within(suggestions).getByText('trigger.name'));
+    expect(message).toHaveValue('{{ trigger.name }}');
   });
 
   it('offers only server node types and explains the ones that cannot be added', async () => {
@@ -109,7 +157,7 @@ describe('Workflow editor canvas (Part 05)', () => {
     expect(await within(panel()).findByDisplayValue('log')).toBeInTheDocument();
 
     await userEvent.click(await within(palette()).findByRole('button', { name: /Condition/ }));
-    expect(screen.getByText('3/50 steps')).toBeInTheDocument();
+    expect(screen.getByText('3/50 nodes')).toBeInTheDocument();
     expect(screen.getByText('Unsaved changes')).toBeInTheDocument();
     // The new step is selected.
     expect(within(panel()).getByDisplayValue('condition')).toBeInTheDocument();
@@ -154,16 +202,16 @@ describe('Workflow editor canvas (Part 05)', () => {
   it('undoes and redoes with the buttons and the keyboard (AC-05.3)', async () => {
     await openEditor();
     await userEvent.click(await within(palette()).findByRole('button', { name: /Log a message/ }));
-    expect(screen.getByText('3/50 steps')).toBeInTheDocument();
+    expect(screen.getByText('3/50 nodes')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Undo' }));
-    expect(screen.getByText('2/50 steps')).toBeInTheDocument();
+    expect(screen.getByText('2/50 nodes')).toBeInTheDocument();
     expect(screen.getByText('All changes saved')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Redo' }));
-    expect(screen.getByText('3/50 steps')).toBeInTheDocument();
+    expect(screen.getByText('3/50 nodes')).toBeInTheDocument();
     await userEvent.keyboard('{Control>}z{/Control}');
-    expect(screen.getByText('2/50 steps')).toBeInTheDocument();
+    expect(screen.getByText('2/50 nodes')).toBeInTheDocument();
     await userEvent.keyboard('{Control>}{Shift>}z{/Shift}{/Control}');
-    expect(screen.getByText('3/50 steps')).toBeInTheDocument();
+    expect(screen.getByText('3/50 nodes')).toBeInTheDocument();
   });
 
   it('renames a step key and rewrites references to it', async () => {
@@ -215,7 +263,7 @@ describe('Workflow editor canvas (Part 05)', () => {
     selectNode('log');
     await userEvent.click(await within(panel()).findByRole('button', { name: /Delete step/ }));
     await waitFor(() => expect(canvasNode('log')).toBeNull());
-    expect(screen.getByText('1/50 steps')).toBeInTheDocument();
+    expect(screen.getByText('1/50 nodes')).toBeInTheDocument();
     expect(within(panel()).getByText('Select a step')).toBeInTheDocument();
   });
 
@@ -242,7 +290,7 @@ describe('Workflow editor canvas (Part 05)', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Save' }));
     expect(await screen.findByRole('alert')).toHaveTextContent(/changed elsewhere/);
     expect(screen.getByText('Changed elsewhere')).toBeInTheDocument();
-    expect(screen.getByText('3/50 steps')).toBeInTheDocument();
+    expect(screen.getByText('3/50 nodes')).toBeInTheDocument();
   });
 
   it('asks before leaving with unsaved changes', async () => {
@@ -256,7 +304,7 @@ describe('Workflow editor canvas (Part 05)', () => {
     const dialog = await screen.findByRole('dialog', { name: 'Leave without saving?' });
     await userEvent.click(within(dialog).getByRole('button', { name: 'Stay' }));
     expect(router.state.location.pathname).toBe(URL_);
-    expect(screen.getByText('3/50 steps')).toBeInTheDocument();
+    expect(screen.getByText('3/50 nodes')).toBeInTheDocument();
 
     await userEvent.click(
       within(screen.getByRole('navigation', { name: 'Breadcrumb' })).getByRole('link', {

@@ -1,9 +1,14 @@
 import { Handle, Position, type NodeProps } from '@xyflow/react';
-import { CircleAlert, Zap } from 'lucide-react';
+import { CheckCircle2, CircleAlert, CircleDashed, Settings2, Zap } from 'lucide-react';
 import { NodeTypeIcon } from '@/components/brand/node-type-icon';
 import { StatusBadge } from '@/components/ui';
 import { cn } from '@/lib/cn';
 import type { FlowNode } from '../../editor/mapping';
+import {
+  compactConfigValue,
+  configDisplayEntries,
+  configHighlights,
+} from '../../editor/config-display';
 
 export type WorkflowFlowNode = FlowNode;
 
@@ -16,11 +21,16 @@ const handle = 'size-3! border-2! border-white! bg-primary!';
  */
 export function WorkflowNode({ data, selected }: NodeProps<WorkflowFlowNode>) {
   const issues = data.issueCount ?? 0;
+  const settings = configDisplayEntries(data.config);
+  const highlights = configHighlights(data.nodeType, data.config);
+  const configured = settings.length > 0 || data.nodeType === 'manual.trigger';
   return (
     <div
       className={cn(
-        'bg-surface relative w-64 rounded-xl border px-3 py-2.5 text-left shadow-sm transition-shadow',
-        selected ? 'border-primary ring-primary/30 ring-2' : 'border-line hover:shadow-md',
+        'bg-surface relative w-72 overflow-visible rounded-2xl border text-left shadow-sm transition-all',
+        selected
+          ? 'border-primary ring-primary/25 -translate-y-0.5 shadow-lg ring-2'
+          : 'border-line hover:-translate-y-0.5 hover:shadow-md',
         issues > 0 && !selected && 'border-status-failed/60',
         data.stepStatus === 'SKIPPED' && 'opacity-50',
         data.stepStatus === 'FAILED' && !selected && 'border-status-failed',
@@ -29,7 +39,7 @@ export function WorkflowNode({ data, selected }: NodeProps<WorkflowFlowNode>) {
       {data.kind !== 'TRIGGER' && (
         <Handle type="target" position={Position.Top} className={handle} />
       )}
-      <div className="flex items-center gap-2.5">
+      <div className="flex items-center gap-2.5 px-3.5 py-3">
         <NodeTypeIcon type={data.nodeType} size="sm" />
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-medium">{data.label}</p>
@@ -54,8 +64,44 @@ export function WorkflowNode({ data, selected }: NodeProps<WorkflowFlowNode>) {
           </span>
         )}
       </div>
+      <div className="border-line border-t px-3.5 py-2.5">
+        {highlights.length > 0 ? (
+          <dl className="space-y-1.5">
+            {highlights.map((item) => (
+              <div key={item.path} className="grid grid-cols-[5.5rem_minmax(0,1fr)] gap-2 text-xs">
+                <dt className="text-muted truncate">{item.label}</dt>
+                <dd
+                  className={cn(
+                    'text-ink truncate text-right font-medium',
+                    item.template && 'text-primary font-mono text-[11px]',
+                  )}
+                  title={item.value}
+                >
+                  {compactConfigValue(item.value)}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        ) : (
+          <p className="text-muted flex items-center gap-1.5 text-xs">
+            {configured ? (
+              <CheckCircle2 className="text-status-succeeded size-3.5" aria-hidden />
+            ) : (
+              <CircleDashed className="text-status-warning size-3.5" aria-hidden />
+            )}
+            {configured ? 'No settings required' : 'Choose this step’s settings'}
+          </p>
+        )}
+      </div>
+      <div className="border-line bg-canvas/60 text-muted flex items-center justify-between rounded-b-2xl border-t px-3.5 py-1.5 text-[11px]">
+        <span className="inline-flex items-center gap-1">
+          <Settings2 className="size-3" aria-hidden />
+          {settings.length} value{settings.length === 1 ? '' : 's'} set
+        </span>
+        <span>{data.kind === 'CONDITION' ? '2 branches' : data.kind.toLowerCase()}</span>
+      </div>
       {data.stepStatus && (
-        <div className="mt-1.5">
+        <div className="absolute -top-3 right-3">
           <StatusBadge status={data.stepStatus} />
         </div>
       )}

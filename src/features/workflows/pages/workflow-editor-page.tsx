@@ -10,6 +10,8 @@ import {
   History,
   Info,
   LoaderCircle,
+  ListTree,
+  Maximize2,
   MonitorSmartphone,
   PanelLeftClose,
   PanelLeftOpen,
@@ -17,6 +19,7 @@ import {
   PanelRightOpen,
   PartyPopper,
   Play,
+  Plus,
   Redo2,
   Rocket,
   Save,
@@ -60,6 +63,7 @@ import { PollStatusBar } from '../components/poll-status-bar';
 import { useCapture } from '../api/webhook.api';
 import { samplePaths } from '../config/webhook-model';
 import { WorkflowStatusBadge } from '../components/workflow-status-badge';
+import { WorkflowOutline } from '../components/workflow-outline';
 import { sameDefinition } from '../editor/canonical';
 import { conflictRevisionOf, type SaveSnapshot } from '../editor/draft-saver';
 import { countErrors, issuesFromError } from '../editor/issues';
@@ -124,6 +128,7 @@ function Editor({ workflow }: { workflow: WorkflowDetail }) {
   const [issues, setIssues] = useState<ValidationIssue[]>(workflow.issues);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [side, setSide] = useState<'step' | 'versions'>('step');
+  const [leftView, setLeftView] = useState<'add' | 'outline'>('add');
   const [showIssues, setShowIssues] = useState(false);
   const [publishOpen, setPublishOpen] = useState(false);
   // The conflict dialog shows while there is a conflict, unless the user chose to decide later.
@@ -210,6 +215,17 @@ function Editor({ workflow }: { workflow: WorkflowDetail }) {
       void fitView({ nodes: [{ id: key }], duration: 300, maxZoom: 1.2 });
     },
     [fitView, setPanel],
+  );
+
+  const selectCanvasNode = useCallback(
+    (key: string | null) => {
+      setSelectedKey(key);
+      if (key) {
+        setSide('step');
+        setPanel('right', true);
+      }
+    },
+    [setPanel],
   );
 
   const add = (type: NodeTypeInfo) => {
@@ -410,7 +426,7 @@ function Editor({ workflow }: { workflow: WorkflowDetail }) {
             )}
             title="Steps used of the maximum"
           >
-            {def.nodes.length}/{DEFINITION_LIMITS.maxNodes} steps
+            {def.nodes.length}/{DEFINITION_LIMITS.maxNodes} nodes
           </span>
           <Button
             variant="ghost"
@@ -459,6 +475,20 @@ function Editor({ workflow }: { workflow: WorkflowDetail }) {
           >
             <History className="size-4" aria-hidden />
             Versions
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            aria-pressed={!panels.left && !panels.right}
+            title="Hide both side panels to focus on the canvas"
+            onClick={() => {
+              const open = !panels.left && !panels.right;
+              setPanel('left', open);
+              setPanel('right', open);
+            }}
+          >
+            <Maximize2 className="size-4" aria-hidden />
+            {!panels.left && !panels.right ? 'Show panels' : 'Focus canvas'}
           </Button>
           <Button variant="secondary" size="sm" onClick={() => void saveNow()} disabled={!canSave}>
             <Save className="size-4" aria-hidden />
@@ -602,20 +632,66 @@ function Editor({ workflow }: { workflow: WorkflowDetail }) {
           aria-label="Steps panel"
           className={cn(
             'border-line bg-surface hidden shrink-0 flex-col border-r md:flex',
-            panels.left ? 'w-64' : 'w-10',
+            panels.left ? 'w-72' : 'w-10',
           )}
         >
           {panels.left ? (
             <>
-              <PanelHeader title="Add steps">
+              <PanelHeader title="Flow builder">
                 <PanelToggle
                   icon={PanelLeftClose}
                   label="Collapse steps panel"
                   onClick={() => setPanel('left', false)}
                 />
               </PanelHeader>
+              <div
+                className="border-line grid grid-cols-2 gap-1 border-b p-2"
+                role="tablist"
+                aria-label="Builder view"
+              >
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={leftView === 'add'}
+                  onClick={() => setLeftView('add')}
+                  className={cn(
+                    'flex items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-medium',
+                    leftView === 'add'
+                      ? 'bg-primary-soft text-primary'
+                      : 'text-muted hover:bg-canvas',
+                  )}
+                >
+                  <Plus className="size-3.5" aria-hidden />
+                  Add steps
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={leftView === 'outline'}
+                  onClick={() => setLeftView('outline')}
+                  className={cn(
+                    'flex items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-medium',
+                    leftView === 'outline'
+                      ? 'bg-primary-soft text-primary'
+                      : 'text-muted hover:bg-canvas',
+                  )}
+                >
+                  <ListTree className="size-3.5" aria-hidden />
+                  Flow outline
+                </button>
+              </div>
               <div className="min-h-0 flex-1">
-                <NodePalette hasTrigger={hasTrigger} onAdd={add} disabled={readOnly} />
+                {leftView === 'add' ? (
+                  <NodePalette hasTrigger={hasTrigger} onAdd={add} disabled={readOnly} />
+                ) : (
+                  <WorkflowOutline
+                    definition={def}
+                    selectedKey={selectedKey}
+                    onSelect={selectNode}
+                    labelFor={labelFor}
+                    issueCount={issueCount}
+                  />
+                )}
               </div>
             </>
           ) : (
@@ -634,7 +710,7 @@ function Editor({ workflow }: { workflow: WorkflowDetail }) {
               definition={def}
               dispatch={dispatch}
               selectedKey={selectedKey}
-              onSelect={setSelectedKey}
+              onSelect={selectCanvasNode}
               labelFor={labelFor}
               issueCount={issueCount}
               readOnly={readOnly}
@@ -662,7 +738,7 @@ function Editor({ workflow }: { workflow: WorkflowDetail }) {
           aria-label={side === 'versions' ? 'Versions panel' : 'Selected step'}
           className={cn(
             'border-line bg-surface hidden shrink-0 flex-col border-l md:flex',
-            panels.right ? 'w-80' : 'w-10',
+            panels.right ? 'w-96' : 'w-10',
           )}
         >
           {!panels.right ? (

@@ -1,5 +1,9 @@
 import { createContext, useContext } from 'react';
-import type { ReferenceProblem, ReferenceSuggestion } from './references';
+import {
+  referenceSyntaxError,
+  type ReferenceProblem,
+  type ReferenceSuggestion,
+} from './references';
 
 /** What the selected step's form needs to know about the rest of the workflow. */
 export interface ConfigScope {
@@ -26,7 +30,19 @@ export function filterSuggestions(items: ReferenceSuggestion[], query: string) {
   if (!q) return items;
   const starts = items.filter((i) => i.ref.toLowerCase().startsWith(q));
   const contains = items.filter((i) => !starts.includes(i) && i.ref.toLowerCase().includes(q));
-  return [...starts, ...contains];
+  const openTrigger = items.find((item) => item.ref === 'trigger' && item.allowsChildren);
+  const customRef = q.startsWith('trigger.') ? q : 'trigger'.startsWith(q) ? null : `trigger.${q}`;
+  const custom =
+    openTrigger && customRef && !referenceSyntaxError(customRef)
+      ? [
+          {
+            ref: customRef,
+            source: openTrigger.source,
+            description: 'Custom field from this trigger payload',
+          },
+        ]
+      : [];
+  return [...custom, ...starts, ...contains.filter((item) => item.ref !== customRef)];
 }
 
 /** Id of a suggestion option, for aria-activedescendant. */

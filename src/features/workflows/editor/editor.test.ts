@@ -8,7 +8,7 @@ import {
 } from './editor-reducer';
 import { canConnect } from './graph-rules';
 import { generateKey, keyProblem } from './keys';
-import { autoLayout } from './layout';
+import { autoLayout, LAYOUT } from './layout';
 import { edgeId, toDefinition, toFlow } from './mapping';
 
 /** A backend-shaped definition: trigger → condition → (true) slack / (false) log. */
@@ -100,6 +100,30 @@ describe('definition ↔ canvas mapping (AC-05.1)', () => {
       nodes.every((n) => n.draggable === false && n.connectable === false && n.deletable === false),
     ).toBe(true);
     expect(edges.every((e) => e.deletable === false)).toBe(true);
+  });
+
+  it('expands legacy tight positions for display without reducing authored gaps', () => {
+    const { nodes } = toFlow(branching, { spacious: true });
+    const position = (key: string) => nodes.find((node) => node.id === key)!.position;
+    expect(position('is_high').y - position('trigger').y).toBe(260);
+    expect(position('notify').y - position('is_high').y).toBe(260);
+    expect(position('log').x - position('notify').x).toBeGreaterThanOrEqual(380);
+    expect(branching.nodes.find((node) => node.key === 'is_high')!.position).toEqual({
+      x: 0,
+      y: 140,
+    });
+
+    const generous: WorkflowDefinition = {
+      ...branching,
+      nodes: branching.nodes.map((node, index) => ({
+        ...node,
+        position: { x: node.position!.x * 3, y: index * 500 },
+      })),
+    };
+    const spread = toFlow(generous, { spacious: true }).nodes;
+    expect(spread.map((node) => node.position)).toEqual(
+      generous.nodes.map((node) => node.position),
+    );
   });
 });
 
@@ -313,6 +337,26 @@ describe('editor reducer (AC-05.5)', () => {
   it('moving to the same position is not an edit', () => {
     const s = run(branching, { type: 'moveNode', key: 'log', position: { x: 150, y: 280 } });
     expect(s.past).toHaveLength(0);
+  });
+
+  it('auto-layout arranges every step as one undoable edit', () => {
+    const scattered = {
+      ...branching,
+      nodes: branching.nodes.map((node, index) => ({
+        ...node,
+        position: { x: index * 17, y: index * 13 },
+      })),
+    };
+    const arranged = run(scattered, { type: 'autoLayout' });
+    expect(arranged.past).toHaveLength(1);
+    expect(arranged.definition.nodes.find((node) => node.key === 'trigger')?.position).toEqual({
+      x: 0,
+      y: 0,
+    });
+    expect(arranged.definition.nodes.find((node) => node.key === 'notify')?.position?.y).toBe(
+      LAYOUT.rowHeight * 2,
+    );
+    expect(editorReducer(arranged, { type: 'undo' }).definition).toEqual(scattered);
   });
 
   it('undo and redo restore every edit type', () => {

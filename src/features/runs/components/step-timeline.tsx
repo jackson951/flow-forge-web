@@ -24,7 +24,7 @@ export function StepTimeline({ steps, labelFor, skipReasons, payloadsTrimmed }: 
   const ordered = [...steps].sort((a, b) => a.sequence - b.sequence);
   return (
     <ol
-      aria-label="Steps"
+      aria-label="Execution timeline"
       className="divide-line border-line bg-surface divide-y rounded-xl border"
     >
       {ordered.map((step) => {
