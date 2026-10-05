@@ -23,9 +23,47 @@ describe('public website (Part 12)', () => {
       'href',
       '/register',
     );
-    // Only real integrations and steps are advertised.
-    expect(screen.getAllByText('Microsoft To Do').length).toBeGreaterThan(0);
-    expect(document.body.textContent).not.toMatch(/Jira|ServiceNow|SQL Server|PostgreSQL|OpenAI/);
+    // Every shipped provider is advertised; unavailable products are not invented.
+    for (const provider of [
+      'GitHub',
+      'Slack',
+      'Microsoft To Do',
+      'Jira',
+      'Gmail',
+      'HTTP connections',
+    ]) {
+      expect(screen.getAllByText(provider).length).toBeGreaterThan(0);
+    }
+    expect(document.body.textContent).toMatch(/schedules, webhooks, API polling/);
+    expect(document.body.textContent).not.toMatch(/ServiceNow|SQL Server|PostgreSQL|OpenAI/);
+  });
+
+  it('the public catalogue describes every provider and built-in trigger capability', async () => {
+    signedOut();
+    renderRoute('/integrations');
+    expect(
+      await screen.findByRole('heading', {
+        level: 1,
+        name: /Connect the tools your team already uses/,
+      }),
+    ).toBeInTheDocument();
+    for (const provider of [
+      'GitHub',
+      'Slack',
+      'Microsoft To Do',
+      'Jira',
+      'Gmail',
+      'HTTP connections',
+    ]) {
+      expect(screen.getByRole('heading', { name: provider })).toBeInTheDocument();
+    }
+    expect(screen.getByText('Trigger: Poll for new items')).toBeInTheDocument();
+    expect(screen.getByText('Trigger: Schedule')).toBeInTheDocument();
+    expect(screen.getByText('Trigger: Generic webhook')).toBeInTheDocument();
+    expect(screen.getByText('Trigger: HTTP poll')).toBeInTheDocument();
+    expect(screen.getByText('Trigger: Manual')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'AI steps' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Logic and utilities' })).toBeInTheDocument();
   });
 
   it('signed-in users still go straight to their workspace', async () => {

@@ -84,6 +84,7 @@ export const PROVIDER_CATALOG: ProviderInfo[] = [
     key: 'HTTP',
     name: 'HTTP connections',
     summary: 'Save an API’s credentials once and use them in HTTP request and poll steps.',
+    trigger: 'Poll for new items',
     actions: ['HTTP request'],
     notes: ['Credentials are encrypted, never shown again, and only sent to the hosts you allow.'],
     connectLabel: 'New HTTP connection',

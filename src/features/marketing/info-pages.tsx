@@ -8,6 +8,7 @@ import {
   Lock,
   MousePointerClick,
   Play,
+  Plug,
   RefreshCw,
   Rocket,
   ScrollText,
@@ -17,6 +18,7 @@ import {
   Undo2,
   Users,
   Webhook,
+  Zap,
   type LucideIcon,
 } from 'lucide-react';
 import type { ReactNode } from 'react';
@@ -26,6 +28,13 @@ import { ProviderIcon } from '@/components/brand/provider-icons';
 import { buttonClasses } from '@/components/ui';
 import { PROVIDER_CATALOG } from '@/features/integrations/provider-catalog';
 import { paths } from '@/lib/routes';
+
+const BUILT_IN_TRIGGERS = [
+  { type: 'schedule.trigger', label: 'Schedule' },
+  { type: 'webhook.received', label: 'Generic webhook' },
+  { type: 'http.poll', label: 'HTTP poll' },
+  { type: 'manual.trigger', label: 'Manual' },
+] as const;
 
 function PageIntro({
   eyebrow,
@@ -156,12 +165,17 @@ export function PublicIntegrationsPage() {
             <p className="text-muted mt-3 text-sm">{p.summary}</p>
             <ul className="mt-3 flex flex-wrap gap-1.5 text-xs">
               {p.trigger && (
-                <li className="bg-primary-soft text-primary rounded-full px-2 py-0.5 font-medium">
+                <li className="bg-primary-soft text-primary inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-medium">
+                  <Zap className="size-3" aria-hidden />
                   Trigger: {p.trigger}
                 </li>
               )}
               {p.actions.map((a) => (
-                <li key={a} className="bg-canvas rounded-full px-2 py-0.5 font-medium">
+                <li
+                  key={a}
+                  className="bg-canvas inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-medium"
+                >
+                  <Plug className="size-3" aria-hidden />
                   Action: {a}
                 </li>
               ))}
@@ -179,7 +193,11 @@ export function PublicIntegrationsPage() {
           </p>
           <ul className="mt-3 flex flex-wrap gap-1.5 text-xs">
             {['Summarise', 'Classify', 'Extract fields'].map((a) => (
-              <li key={a} className="bg-canvas rounded-full px-2 py-0.5 font-medium">
+              <li
+                key={a}
+                className="bg-canvas inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-medium"
+              >
+                <NodeTypeIcon type="ai.summarize" size="xs" />
                 Action: {a}
               </li>
             ))}
@@ -187,13 +205,48 @@ export function PublicIntegrationsPage() {
         </li>
         <li className="border-line rounded-2xl border p-6">
           <div className="flex items-center gap-3">
-            <NodeTypeIcon type="manual.trigger" />
-            <h2 className="text-lg font-semibold">Built in</h2>
+            <NodeTypeIcon type="schedule.trigger" />
+            <h2 className="text-lg font-semibold">Workflow triggers</h2>
           </div>
           <p className="text-muted mt-3 text-sm">
-            Start runs by hand with JSON input, branch with conditions, and write messages to the
-            run history.
+            Run on a schedule, receive a generic webhook, poll a JSON API for new items, or start a
+            run manually with your own input.
           </p>
+          <ul className="mt-3 flex flex-wrap gap-1.5 text-xs">
+            {BUILT_IN_TRIGGERS.map((trigger) => (
+              <li
+                key={trigger.type}
+                className="bg-primary-soft text-primary inline-flex items-center gap-1 rounded-full py-0.5 pr-2 pl-1 font-medium"
+              >
+                <NodeTypeIcon type={trigger.type} size="xs" />
+                Trigger: {trigger.label}
+              </li>
+            ))}
+          </ul>
+        </li>
+        <li className="border-line rounded-2xl border p-6">
+          <div className="flex items-center gap-3">
+            <NodeTypeIcon type="condition" />
+            <h2 className="text-lg font-semibold">Logic and utilities</h2>
+          </div>
+          <p className="text-muted mt-3 text-sm">
+            Branch with nested AND, OR and NOT conditions, map data from earlier steps, and write
+            diagnostic messages to the run history.
+          </p>
+          <ul className="mt-3 flex flex-wrap gap-1.5 text-xs">
+            {[
+              { type: 'condition', label: 'Condition' },
+              { type: 'util.log', label: 'Log message' },
+            ].map((item) => (
+              <li
+                key={item.type}
+                className="bg-canvas inline-flex items-center gap-1 rounded-full py-0.5 pr-2 pl-1 font-medium"
+              >
+                <NodeTypeIcon type={item.type} size="xs" />
+                {item.label}
+              </li>
+            ))}
+          </ul>
         </li>
       </ul>
       <Cta />

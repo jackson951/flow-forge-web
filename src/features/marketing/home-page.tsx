@@ -39,7 +39,12 @@ const USE_CASES: { icon: LucideIcon; title: string; text: string }[] = [
   {
     icon: Building2,
     title: 'Operations',
-    text: 'Turn incoming events into Microsoft To Do tasks with the details filled in, so nothing is missed.',
+    text: 'Receive a webhook or poll an API, then create a Jira issue or Microsoft To Do task with the details filled in.',
+  },
+  {
+    icon: Webhook,
+    title: 'Email workflows',
+    text: 'Start from new Gmail messages, classify or extract their plain-text content, then reply or organise the mailbox.',
   },
   {
     icon: Sparkles,
@@ -115,8 +120,8 @@ export function HomePage() {
             </p>
             <ul className="mt-6 space-y-2 text-sm">
               {[
-                'Triggers: GitHub issues, or run it yourself',
-                'Actions: Slack, Microsoft To Do, logs',
+                'Triggers: schedules, webhooks, API polling, GitHub, Jira, Gmail, or manual runs',
+                'Actions: HTTP, Jira, Gmail, Slack, Microsoft To Do, and logs',
                 'AI steps: summarise, classify, extract',
                 'Conditions with AND / OR / NOT',
               ].map((t) => (
@@ -171,6 +176,9 @@ export function HomePage() {
                 ['GITHUB', 'GitHub'],
                 ['SLACK', 'Slack'],
                 ['MICROSOFT', 'Microsoft To Do'],
+                ['JIRA', 'Jira'],
+                ['GMAIL', 'Gmail'],
+                ['HTTP', 'HTTP connections'],
               ] as const
             ).map(([key, name]) => (
               <li
@@ -200,7 +208,7 @@ export function HomePage() {
         <h2 id="use-cases" className="text-center text-3xl font-bold tracking-tight">
           Built for real work
         </h2>
-        <ul className="mt-10 grid gap-6 md:grid-cols-3">
+        <ul className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {USE_CASES.map((u) => (
             <li key={u.title} className="border-line rounded-2xl border p-6">
               <span className="bg-primary-soft text-primary flex size-10 items-center justify-center rounded-lg">
