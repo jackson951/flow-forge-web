@@ -1,7 +1,7 @@
 # FlowForge web (Part 14): build with Node 22, serve the static build with unprivileged nginx.
 # The final image holds only nginx + dist/ — no Node, no source, no .env, no build-time secrets.
 
-FROM node:22-alpine AS build
+FROM node:25-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund
